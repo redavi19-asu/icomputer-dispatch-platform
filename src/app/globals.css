@@ -1,0 +1,434 @@
+@import "mapbox-gl/dist/mapbox-gl.css";
+@import "tailwindcss";
+
+:root {
+  --background: #ffffff;
+  --foreground: #0f172a;
+  --font-orbitron: "Orbitron", sans-serif;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #0a0a0a;
+    --foreground: #f8fafc;
+  }
+}
+
+body {
+  background-color: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-geist-sans), system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  min-height: 100vh;
+}
+
+@layer utilities {
+  .bg-gradient-radial {
+    background-image: radial-gradient(circle, var(--tw-gradient-stops));
+  }
+
+  /* Futuristic Orbitron font */
+  .font-orbitron {
+    font-family: var(--font-orbitron);
+    letter-spacing: -0.02em;
+    font-weight: 900;
+  }
+
+  /* ===== PRICING CTA BUTTONS ===== */
+
+  /* Base CTA button styles */
+  .cta-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 14px;
+    font-weight: 700;
+    padding: 14px 18px;
+    background: #ffffff;
+    transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease, filter 180ms ease;
+    width: 100%;
+    cursor: pointer;
+    text-decoration: none;
+  }
+
+  .cta-btn:hover {
+    transform: translateY(-1px);
+  }
+
+  /* Blue neon ring + glow for non-emergency tiers */
+  .cta-btn--blue {
+    border: 2px solid #22d3ee;
+    color: #0891b2;
+    box-shadow: 0 0 0 3px rgba(34, 211, 238, 0.15), 0 10px 30px rgba(34, 211, 238, 0.18);
+  }
+
+  .cta-btn--blue:hover {
+    box-shadow: 0 0 0 4px rgba(34, 211, 238, 0.22), 0 14px 40px rgba(34, 211, 238, 0.25);
+  }
+
+  .cta-btn--blue:focus-visible {
+    outline: 2px solid #22d3ee;
+    outline-offset: 2px;
+  }
+
+  /* Red pulsing emergency look */
+  .cta-btn--danger {
+    border: 2px solid #ff3b30;
+    color: #ff3b30;
+    box-shadow: 0 0 0 3px rgba(255, 59, 48, 0.18), 0 12px 32px rgba(255, 59, 48, 0.20);
+    animation: emergencyPulse 1.1s ease-in-out infinite;
+  }
+
+  @keyframes emergencyPulse {
+    0%, 100% {
+      box-shadow: 0 0 0 3px rgba(255, 59, 48, 0.15), 0 10px 25px rgba(255, 59, 48, 0.12);
+      filter: brightness(1);
+    }
+    50% {
+      box-shadow: 0 0 0 6px rgba(255, 59, 48, 0.30), 0 18px 45px rgba(255, 59, 48, 0.28);
+      filter: brightness(1.08);
+    }
+  }
+
+  /* Respect reduced motion preference */
+  @media (prefers-reduced-motion: reduce) {
+    .cta-btn--danger {
+      animation: none;
+    }
+  }
+
+  /* ===== ENERGY CORE ANIMATIONS ===== */
+
+  /* Center energy core pulse - pre-impact */
+  @keyframes core-pulse {
+    0% {
+      box-shadow: 0 0 20px rgba(34, 211, 238, 0.4),
+                  0 0 40px rgba(56, 189, 248, 0.2),
+                  inset 0 0 30px rgba(34, 211, 238, 0.3);
+      transform: scale(1);
+    }
+    50% {
+      box-shadow: 0 0 30px rgba(34, 211, 238, 0.7),
+                  0 0 60px rgba(56, 189, 248, 0.4),
+                  inset 0 0 40px rgba(34, 211, 238, 0.5);
+      transform: scale(1.1);
+    }
+    100% {
+      box-shadow: 0 0 20px rgba(34, 211, 238, 0.4),
+                  0 0 40px rgba(56, 189, 248, 0.2),
+                  inset 0 0 30px rgba(34, 211, 238, 0.3);
+      transform: scale(1);
+    }
+  }
+
+  .core-pulse {
+    animation: core-pulse 2s ease-in-out infinite;
+  }
+
+  /* ===== IMPACT EFFECTS ===== */
+
+  /* Screen flash - lightning moment */
+  @keyframes screen-flash {
+    0% {
+      opacity: 0;
+    }
+    10% {
+      opacity: 1;
+    }
+    20% {
+      opacity: 0.4;
+    }
+    40% {
+      opacity: 0;
+    }
+    100% {
+      opacity: 0;
+    }
+  }
+
+  .screen-flash {
+    animation: screen-flash 0.8s ease-out forwards;
+  }
+
+  /* Electric arc / lightning */
+  @keyframes lightning-strike {
+    0% {
+      opacity: 0;
+      stroke-dashoffset: 1000;
+    }
+    10% {
+      opacity: 1;
+      stroke-dashoffset: 1000;
+    }
+    30% {
+      opacity: 1;
+      stroke-dashoffset: 0;
+    }
+    40% {
+      opacity: 0.5;
+    }
+    100% {
+      opacity: 0;
+    }
+  }
+
+  .lightning-strike {
+    animation: lightning-strike 0.7s ease-out forwards;
+    stroke-dasharray: 1000;
+  }
+
+  /* Shockwave ring burst */
+  @keyframes shockwave {
+    0% {
+      transform: scale(0.1);
+      opacity: 1;
+    }
+    100% {
+      transform: scale(3);
+      opacity: 0;
+    }
+  }
+
+  .shockwave {
+    animation: shockwave 0.8s ease-out forwards;
+  }
+
+  /* Electric burst outward */
+  @keyframes electric-burst {
+    0% {
+      transform: scale(0.5);
+      opacity: 1;
+    }
+    100% {
+      transform: scale(2.5);
+      opacity: 0;
+    }
+  }
+
+  .electric-burst {
+    animation: electric-burst 0.9s ease-out forwards;
+  }
+
+  /* Particle burst - sparks scatter */
+  @keyframes particle-burst {
+    0% {
+      opacity: 1;
+      transform: translate(0, 0) scale(1);
+      filter: blur(0px);
+    }
+    100% {
+      opacity: 0;
+      transform: translate(var(--tx), var(--ty)) scale(0.2);
+      filter: blur(2px);
+    }
+  }
+
+  .particle-burst {
+    animation: particle-burst 1s ease-out forwards;
+  }
+
+  /* ===== POST-COLLISION GLOW ===== */
+
+  /* Residual electric glow - builds after impact */
+  @keyframes residual-glow {
+    0% {
+      opacity: 0;
+      filter: blur(0px);
+    }
+    20% {
+      opacity: 1;
+    }
+    100% {
+      opacity: 0.25;
+      filter: blur(60px);
+    }
+  }
+
+  .residual-glow {
+    animation: residual-glow 2s ease-out forwards;
+  }
+
+  /* Post-collision pulse */
+  @keyframes post-collision-pulse {
+    0% {
+      box-shadow: 0 0 0px rgba(34, 211, 238, 0);
+    }
+    20% {
+      box-shadow: 0 0 20px rgba(34, 211, 238, 0.4),
+                  0 0 40px rgba(56, 189, 248, 0.2);
+    }
+    100% {
+      box-shadow: 0 0 15px rgba(34, 211, 238, 0.2),
+                  0 0 30px rgba(56, 189, 248, 0.1);
+    }
+  }
+
+  .post-collision-pulse {
+    animation: post-collision-pulse 1.5s ease-out forwards;
+    animation-delay: 1.5s;
+  }
+
+  /* Text electric glow */
+  @keyframes text-electric-shimmer {
+    0% {
+      text-shadow: 0 0 0px rgba(34, 211, 238, 0),
+                   0 0 0px rgba(56, 189, 248, 0);
+      filter: blur(0.3px);
+    }
+    50% {
+      text-shadow: 0 0 20px rgba(34, 211, 238, 0.8),
+                   0 0 40px rgba(56, 189, 248, 0.4);
+      filter: blur(0px);
+    }
+    100% {
+      text-shadow: 0 0 10px rgba(34, 211, 238, 0.3),
+                   0 0 20px rgba(56, 189, 248, 0.1);
+      filter: blur(0px);
+    }
+  }
+
+  .text-electric-shimmer {
+    animation: text-electric-shimmer 1.2s ease-out forwards;
+    animation-delay: 1.4s;
+  }
+
+  /* Idle glow after settling */
+  @keyframes idle-glow {
+    0%, 100% {
+      text-shadow: 0 0 10px rgba(34, 211, 238, 0.2),
+                   0 0 20px rgba(56, 189, 248, 0.1);
+    }
+    50% {
+      text-shadow: 0 0 15px rgba(34, 211, 238, 0.3),
+                   0 0 25px rgba(56, 189, 248, 0.15);
+    }
+  }
+
+  .idle-glow {
+    animation: idle-glow 3s ease-in-out infinite;
+    animation-delay: 2.5s;
+  }
+
+  /* ===== LEGACY ANIMATIONS (KEPT FOR COMPATIBILITY) ===== */
+
+  @keyframes charging-glow {
+    0%, 100% {
+      box-shadow: 0 0 20px rgba(34, 197, 94, 0), 0 0 40px rgba(34, 197, 94, 0);
+    }
+    50% {
+      box-shadow: 0 0 20px rgba(34, 197, 94, 0.3), 0 0 40px rgba(34, 197, 94, 0.15);
+    }
+  }
+
+  .charging-glow {
+    animation: charging-glow 3s ease-in-out infinite;
+  }
+
+  /* Hero collision flash effect */
+  @keyframes impact-flash {
+    0% {
+      opacity: 0;
+    }
+    10% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.3;
+    }
+    100% {
+      opacity: 0;
+    }
+  }
+
+  .impact-flash {
+    animation: impact-flash 0.6s ease-out forwards;
+  }
+
+  /* Lightning spark effect */
+  @keyframes electric-spark {
+    0% {
+      opacity: 1;
+      transform: translate(0, 0) scale(1);
+    }
+    100% {
+      opacity: 0;
+      transform: translate(var(--tx), var(--ty)) scale(0);
+    }
+  }
+
+  .electric-spark {
+    animation: electric-spark 0.7s ease-out forwards;
+  }
+
+  /* Electric text glow effect */
+  @keyframes text-electric-glow {
+    0% {
+      text-shadow: 0 0 0px rgba(34, 211, 238, 0),
+                   0 0 0px rgba(56, 189, 248, 0);
+    }
+    50% {
+      text-shadow: 0 0 20px rgba(34, 211, 238, 0.8),
+                   0 0 40px rgba(56, 189, 248, 0.4);
+    }
+    100% {
+      text-shadow: 0 0 10px rgba(34, 211, 238, 0.4),
+                   0 0 20px rgba(56, 189, 248, 0.2);
+    }
+  }
+
+  .text-electric-glow {
+    animation: text-electric-glow 1.5s ease-out forwards;
+    animation-delay: 1.2s;
+  }
+}
+
+/* ===== RESPONSIVE OVERFLOW FIXES ===== */
+
+html,
+body {
+  overflow-x: hidden;
+}
+
+/* iPad portrait ONLY: prevent hero logo/title from clipping */
+@media (min-width: 768px) and (max-width: 1024px) and (orientation: portrait) {
+  .hero,
+  .hero * {
+    max-width: 100%;
+  }
+
+  .hero-title, 
+  .brand-title,
+  .logo-text {
+    font-size: 64px;      /* adjust if needed */
+    line-height: 1.05;
+    letter-spacing: 0;
+    transform: none;
+    white-space: normal;
+    overflow-wrap: anywhere;
+    text-align: center;
+  }
+
+  .hero {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+}
+
+@keyframes wa-alert-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 rgba(245, 158, 11, 0.2), 0 10px 24px rgba(15, 23, 42, 0.16);
+  }
+  50% {
+    box-shadow: 0 0 24px rgba(245, 158, 11, 0.38), 0 12px 28px rgba(15, 23, 42, 0.2);
+  }
+}
+
+.wa-alert-banner {
+  animation: wa-alert-pulse 3s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .wa-alert-banner {
+    animation: none;
+  }
+}

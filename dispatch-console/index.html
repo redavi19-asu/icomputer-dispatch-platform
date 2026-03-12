@@ -1,0 +1,419 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>ChargeNext Dispatch Console</title>
+
+  <!-- Leaflet -->
+  <link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+    crossorigin=""
+  />
+  <script
+    src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+    integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+    crossorigin=""
+  ></script>
+
+  <style>
+    :root{
+      --bg:#0b1220;
+      --panel:#0f1a2e;
+      --card:#101f39;
+      --text:#e9eefc;
+      --muted:#9fb0d0;
+      --line:rgba(255,255,255,.08);
+      --ok:#25d366;
+      --warn:#ffcc00;
+      --bad:#ff4d4f;
+      --btn:#2b6fff;
+      --btn2:#1b2b4c;
+      --shadow: 0 18px 50px rgba(0,0,0,.35);
+      --radius:16px;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
+      background: radial-gradient(1200px 600px at 20% -10%, rgba(43,111,255,.35), transparent 55%),
+                  radial-gradient(900px 600px at 80% 0%, rgba(37,211,102,.18), transparent 50%),
+                  var(--bg);
+      color:var(--text);
+      height:100vh;
+      overflow:hidden;
+    }
+
+    .app{
+      display:grid;
+      grid-template-columns: 420px 1fr;
+      height:100vh;
+    }
+
+    .sidebar{
+      padding:18px;
+      background: linear-gradient(180deg, rgba(255,255,255,.03), transparent 40%),
+                  rgba(15,26,46,.72);
+      border-right:1px solid var(--line);
+      overflow:auto;
+    }
+    .brand{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      margin-bottom:14px;
+    }
+    .brand h1{
+      font-size:18px;
+      margin:0;
+      letter-spacing:.2px;
+    }
+    .pill{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      padding:8px 10px;
+      border-radius:999px;
+      background:rgba(255,255,255,.06);
+      border:1px solid var(--line);
+      font-size:12px;
+      color:var(--muted);
+    }
+    .dot{
+      width:10px;height:10px;border-radius:999px;
+      background:var(--warn);
+      box-shadow:0 0 0 6px rgba(255,204,0,.08);
+    }
+    .dot.ok{ background:var(--ok); box-shadow:0 0 0 6px rgba(37,211,102,.10); }
+    .dot.bad{ background:var(--bad); box-shadow:0 0 0 6px rgba(255,77,79,.10); }
+
+    .card{
+      background: rgba(16,31,57,.78);
+      border:1px solid var(--line);
+      border-radius: var(--radius);
+      padding:14px;
+      box-shadow: var(--shadow);
+      margin-bottom:12px;
+    }
+    .card h2{
+      font-size:13px;
+      margin:0 0 10px 0;
+      color:#cfe0ff;
+      font-weight:600;
+      letter-spacing:.25px;
+    }
+    .row{display:flex; gap:10px; align-items:center; margin:8px 0;}
+    label{font-size:12px; color:var(--muted); display:block; margin-bottom:6px;}
+    input, textarea, select{
+      width:100%;
+      border-radius:12px;
+      border:1px solid var(--line);
+      background: rgba(11,18,32,.65);
+      color: var(--text);
+      padding:10px 12px;
+      outline:none;
+      font-size:13px;
+    }
+    textarea{min-height:78px; resize:vertical;}
+    .grid2{display:grid; grid-template-columns: 1fr 1fr; gap:10px;}
+    .btnrow{display:flex; gap:10px; margin-top:10px;}
+    button{
+      border:0;
+      border-radius:12px;
+      padding:10px 12px;
+      font-weight:600;
+      cursor:pointer;
+      font-size:13px;
+    }
+    .btn{
+      background: linear-gradient(180deg, rgba(43,111,255,.95), rgba(43,111,255,.78));
+      color:white;
+    }
+    .btn.secondary{
+      background: rgba(27,43,76,.9);
+      color:#dbe6ff;
+      border:1px solid var(--line);
+    }
+    .hint{
+      font-size:12px;
+      color:var(--muted);
+      line-height:1.3;
+    }
+    .mono{
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+      font-size:12px;
+      background: rgba(0,0,0,.28);
+      border:1px solid var(--line);
+      padding:10px;
+      border-radius:12px;
+      overflow:auto;
+      max-height: 220px;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    .main{
+      position:relative;
+      height:100vh;
+    }
+    #map{
+      height:100%;
+      width:100%;
+    }
+    .mapHud{
+      position:absolute;
+      left:14px;
+      top:14px;
+      display:flex;
+      gap:10px;
+      align-items:center;
+      z-index:999;
+    }
+    .hudCard{
+      background: rgba(16,31,57,.78);
+      border:1px solid var(--line);
+      border-radius: 999px;
+      padding:10px 12px;
+      box-shadow: var(--shadow);
+      font-size:12px;
+      color:var(--muted);
+      display:flex;
+      gap:10px;
+      align-items:center;
+      backdrop-filter: blur(8px);
+    }
+    .kbd{
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+      background: rgba(255,255,255,.08);
+      border:1px solid var(--line);
+      padding:2px 8px;
+      border-radius: 999px;
+      color:#eaf1ff;
+    }
+    .rightHud{
+      position:absolute;
+      right:14px;
+      top:14px;
+      z-index:999;
+      display:flex;
+      flex-direction:column;
+      gap:10px;
+      width:min(420px, 45vw);
+    }
+  </style>
+</head>
+
+<body>
+  <div class="app">
+    <!-- SIDEBAR -->
+    <div class="sidebar">
+      <div class="brand">
+        <h1>ChargeNext — Dispatch Console</h1>
+        <div class="pill" id="healthPill">
+          <span class="dot" id="healthDot"></span>
+          <span id="healthText">checking…</span>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>API Base</h2>
+        <label>Worker URL</label>
+        <input id="apiBase" value="https://chargenext-api.ryanedavis.workers.dev" />
+        <div class="row">
+          <button class="btn secondary" id="btnHealth">Refresh health</button>
+          <button class="btn secondary" id="btnCopy">Copy base</button>
+        </div>
+        <div class="hint">This console calls your Worker endpoints: <span class="kbd">/health</span> and <span class="kbd">/broadcast</span>.</div>
+      </div>
+
+      <div class="card">
+        <h2>Create / Broadcast a Job Alert</h2>
+
+        <div class="grid2">
+          <div>
+            <label>Latitude</label>
+            <input id="lat" placeholder="38.8895" />
+          </div>
+          <div>
+            <label>Longitude</label>
+            <input id="lng" placeholder="-77.0353" />
+          </div>
+        </div>
+
+        <div class="grid2" style="margin-top:10px;">
+          <div>
+            <label>Email fallback seconds</label>
+            <input id="fallback" type="number" min="5" value="60" />
+          </div>
+          <div>
+            <label>Map link preview</label>
+            <input id="mapLink" placeholder="auto" readonly />
+          </div>
+        </div>
+
+        <div style="margin-top:10px;">
+          <label>Optional custom message (leave blank to auto)</label>
+          <textarea id="customMessage" placeholder="ChargeNext: NEW JOB. Tap map: ... Reply YES to accept."></textarea>
+        </div>
+
+        <div class="btnrow">
+          <button class="btn" id="btnBroadcast">Broadcast</button>
+          <button class="btn secondary" id="btnClear">Clear log</button>
+        </div>
+
+        <div class="hint" style="margin-top:10px;">
+          Tip: click anywhere on the map to set lat/lng. This is the "dispatcher clicks the job location" flow.
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Response / Log</h2>
+        <div class="mono" id="log"></div>
+      </div>
+    </div>
+
+    <!-- MAP -->
+    <div class="main">
+      <div class="mapHud">
+        <div class="hudCard">
+          <span class="kbd">Click map</span>
+          <span>to set job location</span>
+        </div>
+        <div class="hudCard">
+          <span>Marker:</span>
+          <span class="kbd" id="markerText">none</span>
+        </div>
+      </div>
+
+      <div class="rightHud">
+        <div class="hudCard" style="border-radius:16px;">
+          <div style="display:flex; flex-direction:column; gap:4px;">
+            <div style="color:#cfe0ff; font-weight:600;">What this is</div>
+            <div class="hint">
+              This is your first "Uber-like" dispatch screen: pick a point → broadcast → your backend schedules fallback email.
+              Next we'll add: job list, driver list, status, and live pins.
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div id="map"></div>
+    </div>
+  </div>
+
+  <script>
+    const $ = (id) => document.getElementById(id);
+
+    function appendLog(obj) {
+      const line = typeof obj === "string" ? obj : JSON.stringify(obj, null, 2);
+      const el = $("log");
+      el.textContent = (el.textContent ? el.textContent + "\n\n" : "") + line;
+      el.scrollTop = el.scrollHeight;
+    }
+
+    function mapPreview(lat, lng) {
+      if (lat == null || lng == null || lat === "" || lng === "") return "";
+      return `https://maps.google.com/?q=${encodeURIComponent(lat)},${encodeURIComponent(lng)}`;
+    }
+
+    async function health() {
+      const base = $("apiBase").value.trim().replace(/\/$/, "");
+      try {
+        const res = await fetch(`${base}/health`);
+        const data = await res.json();
+        $("healthText").textContent = data.ok ? "healthy" : "unhealthy";
+        $("healthDot").className = "dot " + (data.ok ? "ok" : "bad");
+        appendLog({ at: new Date().toISOString(), health: data });
+      } catch (e) {
+        $("healthText").textContent = "error";
+        $("healthDot").className = "dot bad";
+        appendLog({ at: new Date().toISOString(), error: String(e) });
+      }
+    }
+
+    async function broadcast() {
+      const base = $("apiBase").value.trim().replace(/\/$/, "");
+      const lat = $("lat").value.trim();
+      const lng = $("lng").value.trim();
+      const fallback = Number($("fallback").value || 60);
+      const customMessage = $("customMessage").value.trim();
+
+      const payload = {
+        emailFallbackSeconds: fallback,
+      };
+      if (lat) payload.lat = Number(lat);
+      if (lng) payload.lng = Number(lng);
+      if (customMessage) payload.message = customMessage;
+
+      appendLog({ at: new Date().toISOString(), action: "broadcast", payload });
+
+      const res = await fetch(`${base}/broadcast`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
+      const text = await res.text();
+      let data;
+      try { data = JSON.parse(text); } catch { data = { raw: text }; }
+
+      appendLog({ at: new Date().toISOString(), status: res.status, response: data });
+
+      if (!res.ok) {
+        alert("Broadcast failed. Check log.");
+      } else {
+        alert("Broadcast sent. Check log.");
+      }
+    }
+
+    // Leaflet map
+    const map = L.map("map", { zoomControl: true }).setView([38.8895, -77.0353], 12);
+
+    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+      maxZoom: 19,
+      attribution: "&copy; OpenStreetMap"
+    }).addTo(map);
+
+    let marker = null;
+
+    map.on("click", (e) => {
+      const lat = e.latlng.lat.toFixed(6);
+      const lng = e.latlng.lng.toFixed(6);
+
+      $("lat").value = lat;
+      $("lng").value = lng;
+      $("mapLink").value = mapPreview(lat, lng);
+
+      $("markerText").textContent = `${lat}, ${lng}`;
+
+      if (!marker) {
+        marker = L.marker([lat, lng]).addTo(map);
+      } else {
+        marker.setLatLng([lat, lng]);
+      }
+    });
+
+    // UI wiring
+    $("btnHealth").addEventListener("click", health);
+    $("btnBroadcast").addEventListener("click", broadcast);
+    $("btnClear").addEventListener("click", () => $("log").textContent = "");
+    $("btnCopy").addEventListener("click", async () => {
+      await navigator.clipboard.writeText($("apiBase").value);
+      alert("Copied API base");
+    });
+
+    // keep map link preview in sync if user types
+    ["lat","lng"].forEach(id => {
+      $(id).addEventListener("input", () => {
+        $("mapLink").value = mapPreview($("lat").value.trim(), $("lng").value.trim());
+      });
+    });
+
+    // initial health check
+    health();
+  </script>
+</body>
+</html>
