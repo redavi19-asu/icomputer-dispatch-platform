@@ -2,6 +2,7 @@ export type Company = {
   id: string;
   name: string;
   slug: string;
+  driverAcceptanceMode?: "manual" | "auto";
   primaryColor?: string;
   logoUrl?: string;
   supportPhone?: string;

@@ -5,9 +5,13 @@ import mapboxgl from "mapbox-gl";
 
 type DispatchMapProps = {
   companyName?: string;
+  themeMode?: "dark" | "light";
 };
 
-export function DispatchMap({ companyName = "Company" }: DispatchMapProps) {
+export function DispatchMap({
+  companyName = "Company",
+  themeMode = "dark",
+}: DispatchMapProps) {
   const mapContainerRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<mapboxgl.Map | null>(null);
 
@@ -22,7 +26,10 @@ export function DispatchMap({ companyName = "Company" }: DispatchMapProps) {
 
     const map = new mapboxgl.Map({
       container: mapContainerRef.current,
-      style: "mapbox://styles/mapbox/dark-v11",
+      style:
+        themeMode === "light"
+          ? "mapbox://styles/mapbox/light-v11"
+          : "mapbox://styles/mapbox/dark-v11",
       center: [-77.045, 38.892],
       zoom: 11.8,
       attributionControl: false,
@@ -122,7 +129,7 @@ export function DispatchMap({ companyName = "Company" }: DispatchMapProps) {
       map.remove();
       mapRef.current = null;
     };
-  }, [companyName]);
+  }, [companyName, themeMode]);
 
   return (
     <div className="relative h-[620px] w-full overflow-hidden bg-slate-950">

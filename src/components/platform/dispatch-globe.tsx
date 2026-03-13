@@ -193,10 +193,8 @@ function GlobeMesh() {
 			<points ref={particlesRef}>
 				<bufferGeometry>
 					<bufferAttribute
+						args={[particlePositions, 3]}
 						attach="attributes-position"
-						array={particlePositions}
-						count={particlePositions.length / 3}
-						itemSize={3}
 					/>
 				</bufferGeometry>
 				<pointsMaterial

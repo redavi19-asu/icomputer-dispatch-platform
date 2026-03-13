@@ -1,159 +1,1113 @@
 "use client";
+import { addBroadcastAlert } from "@/lib/utils";
+// ...existing imports...
 
-import { Bell, Filter, LayoutDashboard, MapPinned, Search, Users } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import {
+  Bell,
+  Filter,
+  LayoutDashboard,
+  MapPinned,
+  Search,
+  Trash2,
+  Users,
+} from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { getCompanyBySlug, getDriversByCompany, getJobsByCompany } from "@/lib/platform/selectors";
+import { Modal } from "@/components/ui/modal";
+import { DispatchMap } from "@/components/platform/dispatch-map";
+import { getCompanyBySlug, getDriversByCompany } from "@/lib/platform/selectors";
+import {
+  resolveDriverAcceptanceMode,
+  setStoredDriverAcceptanceMode,
+  type DriverAcceptanceMode,
+} from "@/lib/platform/driver-acceptance-mode";
+
+type ApiJob = {
+  id: string;
+  createdAt: string;
+  status: string;
+  companySlug?: string | null;
+  name?: string | null;
+  phone?: string | null;
+  service?: string | null;
+  address?: string | null;
+  details?: string | null;
+  driverId?: string | null;
+  etaMinutes?: number | null;
+};
+
+type PendingAssistedAssign = {
+  jobId: string;
+  driverId: string;
+  driverName: string;
+};
+
+const isClearableJob = (job: ApiJob) =>
+  job.status === "Completed" || job.status === "Cancelled";
 
 export default function DashboardPage() {
-	const company = getCompanyBySlug("build-electric");
-	const companyDrivers = company ? getDriversByCompany(company.id) : [];
-	const companyJobs = company ? getJobsByCompany(company.id) : [];
+    // Broadcast Alert panel state
+    const [broadcastMessage, setBroadcastMessage] = useState("");
 
-	return (
-		<main className="min-h-screen bg-slate-950 text-white">
-			<div className="border-b border-white/10 bg-slate-950/90 backdrop-blur">
-				<div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
-					<div>
-						<p className="text-xs uppercase tracking-[0.25em] text-cyan-300">Dispatch Platform</p>
-						<h1 className="mt-1 text-2xl font-semibold">{company?.name} Dispatch Dashboard</h1>
-					</div>
+    // Handler for sending broadcast alert
+    const handleSendBroadcast = () => {
+      if (!broadcastMessage.trim()) return;
 
-					<div className="flex items-center gap-3">
-						<Button variant="secondary" className="border border-white/10 bg-white/5 text-white hover:bg-white/10">
-							<Bell className="mr-2 h-4 w-4" />
-							Alerts
-						</Button>
-						<Button className="bg-cyan-500 text-slate-950 hover:bg-cyan-400">New Job</Button>
-					</div>
-				</div>
-			</div>
+      addBroadcastAlert({
+        message: broadcastMessage.trim(),
+        timestamp: Date.now(),
+      });
 
-			<div className="mx-auto grid max-w-7xl gap-6 px-6 py-6 lg:grid-cols-[280px_minmax(0,1fr)_340px]">
-				<aside className="space-y-6">
-					<Card className="rounded-2xl border border-white/10 bg-white/5 text-white shadow-none">
-						<CardContent className="p-5">
-							<div className="flex items-center gap-2 text-cyan-300">
-								<LayoutDashboard className="h-5 w-5" />
-								<h2 className="text-sm font-semibold uppercase tracking-[0.2em]">Views</h2>
-							</div>
+      setBroadcastMessage("");
+    };
+  const company = getCompanyBySlug("build-electric");
+  const defaultDriverAcceptanceMode = company?.driverAcceptanceMode ?? "manual";
+  const companyDrivers = company ? getDriversByCompany(company.id) : [];
+  const [driverAcceptanceMode, setDriverAcceptanceMode] =
+    useState<DriverAcceptanceMode>(defaultDriverAcceptanceMode);
 
-							<div className="mt-4 space-y-3 text-sm">
-								<div className="rounded-xl border border-cyan-400/30 bg-cyan-400/10 px-4 py-3">Map View</div>
-								<div className="rounded-xl border border-white/10 bg-white/5 px-4 py-3">Table View</div>
-								<div className="rounded-xl border border-white/10 bg-white/5 px-4 py-3">Driver View</div>
-								<div className="rounded-xl border border-white/10 bg-white/5 px-4 py-3">Analytics</div>
-							</div>
-						</CardContent>
-					</Card>
+  const [companyJobs, setCompanyJobs] = useState<ApiJob[]>([]);
+  const [isLoadingJobs, setIsLoadingJobs] = useState(true);
+  const [selectedJob, setSelectedJob] = useState<ApiJob | null>(null);
+  const [pendingAssistedAssign, setPendingAssistedAssign] =
+    useState<PendingAssistedAssign | null>(null);
+  const [showNoDriversModal, setShowNoDriversModal] = useState(false);
+  const [showAssignErrorModal, setShowAssignErrorModal] = useState(false);
+  const [pendingClearJob, setPendingClearJob] = useState<ApiJob | null>(null);
+  const [showClearCompletedModal, setShowClearCompletedModal] = useState(false);
+  const [dispatchMode, setDispatchMode] = useState<"Manual" | "Assisted" | "Auto">("Manual");
+  const [activeView, setActiveView] = useState<
+    "map" | "grid" | "table" | "drivers" | "analytics"
+  >(
+    "map"
+  );
+  const [themeMode, setThemeMode] = useState<"dark" | "light">("dark");
+  const [isClearingJobs, setIsClearingJobs] = useState(false);
 
-					<Card className="rounded-2xl border border-white/10 bg-white/5 text-white shadow-none">
-						<CardContent className="p-5">
-							<div className="flex items-center gap-2 text-cyan-300">
-								<Users className="h-5 w-5" />
-								<h2 className="text-sm font-semibold uppercase tracking-[0.2em]">Drivers</h2>
-							</div>
+  useEffect(() => {
+    setDriverAcceptanceMode(
+      resolveDriverAcceptanceMode(defaultDriverAcceptanceMode, company?.slug)
+    );
+  }, [defaultDriverAcceptanceMode, company?.slug]);
 
-							<div className="mt-4 space-y-3">
-								{companyDrivers.map((driver) => (
-									<div key={driver.name} className="rounded-xl border border-white/10 bg-slate-900/70 p-4">
-										<div className="flex items-center justify-between">
-											<p className="font-medium">{driver.name}</p>
-											<span className="text-xs text-cyan-300">{driver.status}</span>
-										</div>
-										<p className="mt-2 text-sm text-white/60">{driver.zone}</p>
-									</div>
-								))}
-							</div>
-						</CardContent>
-					</Card>
-				</aside>
+  const assignJobToDriver = async (jobId: string, driverId: string) => {
+    try {
+      const res = await fetch("/api/jobs", {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          id: jobId,
+          status: driverAcceptanceMode === "auto" ? "En Route" : "Assigned",
+          driverId,
+          etaMinutes: 15,
+        }),
+      });
 
-				<section>
-					<Card className="overflow-hidden rounded-2xl border border-white/10 bg-white/5 text-white shadow-none">
-						<CardContent className="p-0">
-							<div className="flex items-center justify-between border-b border-white/10 px-5 py-4">
-								<div>
-									<h2 className="text-lg font-semibold">Live Dispatch Map</h2>
-									<p className="text-sm text-white/60">Main operational map for jobs, routes, and drivers</p>
-								</div>
-								<div className="flex items-center gap-2">
-									<Button variant="secondary" className="border border-white/10 bg-white/5 text-white hover:bg-white/10">
-										<Search className="mr-2 h-4 w-4" />
-										Search
-									</Button>
-									<Button variant="secondary" className="border border-white/10 bg-white/5 text-white hover:bg-white/10">
-										<Filter className="mr-2 h-4 w-4" />
-										Filters
-									</Button>
-								</div>
-							</div>
+      if (!res.ok) {
+        throw new Error("Failed to assign job");
+      }
 
-							<div className="relative h-[620px] bg-[radial-gradient(circle_at_top,rgba(14,165,233,0.18),transparent_35%),linear-gradient(180deg,#0f172a_0%,#020617_100%)]">
-								<div className="absolute inset-0 opacity-20 [background-image:linear-gradient(rgba(255,255,255,0.08)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.08)_1px,transparent_1px)] [background-size:44px_44px]" />
+      const data = await res.json();
+      const updatedJob = data.job;
 
-								<div className="absolute left-[18%] top-[28%] rounded-full bg-cyan-400 px-3 py-2 text-xs font-semibold text-slate-950 shadow-lg shadow-cyan-400/20">
-									Driver A
-								</div>
-								<div className="absolute left-[55%] top-[36%] rounded-full bg-emerald-400 px-3 py-2 text-xs font-semibold text-slate-950 shadow-lg shadow-emerald-400/20">
-									Driver B
-								</div>
-								<div className="absolute left-[42%] top-[54%] rounded-full bg-amber-300 px-3 py-2 text-xs font-semibold text-slate-950 shadow-lg shadow-amber-300/20">
-									Job 1043
-								</div>
-								<div className="absolute left-[68%] top-[24%] rounded-full bg-rose-300 px-3 py-2 text-xs font-semibold text-slate-950 shadow-lg shadow-rose-300/20">
-									Priority
-								</div>
+      setCompanyJobs((prev) =>
+        prev.map((job) => (job.id === updatedJob.id ? updatedJob : job))
+      );
+    } catch (error) {
+      console.error("Assign failed:", error);
+      setShowAssignErrorModal(true);
+    }
+  };
 
-								<div className="absolute bottom-6 left-6 rounded-2xl border border-white/10 bg-slate-900/80 p-4 backdrop-blur">
-									<div className="flex items-center gap-2 text-cyan-300">
-										<MapPinned className="h-4 w-4" />
-										<span className="text-sm font-medium">Map Layer</span>
-									</div>
-									<p className="mt-2 text-xs text-white/60">Placeholder canvas for the future production map</p>
-								</div>
-							</div>
-						</CardContent>
-					</Card>
-				</section>
+  const handleAssign = async (jobId: string) => {
+    const recommendedDriver = getRecommendedDriver();
 
-				<aside>
-					<Card className="rounded-2xl border border-white/10 bg-white/5 text-white shadow-none">
-						<CardContent className="p-5">
-							<h2 className="text-sm font-semibold uppercase tracking-[0.2em] text-cyan-300">Open Jobs</h2>
+    if (!recommendedDriver) {
+      setShowNoDriversModal(true);
+      return;
+    }
 
-							<div className="mt-4 space-y-3">
-								{companyJobs.map((job) => (
-									<div key={job.id} className="rounded-xl border border-white/10 bg-slate-900/70 p-4">
-										<div className="flex items-start justify-between gap-3">
-											<div>
-												<p className="font-semibold">{job.id}</p>
-												<p className="mt-1 text-sm text-white/65">{job.title}</p>
-											</div>
-											<span className="rounded-full bg-cyan-400/10 px-2 py-1 text-[11px] text-cyan-300">
-												{job.status}
-											</span>
-										</div>
+    if (dispatchMode === "Assisted") {
+      setPendingAssistedAssign({
+        jobId,
+        driverId: recommendedDriver.id,
+        driverName: recommendedDriver.name,
+      });
+      return;
+    }
 
-										<div className="mt-4 space-y-1 text-sm text-white/70">
-											<p>Type: {job.serviceType}</p>
-											<p>ETA: {job.etaMinutes ?? "—"}</p>
-										</div>
+    await assignJobToDriver(jobId, recommendedDriver.id);
+  };
 
-										<div className="mt-4 flex gap-2">
-											<Button className="flex-1 bg-cyan-500 text-slate-950 hover:bg-cyan-400">Assign</Button>
-											<Button variant="secondary" className="flex-1 border border-white/10 bg-white/5 text-white hover:bg-white/10">
-												Open
-											</Button>
-										</div>
-									</div>
-								))}
-							</div>
-						</CardContent>
-					</Card>
-				</aside>
-			</div>
-		</main>
-	);
+  const confirmAssistedAssign = async () => {
+    if (!pendingAssistedAssign) return;
+
+    const pending = pendingAssistedAssign;
+    setPendingAssistedAssign(null);
+    await assignJobToDriver(pending.jobId, pending.driverId);
+  };
+
+  const getDriverName = (driverId?: string | null) => {
+    if (!driverId) return "Unassigned";
+    return companyDrivers.find((driver) => driver.id === driverId)?.name ?? "Assigned Driver";
+  };
+
+  const getRecommendedDriver = () => {
+    return (
+      companyDrivers.find((driver) => driver.status === "available") ??
+      companyDrivers.find((driver) => driver.status === "en-route") ??
+      companyDrivers[0] ??
+      null
+    );
+  };
+
+  const autoAssignJob = async (job: ApiJob) => {
+    const recommendedDriver = getRecommendedDriver();
+
+    if (!recommendedDriver || job.driverId || job.status !== "Awaiting Dispatch") {
+      return;
+    }
+
+    try {
+      const res = await fetch("/api/jobs", {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          id: job.id,
+          status: driverAcceptanceMode === "auto" ? "En Route" : "Assigned",
+          driverId: recommendedDriver.id,
+          etaMinutes: 15,
+        }),
+      });
+
+      if (!res.ok) {
+        throw new Error("Failed to auto-assign job");
+      }
+
+      const data = await res.json();
+      const updatedJob = data.job;
+
+      setCompanyJobs((prev) =>
+        prev.map((item) => (item.id === updatedJob.id ? updatedJob : item))
+      );
+    } catch (error) {
+      console.error("Auto-assign failed:", error);
+    }
+  };
+
+  const clearJob = async (job: ApiJob) => {
+    if (!isClearableJob(job)) return;
+
+    setIsClearingJobs(true);
+
+    try {
+      const res = await fetch(`/api/jobs?id=${encodeURIComponent(job.id)}`, {
+        method: "DELETE",
+      });
+
+      if (!res.ok) {
+        throw new Error("Failed to clear job");
+      }
+
+      setCompanyJobs((prev) => prev.filter((item) => item.id !== job.id));
+      setSelectedJob((prev) => (prev?.id === job.id ? null : prev));
+    } catch (error) {
+      console.error("Clear job failed:", error);
+    } finally {
+      setIsClearingJobs(false);
+    }
+  };
+
+  const clearCompletedJobs = async () => {
+    const clearableJobsCount = companyJobs.filter(isClearableJob).length;
+    if (clearableJobsCount === 0) return;
+
+    setIsClearingJobs(true);
+
+    try {
+      const res = await fetch("/api/jobs?company=build-electric&clearCompleted=1", {
+        method: "DELETE",
+      });
+
+      if (!res.ok) {
+        throw new Error("Failed to clear completed jobs");
+      }
+
+      setCompanyJobs((prev) => prev.filter((job) => !isClearableJob(job)));
+      setSelectedJob((prev) => (prev && isClearableJob(prev) ? null : prev));
+    } catch (error) {
+      console.error("Clear completed jobs failed:", error);
+    } finally {
+      setIsClearingJobs(false);
+    }
+  };
+
+  const requestClearJob = (job: ApiJob) => {
+    if (!isClearableJob(job)) return;
+    setPendingClearJob(job);
+  };
+
+  const confirmClearJob = async () => {
+    if (!pendingClearJob) return;
+    const job = pendingClearJob;
+    setPendingClearJob(null);
+    await clearJob(job);
+  };
+
+  const requestClearCompletedJobs = () => {
+    if (clearableJobsCount === 0) return;
+    setShowClearCompletedModal(true);
+  };
+
+  const confirmClearCompletedJobs = async () => {
+    setShowClearCompletedModal(false);
+    await clearCompletedJobs();
+  };
+
+  const openJobsCount = useMemo(() => {
+    return companyJobs.filter((job) => job.status !== "Completed").length;
+  }, [companyJobs]);
+
+  const awaitingDispatchCount = useMemo(() => {
+    return companyJobs.filter((job) => job.status === "Awaiting Dispatch").length;
+  }, [companyJobs]);
+
+  const assignedCount = useMemo(() => {
+    return companyJobs.filter((job) => job.status === "Assigned").length;
+  }, [companyJobs]);
+
+  const completedCount = useMemo(() => {
+    return companyJobs.filter((job) => job.status === "Completed").length;
+  }, [companyJobs]);
+
+  const clearableJobsCount = useMemo(() => {
+    return companyJobs.filter(isClearableJob).length;
+  }, [companyJobs]);
+
+  const getAssignedJobsCountByDriver = (driverId: string) => {
+    return companyJobs.filter((job) => job.driverId === driverId).length;
+  };
+
+  const recentActivityJobs = companyJobs.slice(0, 5);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const fetchJobs = async () => {
+      try {
+        const res = await fetch("/api/jobs?company=build-electric", {
+          cache: "no-store",
+        });
+
+        if (!res.ok) {
+          throw new Error("Failed to fetch jobs");
+        }
+
+        const data = await res.json();
+
+        if (isMounted) {
+          setCompanyJobs(data.jobs ?? []);
+          setIsLoadingJobs(false);
+        }
+      } catch (error) {
+        console.error("Dashboard job fetch failed:", error);
+        if (isMounted) {
+          setIsLoadingJobs(false);
+        }
+      }
+    };
+
+    fetchJobs();
+
+    const interval = setInterval(fetchJobs, 3000);
+
+    return () => {
+      isMounted = false;
+      clearInterval(interval);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (dispatchMode !== "Auto" || companyJobs.length === 0) return;
+
+    const pendingJobs = companyJobs.filter(
+      (job) => job.status === "Awaiting Dispatch" && !job.driverId
+    );
+
+    pendingJobs.forEach((job) => {
+      void autoAssignJob(job);
+    });
+  }, [dispatchMode, companyJobs, driverAcceptanceMode]);
+
+  const isDark = themeMode === "dark";
+
+  const pageBg = isDark ? "bg-slate-950 text-white" : "bg-slate-100 text-slate-950";
+  const topBarBg = isDark
+    ? "border-white/10 bg-slate-950/90"
+    : "border-slate-300 bg-white/90";
+  const cardBg = isDark
+    ? "border-white/10 bg-white/5 text-white shadow-none"
+    : "border-slate-300 bg-white text-slate-900 shadow-sm";
+  const mutedText = isDark ? "text-white/60" : "text-slate-500";
+  const secondaryBtn = isDark
+    ? "border border-white/10 bg-white/5 text-white hover:bg-white/10"
+    : "border border-slate-300 bg-white text-slate-900 hover:bg-slate-100";
+  const panelBg = isDark
+    ? "border-white/10 bg-slate-900/70"
+    : "border-slate-200 bg-slate-50";
+  const toolbarGroup = isDark
+    ? "flex items-center gap-1 rounded-lg border border-white/10 bg-white/5 p-1 text-xs"
+    : "flex items-center gap-1 rounded-lg border border-slate-300 bg-white p-1 text-xs";
+
+  return (
+    <main className={`min-h-screen ${pageBg}`}>
+      <div className={`border-b ${topBarBg} backdrop-blur`}>
+        <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
+          <div>
+            <p className="text-xs uppercase tracking-[0.25em] text-cyan-300">
+              Dispatch Platform
+            </p>
+            <h1 className="mt-1 text-2xl font-semibold">
+              {company?.name} Dispatch Dashboard
+            </h1>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <div className={toolbarGroup}>
+              <span className="mr-2 text-[11px] font-semibold uppercase tracking-widest text-cyan-300/80">
+                Driver Acceptance
+              </span>
+              {([
+                { value: "manual", label: "Manual" },
+                { value: "auto", label: "Auto-Accept" },
+              ] as const).map((mode) => (
+                <button
+                  key={mode.value}
+                  onClick={() => {
+                    setDriverAcceptanceMode(mode.value);
+                    if (company?.slug) {
+                      setStoredDriverAcceptanceMode(company.slug, mode.value);
+                    }
+                  }}
+                  className={`rounded-md px-2.5 py-1.5 font-medium transition active:scale-[0.98] ${
+                    driverAcceptanceMode === mode.value
+                      ? "bg-cyan-500 text-slate-950"
+                      : isDark
+                      ? "text-white/70 hover:bg-white/10 hover:text-white"
+                      : "text-slate-600 hover:bg-slate-100 hover:text-slate-950"
+                  }`}
+                >
+                  {mode.label}
+                </button>
+              ))}
+            </div>
+
+            <div className={toolbarGroup}>
+              <span className="mr-2 text-[11px] font-semibold uppercase tracking-widest text-cyan-300/80">
+                Dispatch Mode
+              </span>
+              {(["Manual", "Assisted", "Auto"] as const).map((mode) => (
+                <button
+                  key={mode}
+                  onClick={() => setDispatchMode(mode)}
+                  className={`rounded-md px-2.5 py-1.5 transition ${
+                    dispatchMode === mode
+                      ? "bg-cyan-500 text-slate-950"
+                      : isDark
+                      ? "text-white/70 hover:bg-white/10 hover:text-white"
+                      : "text-slate-600 hover:bg-slate-100 hover:text-slate-950"
+                  }`}
+                >
+                  {mode}
+                </button>
+              ))}
+            </div>
+
+            <div className={toolbarGroup}>
+              <span className="mr-2 text-[11px] font-semibold uppercase tracking-widest text-cyan-300/80">
+                Theme
+              </span>
+              {(["dark", "light"] as const).map((mode) => (
+                <button
+                  key={mode}
+                  onClick={() => setThemeMode(mode)}
+                  className={`rounded-md px-2.5 py-1.5 capitalize transition ${
+                    themeMode === mode
+                      ? "bg-cyan-500 text-slate-950"
+                      : isDark
+                      ? "text-white/70 hover:bg-white/10 hover:text-white"
+                      : "text-slate-600 hover:bg-slate-100 hover:text-slate-950"
+                  }`}
+                >
+                  {mode}
+                </button>
+              ))}
+            </div>
+
+            <div className="flex flex-col items-start justify-center">
+              <span className="mb-1 text-[11px] font-semibold uppercase tracking-widest text-yellow-300/80">
+                Alerts
+              </span>
+              <Button
+                className="h-9 rounded-lg border border-yellow-400/60 bg-yellow-900/10 px-3 text-xs font-semibold text-yellow-300 shadow-[0_0_12px_2px_rgba(253,224,71,0.18)] hover:bg-yellow-900/20"
+              >
+                <Bell className="mr-2 h-4 w-4 text-yellow-300" />
+                Alerts
+              </Button>
+            </div>
+            <div className="flex flex-col items-start justify-center">
+              <span className="mb-1 text-[11px] font-semibold uppercase tracking-widest text-cyan-300/80">
+                Completed Jobs
+              </span>
+              <Button
+                variant="secondary"
+                onClick={requestClearCompletedJobs}
+                disabled={isClearingJobs || clearableJobsCount === 0}
+                className={`${secondaryBtn} h-9 rounded-lg px-3 text-xs disabled:opacity-50`}
+              >
+                <Trash2 className="mr-2 h-4 w-4" />
+                Clear Completed
+              </Button>
+            </div>
+            <div className="flex flex-col items-start justify-center">
+              <span className="mb-1 text-[11px] font-semibold uppercase tracking-widest text-cyan-300/80">
+                Current Mode
+              </span>
+              <Button
+                className="h-9 rounded-lg border border-cyan-400/60 bg-transparent px-3 text-xs font-semibold text-cyan-300 shadow-[0_0_12px_2px_rgba(6,182,212,0.18)] hover:bg-cyan-900/10"
+              >
+                <MapPinned className="mr-2 h-4 w-4 text-cyan-300" />
+                {dispatchMode} Mode
+              </Button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="mx-auto grid max-w-7xl gap-6 px-6 py-6 lg:grid-cols-[280px_minmax(0,1fr)_340px]">
+        <aside className="space-y-6">
+          <Card className={`rounded-2xl ${cardBg}`}>
+            <CardContent className="p-5">
+              <div className="flex items-center gap-2 text-cyan-300">
+                <LayoutDashboard className="h-5 w-5" />
+                <h2 className="text-sm font-semibold uppercase tracking-[0.2em]">
+                  Views
+                </h2>
+              </div>
+
+              <div className="mt-4 space-y-3 text-sm">
+                {([
+                  { key: "map", label: "Map View" },
+                  { key: "grid", label: "Grid View" },
+                  { key: "table", label: "Table View" },
+                  { key: "drivers", label: "Driver View" },
+                  { key: "analytics", label: "Analytics" },
+                ] as const).map((view) => (
+                  <button
+                    key={view.key}
+                    onClick={() => setActiveView(view.key)}
+                    className={`w-full rounded-xl border px-4 py-3 text-left transition ${
+                      activeView === view.key
+                        ? "border-cyan-400/30 bg-cyan-400/10"
+                        : isDark
+                        ? "border-white/10 bg-white/5 hover:bg-white/10"
+                        : "border-slate-300 bg-white hover:bg-slate-100"
+                    }`}
+                  >
+                    {view.label}
+                  </button>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className={`rounded-2xl ${cardBg}`}>
+            <CardContent className="p-5">
+              <div className="flex items-center gap-2 text-cyan-300">
+                <Users className="h-5 w-5" />
+                <h2 className="text-sm font-semibold uppercase tracking-[0.2em]">
+                  Drivers
+                </h2>
+              </div>
+
+              <div className="mt-4 space-y-3">
+                {companyDrivers.map((driver) => (
+                  <div
+                    key={driver.name}
+                    className={`rounded-xl border ${panelBg} p-4`}
+                  >
+                    <div className="flex items-center justify-between">
+                      <p className="font-medium">{driver.name}</p>
+                      <span className="text-xs text-cyan-300">{driver.status}</span>
+                    </div>
+                    <p className={`mt-2 text-sm ${mutedText}`}>{driver.zone}</p>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        </aside>
+
+        <section>
+          {activeView === "map" ? (
+            <Card className={`overflow-hidden rounded-2xl ${cardBg}`}>
+              <CardContent className="p-0">
+                <div className="flex items-center justify-between border-b border-white/10 px-5 py-4">
+                  <div>
+                    <h2 className="text-lg font-semibold">Live Dispatch Map</h2>
+                    <p className={`text-sm ${mutedText}`}>
+                      Main operational map for jobs, routes, and drivers
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant="secondary"
+                      className={secondaryBtn}
+                    >
+                      <Search className="mr-2 h-4 w-4" />
+                      Search
+                    </Button>
+                    <Button
+                      variant="secondary"
+                      className={secondaryBtn}
+                    >
+                      <Filter className="mr-2 h-4 w-4" />
+                      Filters
+                    </Button>
+                  </div>
+                </div>
+
+                <div className="relative">
+                  <DispatchMap
+                    companyName={company?.name ?? "Dispatch Platform"}
+                    themeMode={themeMode}
+                  />
+                  <div
+                    className={`pointer-events-none absolute right-4 top-4 rounded-xl border px-4 py-3 text-sm backdrop-blur ${
+                      isDark
+                        ? "border-white/10 bg-slate-900/80 text-white/80"
+                        : "border-slate-300 bg-white/85 text-slate-700"
+                    }`}
+                  >
+                    {openJobsCount > 0 ? `${openJobsCount} Open Jobs` : "No Open Jobs"}
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          ) : null}
+
+          {activeView === "table" ? (
+            <Card className={`rounded-2xl ${cardBg}`}>
+              <CardContent className="p-5">
+                <div className="flex items-center gap-2 text-cyan-300">
+                  <MapPinned className="h-5 w-5" />
+                  <h2 className="text-lg font-semibold">Jobs Table View</h2>
+                </div>
+                <p className={`mt-1 text-sm ${mutedText}`}>
+                  Job list with service, customer, and assignment details.
+                </p>
+
+                <div className="mt-4 space-y-3">
+                  {!isLoadingJobs && companyJobs.length === 0 ? (
+                    <div className={`rounded-xl border ${panelBg} p-4 text-sm ${mutedText}`}>
+                      No jobs yet.
+                    </div>
+                  ) : (
+                    companyJobs.map((job) => (
+                      <div key={job.id} className={`rounded-xl border ${panelBg} p-4`}>
+                        <div className="grid gap-2 text-sm md:grid-cols-2">
+                          <p>ID: <span className="font-semibold">{job.id}</span></p>
+                          <p>Status: <span className="font-semibold">{job.status}</span></p>
+                          <p>Service: <span className="font-semibold">{job.service ?? "—"}</span></p>
+                          <p>Customer: <span className="font-semibold">{job.name ?? "—"}</span></p>
+                          <p>Phone: <span className="font-semibold">{job.phone ?? "—"}</span></p>
+                          <p>Address: <span className="font-semibold">{job.address ?? "—"}</span></p>
+                          <p>Driver: <span className="font-semibold">{getDriverName(job.driverId)}</span></p>
+                          <p>ETA: <span className="font-semibold">{job.etaMinutes != null ? `${job.etaMinutes} min` : "—"}</span></p>
+                        </div>
+
+                        {isClearableJob(job) ? (
+                          <div className="mt-3 flex justify-end">
+                            <Button
+                              onClick={() => requestClearJob(job)}
+                              variant="secondary"
+                              disabled={isClearingJobs}
+                              className={secondaryBtn}
+                            >
+                              <Trash2 className="mr-2 h-4 w-4" />
+                              Clear
+                            </Button>
+                          </div>
+                        ) : null}
+                      </div>
+                    ))
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          ) : null}
+
+          {activeView === "grid" ? (
+            <Card className={`rounded-2xl ${cardBg}`}>
+              <CardContent className="p-5">
+                <div className="flex items-center gap-2 text-cyan-300">
+                  <LayoutDashboard className="h-5 w-5" />
+                  <h2 className="text-lg font-semibold">Jobs Grid View</h2>
+                </div>
+                <p className={`mt-1 text-sm ${mutedText}`}>
+                  Responsive card view for active dispatch jobs.
+                </p>
+
+                {!isLoadingJobs && companyJobs.length === 0 ? (
+                  <div className={`mt-4 rounded-xl border ${panelBg} p-4 text-sm ${mutedText}`}>
+                    No jobs yet.
+                  </div>
+                ) : (
+                  <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+                    {companyJobs.map((job) => (
+                      <div key={job.id} className={`rounded-xl border ${panelBg} p-4`}>
+                        <div className="flex items-start justify-between gap-3">
+                          <div>
+                            <p className="font-semibold">{job.id}</p>
+                            <p className="mt-1 text-sm text-white/65">{job.name ?? "—"}</p>
+                          </div>
+                          <span className="rounded-full bg-cyan-400/10 px-2 py-1 text-[11px] text-cyan-300">
+                            {job.status}
+                          </span>
+                        </div>
+
+                        <div className="mt-4 space-y-1 text-sm text-white/70">
+                          <p>Service: {job.service ?? "—"}</p>
+                          <p>Address: {job.address ?? "—"}</p>
+                          <p>Driver: {getDriverName(job.driverId)}</p>
+                          <p>ETA: {job.etaMinutes != null ? `${job.etaMinutes} min` : "—"}</p>
+                        </div>
+
+                        <div className="mt-4 flex gap-2">
+                          {!isClearableJob(job) ? (
+                            <Button
+                              onClick={() => handleAssign(job.id)}
+                              className="flex-1 bg-cyan-500 text-slate-950 hover:bg-cyan-400"
+                            >
+                              Assign
+                            </Button>
+                          ) : (
+                            <Button
+                              onClick={() => requestClearJob(job)}
+                              variant="secondary"
+                              disabled={isClearingJobs}
+                              className={`flex-1 ${secondaryBtn} disabled:opacity-50`}
+                            >
+                              Clear
+                            </Button>
+                          )}
+                          <Button
+                            onClick={() => setSelectedJob(job)}
+                            variant="secondary"
+                            className={`flex-1 ${secondaryBtn}`}
+                          >
+                            Open
+                          </Button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          ) : null}
+
+          {activeView === "drivers" ? (
+            <Card className={`rounded-2xl ${cardBg}`}>
+              <CardContent className="p-5">
+                <div className="flex items-center gap-2 text-cyan-300">
+                  <Users className="h-5 w-5" />
+                  <h2 className="text-lg font-semibold">Driver Operations</h2>
+                </div>
+                <p className={`mt-1 text-sm ${mutedText}`}>
+                  Current driver status and assigned workload.
+                </p>
+
+                <div className="mt-4 grid gap-3 md:grid-cols-2">
+                  {companyDrivers.map((driver) => (
+                    <div key={driver.id} className={`rounded-xl border ${panelBg} p-4`}>
+                      <p className="font-semibold">{driver.name}</p>
+                      <p className={`mt-2 text-sm ${mutedText}`}>Status: {driver.status}</p>
+                      <p className={`mt-1 text-sm ${mutedText}`}>Zone: {driver.zone ?? "—"}</p>
+                      <p className="mt-1 text-sm">
+                        Assigned Jobs: <span className="font-semibold">{getAssignedJobsCountByDriver(driver.id)}</span>
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          ) : null}
+
+          {activeView === "analytics" ? (
+            <Card className={`rounded-2xl ${cardBg}`}>
+              <CardContent className="p-5">
+                <div className="flex items-center gap-2 text-cyan-300">
+                  <LayoutDashboard className="h-5 w-5" />
+                  <h2 className="text-lg font-semibold">Analytics</h2>
+                </div>
+                <p className={`mt-1 text-sm ${mutedText}`}>
+                  Job and driver summary with recent activity.
+                </p>
+
+                <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                  <div className={`rounded-xl border ${panelBg} p-4`}>
+                    <p className={`text-xs uppercase tracking-[0.2em] ${mutedText}`}>Total Jobs</p>
+                    <p className="mt-2 text-2xl font-semibold">{companyJobs.length}</p>
+                  </div>
+                  <div className={`rounded-xl border ${panelBg} p-4`}>
+                    <p className={`text-xs uppercase tracking-[0.2em] ${mutedText}`}>Awaiting Dispatch</p>
+                    <p className="mt-2 text-2xl font-semibold">{awaitingDispatchCount}</p>
+                  </div>
+                  <div className={`rounded-xl border ${panelBg} p-4`}>
+                    <p className={`text-xs uppercase tracking-[0.2em] ${mutedText}`}>Assigned</p>
+                    <p className="mt-2 text-2xl font-semibold">{assignedCount}</p>
+                  </div>
+                  <div className={`rounded-xl border ${panelBg} p-4`}>
+                    <p className={`text-xs uppercase tracking-[0.2em] ${mutedText}`}>Completed</p>
+                    <p className="mt-2 text-2xl font-semibold">{completedCount}</p>
+                  </div>
+                  <div className={`rounded-xl border ${panelBg} p-4`}>
+                    <p className={`text-xs uppercase tracking-[0.2em] ${mutedText}`}>Total Drivers</p>
+                    <p className="mt-2 text-2xl font-semibold">{companyDrivers.length}</p>
+                  </div>
+                </div>
+
+                <div className="mt-5">
+                  <h3 className="text-sm font-semibold uppercase tracking-[0.2em] text-cyan-300">
+                    Recent Activity
+                  </h3>
+                  <div className="mt-3 space-y-2">
+                    {recentActivityJobs.length === 0 ? (
+                      <div className={`rounded-xl border ${panelBg} p-4 text-sm ${mutedText}`}>
+                        No recent activity.
+                      </div>
+                    ) : (
+                      recentActivityJobs.map((job) => (
+                        <div key={job.id} className={`rounded-xl border ${panelBg} p-3 text-sm`}>
+                          <p className="font-semibold">{job.id}</p>
+                          <p className={`mt-1 ${mutedText}`}>
+                            {job.status} • {job.service ?? "Service Request"} • {job.name ?? "—"}
+                          </p>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          ) : null}
+        </section>
+
+        <aside>
+          {/* Broadcast Alert Panel */}
+          <Card className={`rounded-2xl ${cardBg}`}>
+            <CardContent className="p-5">
+              <div className="flex items-center gap-2 text-yellow-300">
+                <Bell className="h-5 w-5" />
+                <h2 className="text-sm font-semibold uppercase tracking-[0.2em]">Broadcast Alert</h2>
+              </div>
+              <p className="mt-2 text-xs text-white/70">Send a live alert to all drivers. In-app only.</p>
+              <textarea
+                className="mt-4 w-full rounded-lg border border-yellow-400/20 bg-slate-900/80 p-3 text-sm text-yellow-200 focus:border-yellow-400 focus:outline-none"
+                rows={3}
+                placeholder="Type your alert message..."
+                value={broadcastMessage}
+                onChange={e => setBroadcastMessage(e.target.value)}
+                // ...existing code...
+              />
+              <Button
+                className="mt-3 w-full bg-yellow-400 text-slate-900 font-semibold hover:bg-yellow-300 disabled:opacity-60"
+                onClick={handleSendBroadcast}
+                disabled={!broadcastMessage.trim()}
+              >
+                Send Test Alert
+              </Button>
+            </CardContent>
+          </Card>
+          {/* Existing Open Jobs panel below... */}
+          <Card className={`rounded-2xl ${cardBg}`}>
+            <CardContent className="p-5">
+              <div className="flex items-center justify-between gap-3">
+                <h2 className="text-sm font-semibold uppercase tracking-[0.2em] text-cyan-300">
+                  Open Jobs
+                </h2>
+                <span className="text-xs text-white/50">
+                  {isLoadingJobs ? "Loading..." : `${companyJobs.length} total`}
+                </span>
+              </div>
+
+              <div className="mt-4 space-y-3">
+                {!isLoadingJobs && companyJobs.length === 0 ? (
+                  <div className={`rounded-xl border ${panelBg} p-4 text-sm ${mutedText}`}>
+                    No jobs yet.
+                  </div>
+                ) : (
+                  companyJobs.map((job) => (
+                    <div
+                      key={job.id}
+                      className={`rounded-xl border ${panelBg} p-4`}
+                    >
+                      <div className="flex items-start justify-between gap-3">
+                        <div>
+                          <p className="font-semibold">{job.id}</p>
+                          <p className="mt-1 text-sm text-white/65">
+                            {job.service ?? "Service Request"}
+                          </p>
+                        </div>
+                        <span className="rounded-full bg-cyan-400/10 px-2 py-1 text-[11px] text-cyan-300">
+                          {job.status}
+                        </span>
+                      </div>
+
+                      <div className="mt-4 space-y-1 text-sm text-white/70">
+                        <p>Customer: {job.name ?? "—"}</p>
+                        <p>Phone: {job.phone ?? "—"}</p>
+                        <p>Address: {job.address ?? "—"}</p>
+                        <p>Driver: {getDriverName(job.driverId)}</p>
+                        <p>ETA: {job.etaMinutes != null ? `${job.etaMinutes} min` : "—"}</p>
+                      </div>
+
+                      {job.details ? (
+                        <p className={`mt-3 text-sm ${mutedText}`}>{job.details}</p>
+                      ) : null}
+
+                      <div className="mt-4 flex gap-2">
+                        {!isClearableJob(job) ? (
+                          <Button
+                            onClick={() => handleAssign(job.id)}
+                            className="flex-1 bg-cyan-500 text-slate-950 hover:bg-cyan-400"
+                          >
+                            Assign
+                          </Button>
+                        ) : (
+                          <Button
+                            onClick={() => requestClearJob(job)}
+                            variant="secondary"
+                            disabled={isClearingJobs}
+                            className={`flex-1 ${secondaryBtn} disabled:opacity-50`}
+                          >
+                            Clear
+                          </Button>
+                        )}
+                        <Button
+                          onClick={() => setSelectedJob(job)}
+                          variant="secondary"
+                          className={`flex-1 ${secondaryBtn}`}
+                        >
+                          Open
+                        </Button>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        </aside>
+      </div>
+
+      <Modal
+        isOpen={!!selectedJob}
+        onClose={() => setSelectedJob(null)}
+        title={selectedJob ? `Job ${selectedJob.id}` : "Job Details"}
+      >
+        {selectedJob ? (
+          <div className="space-y-4 text-slate-800">
+            <div className="grid gap-3 md:grid-cols-2">
+              <div className="rounded-2xl bg-slate-100 p-4">
+                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">
+                  Status
+                </p>
+                <p className="mt-2 text-lg font-semibold">{selectedJob.status}</p>
+              </div>
+
+              <div className="rounded-2xl bg-slate-100 p-4">
+                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">
+                  Service
+                </p>
+                <p className="mt-2 text-lg font-semibold">
+                  {selectedJob.service ?? "Service Request"}
+                </p>
+              </div>
+            </div>
+
+            <div className="rounded-2xl bg-slate-100 p-4">
+              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">
+                Customer
+              </p>
+              <p className="mt-2 text-base font-medium">{selectedJob.name ?? "—"}</p>
+              <p className="text-sm text-slate-600">{selectedJob.phone ?? "—"}</p>
+            </div>
+
+            <div className="rounded-2xl bg-slate-100 p-4">
+              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">
+                Address
+              </p>
+              <p className="mt-2 text-base font-medium">{selectedJob.address ?? "—"}</p>
+            </div>
+
+            <div className="rounded-2xl bg-slate-100 p-4">
+              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">
+                Driver
+              </p>
+              <p className="mt-2 text-base font-medium">
+                {getDriverName(selectedJob.driverId)}
+              </p>
+              <p className="text-sm text-slate-600">
+                ETA: {selectedJob.etaMinutes != null ? `${selectedJob.etaMinutes} min` : "—"}
+              </p>
+            </div>
+
+            <div className="rounded-2xl bg-slate-100 p-4">
+              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">
+                Details
+              </p>
+              <p className="mt-2 text-base text-slate-700">
+                {selectedJob.details ?? "No extra details provided."}
+              </p>
+            </div>
+          </div>
+        ) : null}
+      </Modal>
+
+      <Modal
+        isOpen={Boolean(pendingClearJob)}
+        onClose={() => setPendingClearJob(null)}
+        title="Clear job from dispatch board?"
+      >
+        <div className="space-y-4 text-slate-800">
+          <div className="rounded-2xl bg-slate-100 p-4">
+            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">
+              Job ID
+            </p>
+            <p className="mt-2 text-base font-semibold">{pendingClearJob?.id ?? "—"}</p>
+          </div>
+
+          <p className="text-sm text-slate-600">
+            This job will be removed from the active dispatch board.
+          </p>
+
+          <div className="flex gap-3">
+            <Button
+              onClick={() => setPendingClearJob(null)}
+              variant="secondary"
+              className="flex-1"
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={() => void confirmClearJob()}
+              disabled={isClearingJobs}
+              className="flex-1 bg-slate-900 text-white hover:bg-slate-800 disabled:opacity-50"
+            >
+              Confirm Clear
+            </Button>
+          </div>
+        </div>
+      </Modal>
+
+      <Modal
+        isOpen={showClearCompletedModal}
+        onClose={() => setShowClearCompletedModal(false)}
+        title="Clear completed jobs from dispatch board?"
+      >
+        <div className="space-y-4 text-slate-800">
+          <p className="text-sm text-slate-600">
+            {clearableJobsCount} completed/cancelled job{clearableJobsCount === 1 ? "" : "s"} will be removed from the active dispatch board.
+          </p>
+          <div className="flex gap-3">
+            <Button
+              onClick={() => setShowClearCompletedModal(false)}
+              variant="secondary"
+              className="flex-1"
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={() => void confirmClearCompletedJobs()}
+              disabled={isClearingJobs}
+              className="flex-1 bg-slate-900 text-white hover:bg-slate-800 disabled:opacity-50"
+            >
+              Confirm Clear
+            </Button>
+          </div>
+        </div>
+      </Modal>
+
+      <Modal
+        isOpen={showNoDriversModal}
+        onClose={() => setShowNoDriversModal(false)}
+        title="No Drivers Available"
+      >
+        <div className="space-y-4 text-slate-800">
+          <p className="text-sm text-slate-600">
+            There are no available drivers to assign this job right now.
+          </p>
+          <Button
+            onClick={() => setShowNoDriversModal(false)}
+            className="w-full bg-slate-900 text-white hover:bg-slate-800"
+          >
+            Close
+          </Button>
+        </div>
+      </Modal>
+
+      <Modal
+        isOpen={Boolean(pendingAssistedAssign)}
+        onClose={() => setPendingAssistedAssign(null)}
+        title="Confirm Assignment"
+      >
+        <div className="space-y-4 text-slate-800">
+          <p className="text-sm text-slate-600">
+            Recommended driver: {pendingAssistedAssign?.driverName ?? "—"}
+          </p>
+          <div className="flex gap-3">
+            <Button
+              onClick={() => setPendingAssistedAssign(null)}
+              variant="secondary"
+              className="flex-1"
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={() => void confirmAssistedAssign()}
+              className="flex-1 bg-slate-900 text-white hover:bg-slate-800"
+            >
+              Assign
+            </Button>
+          </div>
+        </div>
+      </Modal>
+
+      <Modal
+        isOpen={showAssignErrorModal}
+        onClose={() => setShowAssignErrorModal(false)}
+        title="Assignment Failed"
+      >
+        <div className="space-y-4 text-slate-800">
+          <p className="text-sm text-slate-600">
+            Could not assign job. Please try again.
+          </p>
+          <Button
+            onClick={() => setShowAssignErrorModal(false)}
+            className="w-full bg-slate-900 text-white hover:bg-slate-800"
+          >
+            Close
+          </Button>
+        </div>
+      </Modal>
+    </main>
+  );
 }

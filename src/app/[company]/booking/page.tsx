@@ -1,42 +1,61 @@
-import { notFound } from "next/navigation";
+"use client";
+
+import { useMemo, useState } from "react";
+import { useParams } from "next/navigation";
 import { ArrowRight, Building2, Clock3, MapPin, ShieldCheck } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { BookingRequestForm } from "@/components/platform/booking-request-form";
-import { companies } from "@/lib/platform/mock-data";
+import { Modal } from "@/components/ui/modal";
 import { getBookingPageConfigByCompany, getCompanyBySlug } from "@/lib/platform/selectors";
 
-export function generateStaticParams() {
-  return companies.map((company) => ({
-    company: company.slug,
-  }));
-}
-
-type CompanyBookingPageProps = {
-  params: Promise<{
-    company: string;
-  }>;
-};
-
-export default async function CompanyBookingPage({ params }: CompanyBookingPageProps) {
-  const { company: companySlug } = await params;
+export default function CompanyBookingPage() {
+  const params = useParams<{ company: string }>();
+  const companySlug = Array.isArray(params.company) ? params.company[0] : params.company;
   const company = getCompanyBySlug(companySlug);
 
-  if (!company) {
-    notFound();
-  }
+  const bookingConfig = useMemo(() => {
+    if (!company) return null;
+    return getBookingPageConfigByCompany(company.id);
+  }, [company]);
 
-  const bookingConfig = getBookingPageConfigByCompany(company.id);
+  const [isServiceModalOpen, setIsServiceModalOpen] = useState(false);
+  const [modalSelectedService, setModalSelectedService] = useState("");
 
-  if (!bookingConfig) {
-    notFound();
+  const openBookingModal = (serviceName?: string) => {
+    setModalSelectedService(serviceName ?? "");
+    setIsServiceModalOpen(true);
+  };
+
+  const scrollToRequestSection = () => {
+    document.getElementById("request-section")?.scrollIntoView({
+      behavior: "smooth",
+      block: "start",
+    });
+  };
+
+  const scrollToServiceOptions = () => {
+    document.getElementById("service-options-section")?.scrollIntoView({
+      behavior: "smooth",
+      block: "start",
+    });
+  };
+
+  if (!company || !bookingConfig) {
+    return (
+      <main className="min-h-screen bg-slate-950 text-white">
+        <section className="mx-auto max-w-7xl px-6 py-16 md:py-24">
+          <p className="text-white/70">Booking page not found.</p>
+        </section>
+      </main>
+    );
   }
 
   const companyColor = company.primaryColor ?? "#06b6d4";
 
   return (
-    <main className="min-h-screen bg-slate-950 text-white">
+    <main className="min-h-screen scroll-smooth bg-slate-950 text-white">
       <section className="relative overflow-hidden border-b border-white/10">
         <div
           className="absolute inset-0 opacity-20"
@@ -60,20 +79,22 @@ export default async function CompanyBookingPage({ params }: CompanyBookingPageP
             </p>
 
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-              <Button
-                className="rounded-xl px-6 py-6 text-base font-semibold text-slate-950 hover:opacity-90"
-                style={{ backgroundColor: companyColor }}
-              >
-                {bookingConfig.ctaLabel}
-                <ArrowRight className="ml-2 h-4 w-4" />
-              </Button>
+                <Button
+                  onClick={scrollToRequestSection}
+                  className="h-9 rounded-lg border border-cyan-500/35 bg-cyan-500/15 px-3 text-xs font-semibold text-cyan-100 hover:bg-cyan-500/25"
+                  style={{ backgroundColor: companyColor }}
+                >
+                  {bookingConfig.ctaLabel}
+                  <ArrowRight className="ml-2 h-4 w-4" />
+                </Button>
 
-              <Button
-                variant="secondary"
-                className="rounded-xl border border-white/15 bg-white/5 px-6 py-6 text-base font-semibold text-white hover:bg-white/10"
-              >
-                View Service Options
-              </Button>
+                <Button
+                  onClick={scrollToServiceOptions}
+                  variant="secondary"
+                  className="h-9 rounded-lg border border-white/15 bg-white/5 px-3 text-xs font-semibold text-white hover:bg-white/10"
+                >
+                  View Service Options
+                </Button>
             </div>
 
             <div className="mt-10 grid gap-4 sm:grid-cols-3">
@@ -105,7 +126,7 @@ export default async function CompanyBookingPage({ params }: CompanyBookingPageP
         </div>
       </section>
 
-      <section className="mx-auto max-w-7xl px-6 py-16 md:py-24">
+      <section id="service-options-section" className="mx-auto max-w-7xl px-6 py-16 md:py-24">
         <div className="grid gap-8 lg:grid-cols-[1.1fr_0.9fr]">
           <div>
             <h2 className="text-3xl font-semibold tracking-tight md:text-4xl">
@@ -134,40 +155,67 @@ export default async function CompanyBookingPage({ params }: CompanyBookingPageP
                     <p className="mt-3 text-sm leading-6 text-white/65">{service.description}</p>
 
                     <Button
-                      className="mt-6 rounded-xl px-5 py-5 text-sm font-semibold text-slate-950 hover:opacity-90"
-                      style={{ backgroundColor: companyColor }}
-                    >
-                      Request {service.name}
-                    </Button>
+                        onClick={() => openBookingModal(service.name)}
+                        className="mt-6 h-9 rounded-lg border border-cyan-500/35 bg-cyan-500/15 px-3 text-xs font-semibold text-cyan-100 hover:bg-cyan-500/25"
+                        style={{ backgroundColor: companyColor }}
+                      >
+                        Request {service.name}
+                      </Button>
                   </CardContent>
                 </Card>
               ))}
             </div>
           </div>
 
-          <div>
+          <div id="request-section">
             <Card
               className="rounded-2xl border border-white/10 text-white shadow-none"
               style={{ backgroundColor: "rgba(15, 23, 42, 0.96)" }}
             >
               <CardContent className="p-6">
-                <h2 className="text-2xl font-semibold">Request form preview</h2>
+                <h2 className="text-2xl font-semibold">Start your request</h2>
                 <p className="mt-3 text-sm leading-6 text-white/65">
-                  This is the customer-facing intake area. Later we can connect this to your real
-                  request workflow, payment flow, and dispatch creation.
+                  Use one guided booking flow to submit your service request and dispatch details.
                 </p>
 
-                <BookingRequestForm
-                  companySlug={company.slug}
-                  services={bookingConfig.services}
-                  companyColor={companyColor}
-                  ctaLabel={bookingConfig.ctaLabel}
-                />
+                <div className="mt-6 space-y-3">
+                  <Button
+                    onClick={() => openBookingModal()}
+                    className="w-full rounded-xl px-5 py-5 text-sm font-semibold text-slate-950 hover:opacity-90"
+                    style={{ backgroundColor: companyColor }}
+                  >
+                    {bookingConfig.ctaLabel}
+                  </Button>
+
+                  <Button
+                    onClick={() => openBookingModal(bookingConfig.services[0]?.name)}
+                    variant="secondary"
+                    className="w-full rounded-xl border border-white/15 bg-white/5 px-5 py-5 text-sm font-semibold text-white hover:bg-white/10"
+                  >
+                    {bookingConfig.services[0]?.name
+                      ? `Request ${bookingConfig.services[0].name}`
+                      : "Request Service"}
+                  </Button>
+                </div>
               </CardContent>
             </Card>
           </div>
         </div>
       </section>
+
+      <Modal
+        isOpen={isServiceModalOpen}
+        onClose={() => setIsServiceModalOpen(false)}
+        title={modalSelectedService ? `Request ${modalSelectedService}` : "Request Service"}
+      >
+        <BookingRequestForm
+          companySlug={company.slug}
+          services={bookingConfig.services}
+          companyColor={companyColor}
+          ctaLabel={bookingConfig.ctaLabel}
+          selectedService={modalSelectedService}
+        />
+      </Modal>
     </main>
   );
 }
