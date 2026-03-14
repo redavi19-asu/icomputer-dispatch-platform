@@ -79,6 +79,11 @@ export default function DriverPage() {
     useState(true);
 
   const seenJobIdsRef = useRef<Set<string>>(new Set());
+  const newJobAudioRef = useRef<HTMLAudioElement | null>(null);
+  const broadcastAudioRef = useRef<HTMLAudioElement | null>(null);
+  const lastPlayedIncomingJobIdRef = useRef<string | null>(null);
+  const lastPlayedBroadcastTsRef = useRef<number | null>(null);
+  const broadcastLoopStartedRef = useRef<number | null>(null);
 
   const fetchJobs = async () => {
     try {
@@ -96,6 +101,20 @@ export default function DriverPage() {
     } catch (error) {
       console.error("Driver fetch failed:", error);
       setIsLoading(false);
+    }
+  };
+
+  const stopNewJobAudio = () => {
+    if (newJobAudioRef.current) {
+      newJobAudioRef.current.pause();
+      newJobAudioRef.current.currentTime = 0;
+    }
+  };
+
+  const stopBroadcastAudio = () => {
+    if (broadcastAudioRef.current) {
+      broadcastAudioRef.current.pause();
+      broadcastAudioRef.current.currentTime = 0;
     }
   };
 
@@ -196,7 +215,90 @@ export default function DriverPage() {
     setDriverVisualState("active");
   }, [showBroadcastAlert, incomingJobId, activeJob?.status, myJobs.length]);
 
+  useEffect(() => {
+    if (!soundAlertsEnabled) {
+      stopNewJobAudio();
+      return;
+    }
+
+    const jobIdToLoop =
+      incomingJobId ||
+      (activeJob && activeJob.status === "Assigned" ? activeJob.id : null);
+
+    if (!jobIdToLoop) {
+      stopNewJobAudio();
+      return;
+    }
+
+    if (lastPlayedIncomingJobIdRef.current === jobIdToLoop) return;
+
+    lastPlayedIncomingJobIdRef.current = jobIdToLoop;
+
+    if (newJobAudioRef.current) {
+      newJobAudioRef.current.loop = true;
+      newJobAudioRef.current.currentTime = 0;
+      newJobAudioRef.current.play().catch(() => {});
+    }
+  }, [incomingJobId, activeJob?.id, activeJob?.status, soundAlertsEnabled]);
+
+  useEffect(() => {
+    const shouldStopJobLoop =
+      !soundAlertsEnabled ||
+      !activeJob ||
+      activeJob.status === "Accepted" ||
+      activeJob.status === "En Route" ||
+      activeJob.status === "Arrived" ||
+      activeJob.status === "In Progress" ||
+      activeJob.status === "Completed";
+
+    if (shouldStopJobLoop) {
+      stopNewJobAudio();
+
+      if (
+        !activeJob ||
+        activeJob.status === "Accepted" ||
+        activeJob.status === "En Route" ||
+        activeJob.status === "Arrived" ||
+        activeJob.status === "In Progress" ||
+        activeJob.status === "Completed"
+      ) {
+        lastPlayedIncomingJobIdRef.current = null;
+      }
+    }
+  }, [activeJob?.id, activeJob?.status, soundAlertsEnabled]);
+
+  useEffect(() => {
+    if (!soundAlertsEnabled) {
+      stopBroadcastAudio();
+      return;
+    }
+
+    if (!showBroadcastAlert || !broadcastAlerts.length) {
+      stopBroadcastAudio();
+      return;
+    }
+
+    const latestTs = broadcastAlerts[broadcastAlerts.length - 1]?.timestamp ?? null;
+    if (!latestTs) return;
+    if (broadcastLoopStartedRef.current === latestTs) return;
+
+    broadcastLoopStartedRef.current = latestTs;
+    lastPlayedBroadcastTsRef.current = latestTs;
+
+    if (broadcastAudioRef.current) {
+      broadcastAudioRef.current.loop = true;
+      broadcastAudioRef.current.currentTime = 0;
+      broadcastAudioRef.current.play().catch(() => {});
+    }
+  }, [broadcastAlerts, showBroadcastAlert, soundAlertsEnabled]);
+
+  const handleAlertInteraction = () => {
+    stopBroadcastAudio();
+    broadcastLoopStartedRef.current = null;
+  };
+
   const handleDismissBroadcast = () => {
+    handleAlertInteraction();
     setShowBroadcastAlert(false);
     setBroadcastAlertsState([]);
     setAlertPanelOpen(false);
@@ -204,6 +306,7 @@ export default function DriverPage() {
   };
 
   const handleDismissSingleAlert = (idx: number) => {
+    handleAlertInteraction();
     const newAlerts = broadcastAlerts.filter((_, i) => i !== idx);
     setBroadcastAlertsState(newAlerts);
 
@@ -446,6 +549,14 @@ export default function DriverPage() {
 
   return (
     <>
+      <audio ref={newJobAudioRef} preload="auto">
+        <source src="/sounds/new-job-alert.wav" type="audio/wav" />
+      </audio>
+
+      <audio ref={broadcastAudioRef} preload="auto">
+        <source src="/sounds/broadcast-alert.wav" type="audio/wav" />
+      </audio>
+
       <main className="flex h-dvh flex-col bg-slate-950 text-white">
         {showBroadcastAlert && broadcastAlerts.length > 0 ? (
           <div className="fixed inset-x-0 top-24 z-50 flex justify-center">
@@ -470,7 +581,10 @@ export default function DriverPage() {
               </span>
 
               <button
-                onClick={() => setAlertPanelOpen((v) => !v)}
+                onClick={() => {
+                  handleAlertInteraction();
+                  setAlertPanelOpen((v) => !v);
+                }}
                 className="ml-1 flex h-6 w-6 items-center justify-center rounded-full bg-yellow-400/80 text-slate-900 hover:bg-yellow-300 focus:outline-none"
                 aria-label="Expand alerts"
                 style={{ fontSize: "1rem", padding: 0 }}
@@ -651,8 +765,7 @@ export default function DriverPage() {
                       <div className="mt-2 space-y-1">
                         {queuedJobs.slice(0, 2).map((job) => (
                           <p key={job.id} className="truncate text-white/75">
-                            {job.name ?? "Customer"} •{" "}
-                            {job.service ?? "Service Request"}
+                            {job.name ?? "Customer"} • {job.service ?? "Service Request"}
                           </p>
                         ))}
                       </div>
