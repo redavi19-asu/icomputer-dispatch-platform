@@ -1,9 +1,6 @@
+import { redirect } from "next/navigation";
+
 export default function BookingPage() {
-	return (
-		<main className="min-h-screen bg-slate-950 text-white">
-			<section className="mx-auto max-w-4xl px-6 py-16">
-				<h1 className="text-2xl font-semibold">Booking</h1>
-			</section>
-		</main>
-	);
+	// Keep /booking as a clean entry point by routing to a real branded booking flow.
+	redirect("/chargenext/booking");
 }

@@ -1,12 +1,12 @@
 "use client";
 
 import { motion } from "framer-motion";
+import { useRouter } from "next/navigation";
 import {
   Building2,
   CreditCard,
   LayoutDashboard,
   Link2,
-  Map,
   MessageSquare,
   Settings2,
   Smartphone,
@@ -125,6 +125,8 @@ const modules = [
 ];
 
 export default function Home() {
+  const router = useRouter();
+
   return (
     <main className="min-h-screen bg-slate-950 text-white">
       <section className="relative min-h-screen overflow-hidden border-b border-white/10 bg-black">
@@ -188,13 +190,20 @@ export default function Home() {
             </p>
 
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-              <Button className="rounded-xl border border-white/20 bg-black/35 px-6 py-6 text-base font-semibold text-white backdrop-blur-md hover:bg-black/50">
+              <Button
+                onClick={() => router.push("/demo")}
+                className="rounded-xl border border-white/20 bg-black/35 px-6 py-6 text-base font-semibold text-white backdrop-blur-md hover:bg-black/50"
+              >
                 Request Demo
               </Button>
-              <Button className="rounded-xl px-6 py-6 text-base font-semibold">
+              <Button
+                onClick={() => router.push("/chargenext/booking")}
+                className="rounded-xl px-6 py-6 text-base font-semibold"
+              >
                 Start Platform Build
               </Button>
               <Button
+                onClick={() => router.push("/demo")}
                 className="rounded-xl border border-white/20 bg-black/35 px-6 py-6 text-base font-semibold text-white backdrop-blur-md hover:bg-black/50"
               >
                 View Product Structure
@@ -425,9 +434,12 @@ export default function Home() {
             </p>
 
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-              <Button className="rounded-xl px-6 py-6 text-base font-semibold">Request Demo</Button>
-              <Button className="rounded-xl px-6 py-6 text-base font-semibold">Start Platform Build</Button>
-              <Button className="rounded-xl border border-white/20 bg-black/35 px-6 py-6 text-base font-semibold text-white backdrop-blur-md hover:bg-black/50">
+              <Button onClick={() => router.push("/demo")} className="rounded-xl px-6 py-6 text-base font-semibold">Request Demo</Button>
+              <Button onClick={() => router.push("/chargenext/booking")} className="rounded-xl px-6 py-6 text-base font-semibold">Start Platform Build</Button>
+              <Button
+                onClick={() => router.push("/demo")}
+                className="rounded-xl border border-white/20 bg-black/35 px-6 py-6 text-base font-semibold text-white backdrop-blur-md hover:bg-black/50"
+              >
                 View Product Structure
               </Button>
             </div>

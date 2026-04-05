@@ -38,94 +38,60 @@ export function DispatchMap({
     mapRef.current = map;
     map.addControl(new mapboxgl.NavigationControl(), "top-right");
 
-    const routeCoordinates: [number, number][] = [
-      [-77.0705, 38.9008],
-      [-77.0652, 38.8992],
-      [-77.0601, 38.8973],
-      [-77.0553, 38.8954],
-      [-77.0508, 38.8934],
-      [-77.0461, 38.8917],
-      [-77.0418, 38.8899],
-      [-77.0374, 38.8882],
-      [-77.0333, 38.8868],
-      [-77.0291, 38.8852],
+    const driverCoordinates: [number, number][] = [
+      [-77.0588, 38.9049],
+      [-77.0441, 38.8965],
+      [-77.0317, 38.888],
     ];
 
-    const driverPopup = new mapboxgl.Popup({ offset: 18 }).setHTML(`
-      <div style="color:#0f172a;font-weight:600;">Driver A</div>
-      <div style="color:#475569;font-size:12px;">En Route • Live dispatch</div>
+    const jobCoordinates: [number, number][] = [
+      [-77.0522, 38.9003],
+      [-77.036, 38.8923],
+    ];
+
+    const dispatchCenter = new mapboxgl.Popup({ offset: 18 }).setHTML(`
+      <div style="color:#0f172a;font-weight:600;">Dispatch Center</div>
+      <div style="color:#475569;font-size:12px;">${companyName} operations</div>
     `);
 
-    const jobPopup = new mapboxgl.Popup({ offset: 18 }).setHTML(`
-      <div style="color:#0f172a;font-weight:600;">Open Job</div>
-      <div style="color:#475569;font-size:12px;">Awaiting service • ${companyName}</div>
-    `);
-
-    let routeIndex = 0;
-
-    const driverMarker = new mapboxgl.Marker({
-      color: "#22d3ee",
-      scale: 1.15,
-    })
-      .setLngLat(routeCoordinates[routeIndex])
-      .setPopup(driverPopup)
+    new mapboxgl.Marker({ color: "#06b6d4", scale: 1.1 })
+      .setLngLat([-77.045, 38.892])
+      .setPopup(dispatchCenter)
       .addTo(map);
-
-    new mapboxgl.Marker({
-      color: "#fbbf24",
-      scale: 1.15,
-    })
-      .setLngLat(routeCoordinates[routeCoordinates.length - 1])
-      .setPopup(jobPopup)
-      .addTo(map);
-
-    let intervalId: number | undefined;
 
     map.on("load", () => {
-      map.addSource("dispatch-route", {
-        type: "geojson",
-        data: {
-          type: "Feature",
-          properties: {},
-          geometry: {
-            type: "LineString",
-            coordinates: routeCoordinates,
-          },
-        },
+      driverCoordinates.forEach((coord, index) => {
+        const driverPopup = new mapboxgl.Popup({ offset: 18 }).setHTML(`
+          <div style="color:#0f172a;font-weight:600;">Driver ${index + 1}</div>
+          <div style="color:#475569;font-size:12px;">Active in service zone</div>
+        `);
+
+        new mapboxgl.Marker({ color: "#22d3ee", scale: 1.05 })
+          .setLngLat(coord)
+          .setPopup(driverPopup)
+          .addTo(map);
       });
 
-      map.addLayer({
-        id: "dispatch-route-line",
-        type: "line",
-        source: "dispatch-route",
-        layout: {
-          "line-join": "round",
-          "line-cap": "round",
-        },
-        paint: {
-          "line-color": "#22d3ee",
-          "line-width": 5,
-          "line-opacity": 0.9,
-        },
+      jobCoordinates.forEach((coord, index) => {
+        const jobPopup = new mapboxgl.Popup({ offset: 18 }).setHTML(`
+          <div style="color:#0f172a;font-weight:600;">Open Job ${index + 1}</div>
+          <div style="color:#475569;font-size:12px;">Awaiting dispatch • ${companyName}</div>
+        `);
+
+        new mapboxgl.Marker({ color: "#f59e0b", scale: 1.1 })
+          .setLngLat(coord)
+          .setPopup(jobPopup)
+          .addTo(map);
       });
 
       const bounds = new mapboxgl.LngLatBounds();
-      routeCoordinates.forEach((coord) => bounds.extend(coord));
+      driverCoordinates.forEach((coord) => bounds.extend(coord));
+      jobCoordinates.forEach((coord) => bounds.extend(coord));
+      bounds.extend([-77.045, 38.892]);
       map.fitBounds(bounds, { padding: 70, duration: 0 });
-
-      intervalId = window.setInterval(() => {
-        routeIndex += 1;
-
-        if (routeIndex >= routeCoordinates.length) {
-          routeIndex = 0;
-        }
-
-        driverMarker.setLngLat(routeCoordinates[routeIndex]);
-      }, 1200);
     });
 
     return () => {
-      if (intervalId) clearInterval(intervalId);
       map.remove();
       mapRef.current = null;
     };

@@ -1,14 +1,12 @@
 "use client";
 import { addBroadcastAlert } from "@/lib/utils";
-// ...existing imports...
 
 import { useEffect, useMemo, useState } from "react";
 import {
   Bell,
-  Filter,
   LayoutDashboard,
   MapPinned,
-  Search,
+  Settings2,
   Trash2,
   Users,
 } from "lucide-react";
@@ -85,6 +83,7 @@ export default function DashboardPage() {
   );
   const [themeMode, setThemeMode] = useState<"dark" | "light">("dark");
   const [isClearingJobs, setIsClearingJobs] = useState(false);
+  const [showDashboardControlsModal, setShowDashboardControlsModal] = useState(false);
 
   useEffect(() => {
     setDriverAcceptanceMode(
@@ -381,35 +380,6 @@ export default function DashboardPage() {
           <div className="flex items-center gap-2">
             <div className={toolbarGroup}>
               <span className="mr-2 text-[11px] font-semibold uppercase tracking-widest text-cyan-300/80">
-                Driver Acceptance
-              </span>
-              {([
-                { value: "manual", label: "Manual" },
-                { value: "auto", label: "Auto-Accept" },
-              ] as const).map((mode) => (
-                <button
-                  key={mode.value}
-                  onClick={() => {
-                    setDriverAcceptanceMode(mode.value);
-                    if (company?.slug) {
-                      setStoredDriverAcceptanceMode(company.slug, mode.value);
-                    }
-                  }}
-                  className={`rounded-md px-2.5 py-1.5 font-medium transition active:scale-[0.98] ${
-                    driverAcceptanceMode === mode.value
-                      ? "bg-cyan-500 text-slate-950"
-                      : isDark
-                      ? "text-white/70 hover:bg-white/10 hover:text-white"
-                      : "text-slate-600 hover:bg-slate-100 hover:text-slate-950"
-                  }`}
-                >
-                  {mode.label}
-                </button>
-              ))}
-            </div>
-
-            <div className={toolbarGroup}>
-              <span className="mr-2 text-[11px] font-semibold uppercase tracking-widest text-cyan-300/80">
                 Dispatch Mode
               </span>
               {(["Manual", "Assisted", "Auto"] as const).map((mode) => (
@@ -429,63 +399,14 @@ export default function DashboardPage() {
               ))}
             </div>
 
-            <div className={toolbarGroup}>
-              <span className="mr-2 text-[11px] font-semibold uppercase tracking-widest text-cyan-300/80">
-                Theme
-              </span>
-              {(["dark", "light"] as const).map((mode) => (
-                <button
-                  key={mode}
-                  onClick={() => setThemeMode(mode)}
-                  className={`rounded-md px-2.5 py-1.5 capitalize transition ${
-                    themeMode === mode
-                      ? "bg-cyan-500 text-slate-950"
-                      : isDark
-                      ? "text-white/70 hover:bg-white/10 hover:text-white"
-                      : "text-slate-600 hover:bg-slate-100 hover:text-slate-950"
-                  }`}
-                >
-                  {mode}
-                </button>
-              ))}
-            </div>
-
-            <div className="flex flex-col items-start justify-center">
-              <span className="mb-1 text-[11px] font-semibold uppercase tracking-widest text-yellow-300/80">
-                Alerts
-              </span>
-              <Button
-                className="h-9 rounded-lg border border-yellow-400/60 bg-yellow-900/10 px-3 text-xs font-semibold text-yellow-300 shadow-[0_0_12px_2px_rgba(253,224,71,0.18)] hover:bg-yellow-900/20"
-              >
-                <Bell className="mr-2 h-4 w-4 text-yellow-300" />
-                Alerts
-              </Button>
-            </div>
-            <div className="flex flex-col items-start justify-center">
-              <span className="mb-1 text-[11px] font-semibold uppercase tracking-widest text-cyan-300/80">
-                Completed Jobs
-              </span>
-              <Button
-                variant="secondary"
-                onClick={requestClearCompletedJobs}
-                disabled={isClearingJobs || clearableJobsCount === 0}
-                className={`${secondaryBtn} h-9 rounded-lg px-3 text-xs disabled:opacity-50`}
-              >
-                <Trash2 className="mr-2 h-4 w-4" />
-                Clear Completed
-              </Button>
-            </div>
-            <div className="flex flex-col items-start justify-center">
-              <span className="mb-1 text-[11px] font-semibold uppercase tracking-widest text-cyan-300/80">
-                Current Mode
-              </span>
-              <Button
-                className="h-9 rounded-lg border border-cyan-400/60 bg-transparent px-3 text-xs font-semibold text-cyan-300 shadow-[0_0_12px_2px_rgba(6,182,212,0.18)] hover:bg-cyan-900/10"
-              >
-                <MapPinned className="mr-2 h-4 w-4 text-cyan-300" />
-                {dispatchMode} Mode
-              </Button>
-            </div>
+            <Button
+              variant="secondary"
+              onClick={() => setShowDashboardControlsModal(true)}
+              className={`${secondaryBtn} h-9 rounded-lg px-3 text-xs`}
+            >
+              <Settings2 className="mr-2 h-4 w-4" />
+              Dashboard Controls
+            </Button>
           </div>
         </div>
       </div>
@@ -565,21 +486,8 @@ export default function DashboardPage() {
                       Main operational map for jobs, routes, and drivers
                     </p>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <Button
-                      variant="secondary"
-                      className={secondaryBtn}
-                    >
-                      <Search className="mr-2 h-4 w-4" />
-                      Search
-                    </Button>
-                    <Button
-                      variant="secondary"
-                      className={secondaryBtn}
-                    >
-                      <Filter className="mr-2 h-4 w-4" />
-                      Filters
-                    </Button>
+                  <div className={`text-xs font-semibold uppercase tracking-widest ${mutedText}`}>
+                    {dispatchMode} Mode
                   </div>
                 </div>
 
@@ -825,14 +733,13 @@ export default function DashboardPage() {
                 placeholder="Type your alert message..."
                 value={broadcastMessage}
                 onChange={e => setBroadcastMessage(e.target.value)}
-                // ...existing code...
               />
               <Button
                 className="mt-3 w-full bg-yellow-400 text-slate-900 font-semibold hover:bg-yellow-300 disabled:opacity-60"
                 onClick={handleSendBroadcast}
                 disabled={!broadcastMessage.trim()}
               >
-                Send Test Alert
+                Send Broadcast Alert
               </Button>
             </CardContent>
           </Card>
@@ -1041,6 +948,78 @@ export default function DashboardPage() {
               className="flex-1 bg-slate-900 text-white hover:bg-slate-800 disabled:opacity-50"
             >
               Confirm Clear
+            </Button>
+          </div>
+        </div>
+      </Modal>
+
+      <Modal
+        isOpen={showDashboardControlsModal}
+        onClose={() => setShowDashboardControlsModal(false)}
+        title="Dashboard Controls"
+      >
+        <div className="space-y-6 text-slate-800">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">
+              Driver Acceptance
+            </p>
+            <div className="mt-3 flex gap-2">
+              {([
+                { value: "manual", label: "Manual" },
+                { value: "auto", label: "Auto-Accept" },
+              ] as const).map((mode) => (
+                <Button
+                  key={mode.value}
+                  variant={driverAcceptanceMode === mode.value ? "default" : "secondary"}
+                  onClick={() => {
+                    setDriverAcceptanceMode(mode.value);
+                    if (company?.slug) {
+                      setStoredDriverAcceptanceMode(company.slug, mode.value);
+                    }
+                  }}
+                >
+                  {mode.label}
+                </Button>
+              ))}
+            </div>
+          </div>
+
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">
+              Theme
+            </p>
+            <div className="mt-3 flex gap-2">
+              {(["dark", "light"] as const).map((mode) => (
+                <Button
+                  key={mode}
+                  variant={themeMode === mode ? "default" : "secondary"}
+                  onClick={() => setThemeMode(mode)}
+                  className="capitalize"
+                >
+                  {mode}
+                </Button>
+              ))}
+            </div>
+          </div>
+
+          <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">
+              Dispatch Board Maintenance
+            </p>
+            <p className="mt-2 text-sm text-slate-600">
+              Remove completed and cancelled jobs from the active board.
+            </p>
+            <Button
+              variant="secondary"
+              onClick={() => {
+                setShowDashboardControlsModal(false);
+                requestClearCompletedJobs();
+              }}
+              disabled={isClearingJobs || clearableJobsCount === 0}
+              className="mt-4"
+            >
+              <Trash2 className="mr-2 h-4 w-4" />
+              Clear Completed Jobs
             </Button>
           </div>
         </div>
