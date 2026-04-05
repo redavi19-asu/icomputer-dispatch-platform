@@ -309,6 +309,7 @@ export default function DashboardPage() {
         }
 
         const data = await res.json();
+        console.log("[dashboard] fetched build-electric jobs", (data.jobs ?? []).length);
 
         if (isMounted) {
           setCompanyJobs(data.jobs ?? []);

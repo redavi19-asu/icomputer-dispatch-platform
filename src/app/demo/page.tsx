@@ -8,7 +8,7 @@ const demoEntries = [
     title: "Booking Demo",
     description:
       "Branded customer booking flow with service selection, address verification, and request submission.",
-    href: "/chargenext/booking",
+    href: "/build-electric/booking",
     cta: "Open Booking Demo",
     icon: Wand2,
   },

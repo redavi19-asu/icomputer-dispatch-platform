@@ -96,6 +96,7 @@ export default function DriverPage() {
       }
 
       const data = await res.json();
+      console.log("[driver] fetched build-electric jobs", (data.jobs ?? []).length);
       setJobs(data.jobs ?? []);
       setIsLoading(false);
     } catch (error) {
@@ -171,12 +172,18 @@ export default function DriverPage() {
 
   const myJobs = useMemo(() => {
     if (!activeDriver) return [];
-    return jobs.filter(
+    const filtered = jobs.filter(
       (job) =>
         job.driverId === activeDriver.id &&
         job.status !== "Completed" &&
         job.status !== "Cancelled"
     );
+    console.log("[driver] myJobs for active driver", {
+      activeDriverId: activeDriver.id,
+      totalJobs: jobs.length,
+      myJobs: filtered.length,
+    });
+    return filtered;
   }, [jobs, activeDriver]);
 
   const activeJob = useMemo(() => {

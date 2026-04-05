@@ -197,7 +197,7 @@ export default function Home() {
                 Request Demo
               </Button>
               <Button
-                onClick={() => router.push("/chargenext/booking")}
+                onClick={() => router.push("/build-electric/booking")}
                 className="rounded-xl px-6 py-6 text-base font-semibold"
               >
                 Start Platform Build
@@ -435,7 +435,7 @@ export default function Home() {
 
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
               <Button onClick={() => router.push("/demo")} className="rounded-xl px-6 py-6 text-base font-semibold">Request Demo</Button>
-              <Button onClick={() => router.push("/chargenext/booking")} className="rounded-xl px-6 py-6 text-base font-semibold">Start Platform Build</Button>
+              <Button onClick={() => router.push("/build-electric/booking")} className="rounded-xl px-6 py-6 text-base font-semibold">Start Platform Build</Button>
               <Button
                 onClick={() => router.push("/demo")}
                 className="rounded-xl border border-white/20 bg-black/35 px-6 py-6 text-base font-semibold text-white backdrop-blur-md hover:bg-black/50"

@@ -142,6 +142,8 @@ export function BookingRequestForm({
               details: formData.get("details"),
             };
 
+            console.log("[booking-submit] payload", payload);
+
             const res = await fetch("/api/jobs", {
               method: "POST",
               headers: {

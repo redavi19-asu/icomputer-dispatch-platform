@@ -40,6 +40,10 @@ export async function GET(req: Request) {
         )
         .all();
 
+  if (companySlug === "build-electric") {
+    console.log("[api/jobs GET] build-electric count", jobs.length);
+  }
+
   return NextResponse.json({
     success: true,
     jobs,
@@ -48,6 +52,8 @@ export async function GET(req: Request) {
 
 export async function POST(req: Request) {
   const data = await req.json();
+
+  console.log("[api/jobs POST] body", data);
 
   const job: JobRecord = {
     id: crypto.randomUUID(),
@@ -72,6 +78,12 @@ export async function POST(req: Request) {
     )
   `
   ).run(job);
+
+  console.log("[api/jobs POST] inserted", {
+    id: job.id,
+    companySlug: job.companySlug,
+    status: job.status,
+  });
 
   return NextResponse.json({
     success: true,
