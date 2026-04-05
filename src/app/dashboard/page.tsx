@@ -54,6 +54,10 @@ type ApiJob = {
   etaMinutes?: number | null;
   statusHistory?: JobTimelineEvent[];
   verificationToken?: string | null;
+  pickupVerificationToken?: string | null;
+  deliveryVerificationToken?: string | null;
+  pickupVerifiedAt?: string | null;
+  deliveryVerifiedAt?: string | null;
   handoffVerifiedAt?: string | null;
 };
 
@@ -158,6 +162,12 @@ export default function DashboardPage() {
   }, [company]);
 
   const assignJobToDriver = async (jobId: string, driverId: string) => {
+    const assignStatus =
+      workspaceSettings.operationalMode === "Direct Service" &&
+      driverAcceptanceMode === "auto"
+        ? "En Route"
+        : "Assigned";
+
     try {
       const res = await fetch("/api/jobs", {
         method: "PATCH",
@@ -166,7 +176,7 @@ export default function DashboardPage() {
         },
         body: JSON.stringify({
           id: jobId,
-          status: driverAcceptanceMode === "auto" ? "En Route" : "Assigned",
+          status: assignStatus,
           driverId,
           etaMinutes: 15,
         }),
@@ -232,6 +242,11 @@ export default function DashboardPage() {
 
   const autoAssignJob = async (job: ApiJob) => {
     const recommendedDriver = getRecommendedDriver();
+    const assignStatus =
+      workspaceSettings.operationalMode === "Direct Service" &&
+      driverAcceptanceMode === "auto"
+        ? "En Route"
+        : "Assigned";
 
     if (!recommendedDriver || job.driverId || job.status !== "Awaiting Dispatch") {
       return;
@@ -245,7 +260,7 @@ export default function DashboardPage() {
         },
         body: JSON.stringify({
           id: job.id,
-          status: driverAcceptanceMode === "auto" ? "En Route" : "Assigned",
+          status: assignStatus,
           driverId: recommendedDriver.id,
           etaMinutes: 15,
         }),
@@ -439,8 +454,11 @@ export default function DashboardPage() {
     });
   };
 
-  const confirmSelectedJobHandoff = async () => {
-    if (!selectedJob?.verificationToken) return;
+  const confirmSelectedJobVerification = async (
+    action: "confirm-handoff" | "confirm-pickup" | "confirm-delivery",
+    token?: string | null
+  ) => {
+    if (!selectedJob || !token) return;
 
     setIsConfirmingHandoff(true);
     setHandoffConfirmError(null);
@@ -454,8 +472,8 @@ export default function DashboardPage() {
         },
         body: JSON.stringify({
           id: selectedJob.id,
-          verificationAction: "confirm-handoff",
-          verificationToken: selectedJob.verificationToken,
+          verificationAction: action,
+          verificationToken: token,
         }),
       });
 
@@ -470,7 +488,13 @@ export default function DashboardPage() {
         prev.map((job) => (job.id === updatedJob.id ? updatedJob : job))
       );
       setSelectedJob(updatedJob);
-      setHandoffConfirmSuccess("Handoff verified successfully.");
+      setHandoffConfirmSuccess(
+        action === "confirm-pickup"
+          ? "Pickup verification recorded."
+          : action === "confirm-delivery"
+          ? "Delivery verification recorded."
+          : "Handoff verified successfully."
+      );
     } catch (error) {
       console.error("Handoff confirmation failed:", error);
       setHandoffConfirmError("Could not confirm handoff right now. Please retry.");
@@ -545,7 +569,7 @@ export default function DashboardPage() {
     pendingJobs.forEach((job) => {
       void autoAssignJob(job);
     });
-  }, [dispatchMode, companyJobs, driverAcceptanceMode]);
+  }, [dispatchMode, companyJobs, driverAcceptanceMode, workspaceSettings.operationalMode]);
 
   const isDark = themeMode === "dark";
 
@@ -588,6 +612,9 @@ export default function DashboardPage() {
               </span>
               <span className="rounded-full border border-cyan-400/30 bg-cyan-500/10 px-2.5 py-1 text-cyan-200">
                 Dispatch Mode: {dispatchMode}
+              </span>
+              <span className="rounded-full border border-cyan-400/30 bg-cyan-500/10 px-2.5 py-1 text-cyan-200">
+                Workflow: {workspaceSettings.operationalMode}
               </span>
             </div>
           </div>
@@ -1181,18 +1208,80 @@ export default function DashboardPage() {
               selectedJob.verificationToken &&
               !selectedJob.handoffVerifiedAt ? (
                 <div className="mt-3 flex flex-wrap items-center gap-2">
-                  <Button
-                    onClick={() => void confirmSelectedJobHandoff()}
-                    disabled={isConfirmingHandoff}
-                    className="h-8 rounded-lg bg-slate-900 px-3 text-xs text-white hover:bg-slate-800 disabled:opacity-50"
-                  >
-                    {isConfirmingHandoff ? "Confirming..." : "Confirm Handoff"}
-                  </Button>
+                  {workspaceSettings.dispatcherCanConfirmHandoff ? (
+                    <Button
+                      onClick={() =>
+                        void confirmSelectedJobVerification(
+                          "confirm-handoff",
+                          selectedJob.verificationToken
+                        )
+                      }
+                      disabled={isConfirmingHandoff}
+                      className="h-8 rounded-lg bg-slate-900 px-3 text-xs text-white hover:bg-slate-800 disabled:opacity-50"
+                    >
+                      {isConfirmingHandoff ? "Confirming..." : "Confirm Handoff"}
+                    </Button>
+                  ) : (
+                    <p className="text-xs text-slate-500">Driver confirmation required by policy.</p>
+                  )}
+                  {workspaceSettings.pickupVerificationEnabled && selectedJob.pickupVerificationToken ? (
+                    <Button
+                      onClick={() =>
+                        void confirmSelectedJobVerification(
+                          "confirm-pickup",
+                          selectedJob.pickupVerificationToken
+                        )
+                      }
+                      disabled={isConfirmingHandoff}
+                      variant="secondary"
+                      className="h-8 rounded-lg border border-slate-300 bg-white px-3 text-xs text-slate-700 hover:bg-slate-50 disabled:opacity-50"
+                    >
+                      Confirm Pickup
+                    </Button>
+                  ) : null}
+                  {workspaceSettings.deliveryVerificationEnabled && selectedJob.deliveryVerificationToken ? (
+                    <Button
+                      onClick={() =>
+                        void confirmSelectedJobVerification(
+                          "confirm-delivery",
+                          selectedJob.deliveryVerificationToken
+                        )
+                      }
+                      disabled={isConfirmingHandoff}
+                      variant="secondary"
+                      className="h-8 rounded-lg border border-slate-300 bg-white px-3 text-xs text-slate-700 hover:bg-slate-50 disabled:opacity-50"
+                    >
+                      Confirm Delivery
+                    </Button>
+                  ) : null}
                   {handoffConfirmError ? (
                     <p className="text-xs text-rose-600">{handoffConfirmError}</p>
                   ) : null}
                   {handoffConfirmSuccess ? (
                     <p className="text-xs text-emerald-700">{handoffConfirmSuccess}</p>
+                  ) : null}
+                </div>
+              ) : null}
+
+              {(workspaceSettings.pickupVerificationEnabled ||
+                workspaceSettings.deliveryVerificationEnabled) &&
+              (selectedJob.pickupVerificationToken || selectedJob.deliveryVerificationToken) ? (
+                <div className="mt-2 space-y-1 text-xs text-slate-500">
+                  {workspaceSettings.pickupVerificationEnabled && selectedJob.pickupVerificationToken ? (
+                    <p>
+                      Pickup token: {selectedJob.pickupVerificationToken}
+                      {selectedJob.pickupVerifiedAt
+                        ? ` • verified ${formatTimelineAt(selectedJob.pickupVerifiedAt)}`
+                        : " • pending"}
+                    </p>
+                  ) : null}
+                  {workspaceSettings.deliveryVerificationEnabled && selectedJob.deliveryVerificationToken ? (
+                    <p>
+                      Delivery token: {selectedJob.deliveryVerificationToken}
+                      {selectedJob.deliveryVerifiedAt
+                        ? ` • verified ${formatTimelineAt(selectedJob.deliveryVerifiedAt)}`
+                        : " • pending"}
+                    </p>
                   ) : null}
                 </div>
               ) : null}

@@ -27,6 +27,10 @@ db.exec(`
     etaMinutes INTEGER,
     statusHistory TEXT,
     verificationToken TEXT,
+    pickupVerificationToken TEXT,
+    deliveryVerificationToken TEXT,
+    pickupVerifiedAt TEXT,
+    deliveryVerifiedAt TEXT,
     handoffVerifiedAt TEXT
   );
 `);
@@ -43,6 +47,18 @@ if (!hasColumn("statusHistory")) {
 if (!hasColumn("verificationToken")) {
   db.exec("ALTER TABLE jobs ADD COLUMN verificationToken TEXT;");
 }
+if (!hasColumn("pickupVerificationToken")) {
+  db.exec("ALTER TABLE jobs ADD COLUMN pickupVerificationToken TEXT;");
+}
+if (!hasColumn("deliveryVerificationToken")) {
+  db.exec("ALTER TABLE jobs ADD COLUMN deliveryVerificationToken TEXT;");
+}
+if (!hasColumn("pickupVerifiedAt")) {
+  db.exec("ALTER TABLE jobs ADD COLUMN pickupVerifiedAt TEXT;");
+}
+if (!hasColumn("deliveryVerifiedAt")) {
+  db.exec("ALTER TABLE jobs ADD COLUMN deliveryVerifiedAt TEXT;");
+}
 if (!hasColumn("handoffVerifiedAt")) {
   db.exec("ALTER TABLE jobs ADD COLUMN handoffVerifiedAt TEXT;");
 }
@@ -52,9 +68,9 @@ const seedCount = db.prepare("SELECT COUNT(*) as count FROM jobs").get() as { co
 if (seedCount.count === 0) {
   const insert = db.prepare(`
     INSERT INTO jobs (
-      id, createdAt, updatedAt, status, companySlug, name, phone, service, address, details, driverId, etaMinutes, statusHistory, verificationToken, handoffVerifiedAt
+      id, createdAt, updatedAt, status, companySlug, name, phone, service, address, details, driverId, etaMinutes, statusHistory, verificationToken, pickupVerificationToken, deliveryVerificationToken, pickupVerifiedAt, deliveryVerifiedAt, handoffVerifiedAt
     ) VALUES (
-      @id, @createdAt, @updatedAt, @status, @companySlug, @name, @phone, @service, @address, @details, @driverId, @etaMinutes, @statusHistory, @verificationToken, @handoffVerifiedAt
+      @id, @createdAt, @updatedAt, @status, @companySlug, @name, @phone, @service, @address, @details, @driverId, @etaMinutes, @statusHistory, @verificationToken, @pickupVerificationToken, @deliveryVerificationToken, @pickupVerifiedAt, @deliveryVerifiedAt, @handoffVerifiedAt
     )
   `);
 
@@ -83,6 +99,10 @@ if (seedCount.count === 0) {
       },
     ]),
     verificationToken: "BE-1042",
+    pickupVerificationToken: "PICK-1042",
+    deliveryVerificationToken: "DROP-1042",
+    pickupVerifiedAt: null,
+    deliveryVerifiedAt: null,
     handoffVerifiedAt: null,
   });
 
@@ -123,6 +143,10 @@ if (seedCount.count === 0) {
       },
     ]),
     verificationToken: "BE-1043",
+    pickupVerificationToken: "PICK-1043",
+    deliveryVerificationToken: "DROP-1043",
+    pickupVerifiedAt: null,
+    deliveryVerifiedAt: null,
     handoffVerifiedAt: null,
   });
 }

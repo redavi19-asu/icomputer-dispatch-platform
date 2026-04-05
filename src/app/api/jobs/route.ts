@@ -22,6 +22,10 @@ type JobRecord = {
   etaMinutes?: number | null;
   statusHistory?: string | null;
   verificationToken?: string | null;
+  pickupVerificationToken?: string | null;
+  deliveryVerificationToken?: string | null;
+  pickupVerifiedAt?: string | null;
+  deliveryVerifiedAt?: string | null;
   handoffVerifiedAt?: string | null;
 };
 
@@ -40,6 +44,10 @@ const toApiJob = (job: JobRecord) => {
     updatedAt: job.updatedAt ?? job.createdAt,
     statusHistory: normalizeTimeline(parsedHistory, job.createdAt),
     verificationToken: job.verificationToken ?? null,
+    pickupVerificationToken: job.pickupVerificationToken ?? null,
+    deliveryVerificationToken: job.deliveryVerificationToken ?? null,
+    pickupVerifiedAt: job.pickupVerifiedAt ?? null,
+    deliveryVerifiedAt: job.deliveryVerifiedAt ?? null,
     handoffVerifiedAt: job.handoffVerifiedAt ?? null,
   };
 };
@@ -58,7 +66,7 @@ export async function GET(req: Request) {
     const job = db
       .prepare(
         `
-        SELECT id, createdAt, updatedAt, status, companySlug, name, phone, service, address, details, driverId, etaMinutes, statusHistory, verificationToken, handoffVerifiedAt
+        SELECT id, createdAt, updatedAt, status, companySlug, name, phone, service, address, details, driverId, etaMinutes, statusHistory, verificationToken, pickupVerificationToken, deliveryVerificationToken, pickupVerifiedAt, deliveryVerifiedAt, handoffVerifiedAt
         FROM jobs
         WHERE id = ?
       `
@@ -85,7 +93,7 @@ export async function GET(req: Request) {
     ? db
         .prepare(
           `
-          SELECT id, createdAt, updatedAt, status, companySlug, name, phone, service, address, details, driverId, etaMinutes, statusHistory, verificationToken, handoffVerifiedAt
+          SELECT id, createdAt, updatedAt, status, companySlug, name, phone, service, address, details, driverId, etaMinutes, statusHistory, verificationToken, pickupVerificationToken, deliveryVerificationToken, pickupVerifiedAt, deliveryVerifiedAt, handoffVerifiedAt
           FROM jobs
           WHERE companySlug = ?
           ORDER BY datetime(createdAt) DESC
@@ -95,7 +103,7 @@ export async function GET(req: Request) {
     : db
         .prepare(
           `
-          SELECT id, createdAt, updatedAt, status, companySlug, name, phone, service, address, details, driverId, etaMinutes, statusHistory, verificationToken, handoffVerifiedAt
+          SELECT id, createdAt, updatedAt, status, companySlug, name, phone, service, address, details, driverId, etaMinutes, statusHistory, verificationToken, pickupVerificationToken, deliveryVerificationToken, pickupVerifiedAt, deliveryVerifiedAt, handoffVerifiedAt
           FROM jobs
           ORDER BY datetime(createdAt) DESC
         `
@@ -126,18 +134,24 @@ export async function POST(req: Request) {
     etaMinutes: null,
     statusHistory: JSON.stringify(createInitialStatusHistory(new Date().toISOString())),
     verificationToken: createVerificationToken(crypto.randomUUID()),
+    pickupVerificationToken: `P-${createVerificationToken(crypto.randomUUID())}`,
+    deliveryVerificationToken: `D-${createVerificationToken(crypto.randomUUID())}`,
+    pickupVerifiedAt: null,
+    deliveryVerifiedAt: null,
     handoffVerifiedAt: null,
   };
 
   job.verificationToken = createVerificationToken(job.id);
+  job.pickupVerificationToken = `P-${createVerificationToken(`${job.id}-pickup`)}`;
+  job.deliveryVerificationToken = `D-${createVerificationToken(`${job.id}-delivery`)}`;
   job.statusHistory = JSON.stringify(createInitialStatusHistory(job.createdAt));
 
   db.prepare(
     `
     INSERT INTO jobs (
-      id, createdAt, updatedAt, status, companySlug, name, phone, service, address, details, driverId, etaMinutes, statusHistory, verificationToken, handoffVerifiedAt
+      id, createdAt, updatedAt, status, companySlug, name, phone, service, address, details, driverId, etaMinutes, statusHistory, verificationToken, pickupVerificationToken, deliveryVerificationToken, pickupVerifiedAt, deliveryVerifiedAt, handoffVerifiedAt
     ) VALUES (
-      @id, @createdAt, @updatedAt, @status, @companySlug, @name, @phone, @service, @address, @details, @driverId, @etaMinutes, @statusHistory, @verificationToken, @handoffVerifiedAt
+      @id, @createdAt, @updatedAt, @status, @companySlug, @name, @phone, @service, @address, @details, @driverId, @etaMinutes, @statusHistory, @verificationToken, @pickupVerificationToken, @deliveryVerificationToken, @pickupVerifiedAt, @deliveryVerifiedAt, @handoffVerifiedAt
     )
   `
   ).run(job);
@@ -156,6 +170,7 @@ export async function PATCH(req: Request) {
       `
       SELECT id, createdAt, status, companySlug, name, phone, service, address, details, driverId, etaMinutes
               ,updatedAt, statusHistory, verificationToken, handoffVerifiedAt
+              ,pickupVerificationToken, deliveryVerificationToken, pickupVerifiedAt, deliveryVerifiedAt
       FROM jobs
       WHERE id = ?
     `
@@ -195,6 +210,8 @@ export async function PATCH(req: Request) {
   }
 
   let handoffVerifiedAt = existingJob.handoffVerifiedAt ?? null;
+  let pickupVerifiedAt = existingJob.pickupVerifiedAt ?? null;
+  let deliveryVerifiedAt = existingJob.deliveryVerifiedAt ?? null;
   if (
     data.verificationAction === "confirm-handoff" &&
     data.verificationToken &&
@@ -204,7 +221,36 @@ export async function PATCH(req: Request) {
     timeline = appendVerificationEvent(
       timeline,
       now,
-      "Verification token confirmed"
+      "Verification token confirmed",
+      "Handoff verified"
+    );
+  }
+
+  if (
+    data.verificationAction === "confirm-pickup" &&
+    data.verificationToken &&
+    data.verificationToken === existingJob.pickupVerificationToken
+  ) {
+    pickupVerifiedAt = now;
+    timeline = appendVerificationEvent(
+      timeline,
+      now,
+      "Pickup token confirmed",
+      "Pickup verified"
+    );
+  }
+
+  if (
+    data.verificationAction === "confirm-delivery" &&
+    data.verificationToken &&
+    data.verificationToken === existingJob.deliveryVerificationToken
+  ) {
+    deliveryVerifiedAt = now;
+    timeline = appendVerificationEvent(
+      timeline,
+      now,
+      "Delivery token confirmed",
+      "Delivery verified"
     );
   }
 
@@ -216,6 +262,8 @@ export async function PATCH(req: Request) {
       data.etaMinutes !== undefined ? data.etaMinutes : existingJob.etaMinutes ?? null,
     updatedAt: now,
     statusHistory: JSON.stringify(timeline),
+    pickupVerifiedAt,
+    deliveryVerifiedAt,
     handoffVerifiedAt,
   };
 
@@ -227,6 +275,8 @@ export async function PATCH(req: Request) {
         etaMinutes = @etaMinutes,
         updatedAt = @updatedAt,
         statusHistory = @statusHistory,
+        pickupVerifiedAt = @pickupVerifiedAt,
+        deliveryVerifiedAt = @deliveryVerifiedAt,
         handoffVerifiedAt = @handoffVerifiedAt
     WHERE id = @id
   `
@@ -237,6 +287,8 @@ export async function PATCH(req: Request) {
     etaMinutes: updatedJob.etaMinutes,
     updatedAt: updatedJob.updatedAt,
     statusHistory: updatedJob.statusHistory,
+    pickupVerifiedAt: updatedJob.pickupVerifiedAt,
+    deliveryVerifiedAt: updatedJob.deliveryVerifiedAt,
     handoffVerifiedAt: updatedJob.handoffVerifiedAt,
   });
 

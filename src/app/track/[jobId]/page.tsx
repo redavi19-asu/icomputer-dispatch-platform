@@ -7,7 +7,7 @@ import { Clock3, MapPin, ShieldCheck, UserRound } from "lucide-react";
 
 import { Card, CardContent } from "@/components/ui/card";
 import {
-  TRACKING_STAGES,
+  getTrackingStagesForMode,
   getDisplayStatusLabel,
   type JobTimelineEvent,
 } from "@/lib/platform/job-lifecycle";
@@ -122,6 +122,10 @@ export default function TrackJobPage() {
     return set;
   }, [job?.statusHistory]);
 
+  const workflowStages = useMemo(() => {
+    return getTrackingStagesForMode(workspaceSettings.operationalMode);
+  }, [workspaceSettings.operationalMode]);
+
   if (isLoading) {
     return (
       <main className="min-h-screen bg-slate-950 px-4 py-10 text-white">
@@ -200,7 +204,7 @@ export default function TrackJobPage() {
           <CardContent className="p-5">
             <p className="text-sm font-semibold text-cyan-200">Progress</p>
             <div className="mt-3 space-y-2">
-              {TRACKING_STAGES.map((stage) => {
+              {workflowStages.map((stage) => {
                 const reached = reachedStageSet.has(stage.status);
                 return (
                   <div key={stage.status} className="flex items-center gap-3">

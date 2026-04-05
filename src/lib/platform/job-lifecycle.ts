@@ -1,3 +1,5 @@
+import type { OperationalMode } from "@/lib/platform/workspace-preferences";
+
 export type JobStatusLabel =
   | "Awaiting Dispatch"
   | "Assigned"
@@ -5,6 +7,16 @@ export type JobStatusLabel =
   | "En Route"
   | "Arrived"
   | "In Progress"
+  | "Go to Pickup"
+  | "Arrived at Pickup"
+  | "Pickup Confirmed"
+  | "En Route to Customer"
+  | "Delivered"
+  | "Pickup Required"
+  | "Pickup Verified"
+  | "In Transit"
+  | "Dropoff Required"
+  | "Delivery Verified"
   | "Completed"
   | "Cancelled";
 
@@ -23,6 +35,16 @@ const STATUS_LABELS: Record<string, string> = {
   "En Route": "En route",
   Arrived: "Arrived",
   "In Progress": "Service started",
+  "Go to Pickup": "Go to pickup",
+  "Arrived at Pickup": "Arrived at pickup",
+  "Pickup Confirmed": "Pickup confirmed",
+  "En Route to Customer": "En route to customer",
+  Delivered: "Delivered",
+  "Pickup Required": "Pickup required",
+  "Pickup Verified": "Pickup verified",
+  "In Transit": "In transit",
+  "Dropoff Required": "Dropoff required",
+  "Delivery Verified": "Delivery verified",
   Completed: "Delivered / completed",
   Cancelled: "Cancelled",
 };
@@ -31,13 +53,107 @@ export const getDisplayStatusLabel = (status: string) => {
   return STATUS_LABELS[status] ?? status;
 };
 
-export const TRACKING_STAGES: Array<{ status: JobStatusLabel; label: string }> = [
+const DIRECT_SERVICE_STAGES: Array<{ status: JobStatusLabel; label: string }> = [
   { status: "Assigned", label: "Assigned" },
   { status: "En Route", label: "En route" },
   { status: "Arrived", label: "Arrived" },
   { status: "In Progress", label: "Service started" },
   { status: "Completed", label: "Delivered / completed" },
 ];
+
+const PICKUP_DELIVER_STAGES: Array<{ status: JobStatusLabel; label: string }> = [
+  { status: "Assigned", label: "Assigned" },
+  { status: "Go to Pickup", label: "Go to pickup" },
+  { status: "Arrived at Pickup", label: "Arrived at pickup" },
+  { status: "Pickup Confirmed", label: "Pickup confirmed" },
+  { status: "En Route to Customer", label: "En route to customer" },
+  { status: "Delivered", label: "Delivered" },
+  { status: "Completed", label: "Completed" },
+];
+
+const CHAIN_OF_CUSTODY_STAGES: Array<{ status: JobStatusLabel; label: string }> = [
+  { status: "Assigned", label: "Assigned" },
+  { status: "Pickup Required", label: "Pickup required" },
+  { status: "Pickup Verified", label: "Pickup verified" },
+  { status: "In Transit", label: "In transit" },
+  { status: "Dropoff Required", label: "Dropoff required" },
+  { status: "Delivery Verified", label: "Delivery verified" },
+  { status: "Completed", label: "Completed" },
+];
+
+export const getTrackingStagesForMode = (mode: OperationalMode) => {
+  if (mode === "Pickup Then Deliver") {
+    return PICKUP_DELIVER_STAGES;
+  }
+
+  if (mode === "Chain of Custody") {
+    return CHAIN_OF_CUSTODY_STAGES;
+  }
+
+  return DIRECT_SERVICE_STAGES;
+};
+
+const reverseStatusFlow = (flow: JobStatusLabel[]) => {
+  return flow.reduce<Record<string, JobStatusLabel | null>>((acc, status, index) => {
+    acc[status] = index > 0 ? flow[index - 1] : null;
+    return acc;
+  }, {});
+};
+
+export const getStatusFlowForMode = (
+  mode: OperationalMode,
+  requiresManualAcceptance = false
+) => {
+  if (mode === "Pickup Then Deliver") {
+    const flow: JobStatusLabel[] = [
+      "Assigned",
+      "Go to Pickup",
+      "Arrived at Pickup",
+      "Pickup Confirmed",
+      "En Route to Customer",
+      "Delivered",
+      "Completed",
+    ];
+    return {
+      next: flow.reduce<Record<string, JobStatusLabel | null>>((acc, status, index) => {
+        acc[status] = flow[index + 1] ?? null;
+        return acc;
+      }, {}),
+      previous: reverseStatusFlow(flow),
+    };
+  }
+
+  if (mode === "Chain of Custody") {
+    const flow: JobStatusLabel[] = [
+      "Assigned",
+      "Pickup Required",
+      "Pickup Verified",
+      "In Transit",
+      "Dropoff Required",
+      "Delivery Verified",
+      "Completed",
+    ];
+    return {
+      next: flow.reduce<Record<string, JobStatusLabel | null>>((acc, status, index) => {
+        acc[status] = flow[index + 1] ?? null;
+        return acc;
+      }, {}),
+      previous: reverseStatusFlow(flow),
+    };
+  }
+
+  const flow: JobStatusLabel[] = requiresManualAcceptance
+    ? ["Assigned", "Accepted", "En Route", "Arrived", "In Progress", "Completed"]
+    : ["Assigned", "En Route", "Arrived", "In Progress", "Completed"];
+
+  return {
+    next: flow.reduce<Record<string, JobStatusLabel | null>>((acc, status, index) => {
+      acc[status] = flow[index + 1] ?? null;
+      return acc;
+    }, {}),
+    previous: reverseStatusFlow(flow),
+  };
+};
 
 export const createInitialStatusHistory = (createdAt: string): JobTimelineEvent[] => {
   return [
@@ -100,13 +216,14 @@ export const appendStatusEvent = (
 export const appendVerificationEvent = (
   timeline: JobTimelineEvent[],
   at: string,
-  detail: string
+  detail: string,
+  label = "Handoff verified"
 ) => {
   return [
     ...timeline,
     {
       type: "verification" as const,
-      label: "Handoff verified",
+      label,
       detail,
       at,
     },

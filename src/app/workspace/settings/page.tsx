@@ -99,9 +99,52 @@ export default function WorkspaceSettingsPage() {
                 onToggle={(next) => updateSetting("driverAppEnabled", next)}
               />
               <ToggleCard
+                label="Customer Updates Enabled"
+                enabled={settings.customerUpdatesEnabled}
+                onToggle={(next) => updateSetting("customerUpdatesEnabled", next)}
+              />
+            </div>
+
+            <div className="mt-8 rounded-2xl border border-white/10 bg-slate-900/70 p-5">
+              <p className="text-xs uppercase tracking-[0.22em] text-cyan-300">Operational Mode</p>
+              <div className="mt-4 grid gap-4 md:grid-cols-3">
+                <label className="space-y-2 md:col-span-2">
+                  <span className="text-sm text-white/80">Workflow profile</span>
+                  <select
+                    value={settings.operationalMode}
+                    onChange={(event) =>
+                      updateSetting(
+                        "operationalMode",
+                        event.target.value as WorkspaceSettingsState["operationalMode"]
+                      )
+                    }
+                    className="w-full rounded-xl border border-white/10 bg-slate-950/80 px-4 py-3 text-white outline-none focus:border-white/25"
+                  >
+                    <option value="Direct Service">Direct Service</option>
+                    <option value="Pickup Then Deliver">Pickup Then Deliver</option>
+                    <option value="Chain of Custody">Chain of Custody</option>
+                  </select>
+                </label>
+              </div>
+            </div>
+
+            <div className="mt-6 rounded-2xl border border-white/10 bg-slate-900/70 p-5">
+              <p className="text-xs uppercase tracking-[0.22em] text-cyan-300">Verification & Handoff</p>
+              <div className="mt-4 grid gap-4 md:grid-cols-3">
+              <ToggleCard
                 label="Customer Tracking Enabled"
                 enabled={settings.customerTrackingEnabled}
                 onToggle={(next) => updateSetting("customerTrackingEnabled", next)}
+              />
+              <ToggleCard
+                label="Pickup Verification Enabled"
+                enabled={settings.pickupVerificationEnabled}
+                onToggle={(next) => updateSetting("pickupVerificationEnabled", next)}
+              />
+              <ToggleCard
+                label="Delivery Verification Enabled"
+                enabled={settings.deliveryVerificationEnabled}
+                onToggle={(next) => updateSetting("deliveryVerificationEnabled", next)}
               />
               <ToggleCard
                 label="Proof of Delivery Enabled"
@@ -113,6 +156,62 @@ export default function WorkspaceSettingsPage() {
                 enabled={settings.qrHandoffEnabled}
                 onToggle={(next) => updateSetting("qrHandoffEnabled", next)}
               />
+              <ToggleCard
+                label="Photo Proof Enabled"
+                enabled={settings.photoProofEnabled}
+                onToggle={(next) => updateSetting("photoProofEnabled", next)}
+              />
+              <ToggleCard
+                label="Signature Confirmation Enabled"
+                enabled={settings.signatureConfirmationEnabled}
+                onToggle={(next) => updateSetting("signatureConfirmationEnabled", next)}
+              />
+              <ToggleCard
+                label="Dispatcher Can Confirm Handoff"
+                enabled={settings.dispatcherCanConfirmHandoff}
+                onToggle={(next) => updateSetting("dispatcherCanConfirmHandoff", next)}
+              />
+              <ToggleCard
+                label="Driver Must Confirm Handoff"
+                enabled={settings.driverMustConfirmHandoff}
+                onToggle={(next) => updateSetting("driverMustConfirmHandoff", next)}
+              />
+            </div>
+            </div>
+
+            <div className="mt-6 rounded-2xl border border-white/10 bg-slate-900/70 p-5">
+              <p className="text-xs uppercase tracking-[0.22em] text-cyan-300">Job Structure</p>
+              <div className="mt-4 grid gap-5 md:grid-cols-3">
+                <label className="space-y-2 md:col-span-2">
+                  <span className="text-sm text-white/80">Route template</span>
+                  <select
+                    value={settings.jobStructureMode}
+                    onChange={(event) =>
+                      updateSetting(
+                        "jobStructureMode",
+                        event.target.value as WorkspaceSettingsState["jobStructureMode"]
+                      )
+                    }
+                    className="w-full rounded-xl border border-white/10 bg-slate-950/80 px-4 py-3 text-white outline-none focus:border-white/25"
+                  >
+                    <option value="One-stop job">One-stop job</option>
+                    <option value="Two-stop job">Two-stop job</option>
+                    <option value="Multi-stop route">Multi-stop route</option>
+                  </select>
+                </label>
+              </div>
+              <div className="mt-4 grid gap-4 md:grid-cols-3">
+                <ToggleCard
+                  label="Base required before final stop"
+                  enabled={settings.baseRequiredBeforeFinalStop}
+                  onToggle={(next) => updateSetting("baseRequiredBeforeFinalStop", next)}
+                />
+                <ToggleCard
+                  label="Return to base after completion"
+                  enabled={settings.returnToBaseAfterCompletion}
+                  onToggle={(next) => updateSetting("returnToBaseAfterCompletion", next)}
+                />
+              </div>
             </div>
 
             <div className="mt-6 grid gap-5 md:grid-cols-3">

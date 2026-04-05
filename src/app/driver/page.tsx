@@ -22,7 +22,12 @@ import {
   readWorkspaceSettings,
   type WorkspaceSettingsState,
 } from "@/lib/platform/workspace-preferences";
-import { getDisplayStatusLabel } from "@/lib/platform/job-lifecycle";
+import {
+  getDisplayStatusLabel,
+  getStatusFlowForMode,
+  getTrackingStagesForMode,
+  type JobTimelineEvent,
+} from "@/lib/platform/job-lifecycle";
 
 const WORKSPACE_SETTINGS_UPDATED_EVENT = "dispatch:workspace-settings-updated";
 
@@ -38,7 +43,12 @@ type ApiJob = {
   details?: string | null;
   driverId?: string | null;
   etaMinutes?: number | null;
+  statusHistory?: JobTimelineEvent[];
   verificationToken?: string | null;
+  pickupVerificationToken?: string | null;
+  deliveryVerificationToken?: string | null;
+  pickupVerifiedAt?: string | null;
+  deliveryVerifiedAt?: string | null;
   handoffVerifiedAt?: string | null;
 };
 
@@ -351,7 +361,18 @@ export default function DriverPage() {
   const isNavigationActive =
     activeJob?.status === "En Route" ||
     activeJob?.status === "Arrived" ||
-    activeJob?.status === "In Progress";
+    activeJob?.status === "In Progress" ||
+    activeJob?.status === "Go to Pickup" ||
+    activeJob?.status === "En Route to Customer" ||
+    activeJob?.status === "In Transit";
+
+  const statusFlow = useMemo(() => {
+    return getStatusFlowForMode(workspaceSettings.operationalMode, requiresManualAcceptance);
+  }, [workspaceSettings.operationalMode, requiresManualAcceptance]);
+
+  const workflowStages = useMemo(() => {
+    return getTrackingStagesForMode(workspaceSettings.operationalMode);
+  }, [workspaceSettings.operationalMode]);
 
   const clearIncomingJobBanner = () => {
     setIncomingJobId(null);
@@ -462,65 +483,19 @@ export default function DriverPage() {
   }, [incomingJobId, incomingJob]);
 
   const getNextStatus = (status: string) => {
-    switch (status) {
-      case "Assigned":
-        return requiresManualAcceptance ? "Accepted" : "En Route";
-      case "Accepted":
-        return "En Route";
-      case "En Route":
-        return "Arrived";
-      case "Arrived":
-        return "In Progress";
-      case "In Progress":
-        return "Completed";
-      default:
-        return null;
-    }
+    return statusFlow.next[status] ?? null;
   };
 
   const getPreviousStatus = (status: string) => {
-    switch (status) {
-      case "Accepted":
-        return "Assigned";
-      case "En Route":
-        return requiresManualAcceptance ? "Accepted" : "Assigned";
-      case "Arrived":
-        return "En Route";
-      case "In Progress":
-        return "Arrived";
-      case "Completed":
-        return "In Progress";
-      default:
-        return null;
-    }
+    return statusFlow.previous[status] ?? null;
   };
 
   const getPrimaryMissionLabel = (job: ApiJob) => {
-    if (job.status === "Assigned") {
+    if (job.status === "Assigned" && workspaceSettings.operationalMode === "Direct Service") {
       return requiresManualAcceptance ? "Mission pending acceptance" : "Driver assigned";
     }
 
-    if (job.status === "Accepted") {
-      return "Mission accepted";
-    }
-
-    if (job.status === "En Route") {
-      return "En route to customer";
-    }
-
-    if (job.status === "Arrived") {
-      return "Arrived on location";
-    }
-
-    if (job.status === "In Progress") {
-      return "Service started";
-    }
-
-    if (job.status === "Completed") {
-      return "Delivered / completed";
-    }
-
-    return "Mission active";
+    return getDisplayStatusLabel(job.status);
   };
 
   const getAdvanceActionLabel = (job: ApiJob) => {
@@ -1063,6 +1038,38 @@ export default function DriverPage() {
                           ) : null}
                         </div>
                       ) : null}
+
+                      <div className="mt-3 rounded-2xl border border-cyan-500/25 bg-slate-800/80 p-3 text-sm text-cyan-100">
+                        <p className="text-xs uppercase tracking-[0.2em] text-cyan-300">Mission Steps</p>
+                        <div className="mt-2 space-y-1.5">
+                          {workflowStages.map((stage) => {
+                            const reached =
+                              activeJob.status === stage.status ||
+                              Boolean(
+                                activeJob.statusHistory?.some(
+                                  (event) => event.status === stage.status
+                                )
+                              );
+                            return (
+                              <div key={stage.status} className="flex items-center gap-2">
+                                <span
+                                  className={`h-2 w-2 rounded-full ${
+                                    reached ? "bg-emerald-300" : "bg-white/30"
+                                  }`}
+                                />
+                                <span className={reached ? "text-white" : "text-cyan-200/70"}>
+                                  {stage.label}
+                                </span>
+                              </div>
+                            );
+                          })}
+                        </div>
+                        {workspaceSettings.driverMustConfirmHandoff ? (
+                          <p className="mt-2 text-xs text-cyan-200/80">
+                            Driver confirmation is required for verification checkpoints.
+                          </p>
+                        ) : null}
+                      </div>
                     </div>
                   ) : null}
 

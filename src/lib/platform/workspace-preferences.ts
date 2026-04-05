@@ -1,14 +1,29 @@
 export type JobIntakeSource = "booking" | "dashboard" | "both";
 export type DispatchMode = "Manual" | "Assisted" | "Auto";
 export type DriverAcceptanceMode = "manual" | "auto";
+export type OperationalMode =
+  | "Direct Service"
+  | "Pickup Then Deliver"
+  | "Chain of Custody";
+export type JobStructureMode = "One-stop job" | "Two-stop job" | "Multi-stop route";
 
 export type WorkspaceSettingsState = {
   bookingPageEnabled: boolean;
   driverAppEnabled: boolean;
   customerUpdatesEnabled: boolean;
+  operationalMode: OperationalMode;
   customerTrackingEnabled: boolean;
+  pickupVerificationEnabled: boolean;
+  deliveryVerificationEnabled: boolean;
   proofOfDeliveryEnabled: boolean;
   qrHandoffEnabled: boolean;
+  photoProofEnabled: boolean;
+  signatureConfirmationEnabled: boolean;
+  dispatcherCanConfirmHandoff: boolean;
+  driverMustConfirmHandoff: boolean;
+  jobStructureMode: JobStructureMode;
+  baseRequiredBeforeFinalStop: boolean;
+  returnToBaseAfterCompletion: boolean;
   jobIntakeSource: JobIntakeSource;
   dispatchMode: DispatchMode;
   driverAcceptanceMode: DriverAcceptanceMode;
@@ -23,9 +38,19 @@ export const defaultWorkspaceSettings: WorkspaceSettingsState = {
   bookingPageEnabled: true,
   driverAppEnabled: true,
   customerUpdatesEnabled: true,
+  operationalMode: "Direct Service",
   customerTrackingEnabled: true,
+  pickupVerificationEnabled: false,
+  deliveryVerificationEnabled: true,
   proofOfDeliveryEnabled: true,
   qrHandoffEnabled: true,
+  photoProofEnabled: false,
+  signatureConfirmationEnabled: false,
+  dispatcherCanConfirmHandoff: true,
+  driverMustConfirmHandoff: false,
+  jobStructureMode: "One-stop job",
+  baseRequiredBeforeFinalStop: false,
+  returnToBaseAfterCompletion: false,
   jobIntakeSource: "both",
   dispatchMode: "Manual",
   driverAcceptanceMode: "auto",
@@ -47,6 +72,22 @@ const isDispatchMode = (value: unknown): value is DispatchMode => {
 
 const isDriverAcceptanceMode = (value: unknown): value is DriverAcceptanceMode => {
   return value === "manual" || value === "auto";
+};
+
+const isOperationalMode = (value: unknown): value is OperationalMode => {
+  return (
+    value === "Direct Service" ||
+    value === "Pickup Then Deliver" ||
+    value === "Chain of Custody"
+  );
+};
+
+const isJobStructureMode = (value: unknown): value is JobStructureMode => {
+  return (
+    value === "One-stop job" ||
+    value === "Two-stop job" ||
+    value === "Multi-stop route"
+  );
 };
 
 const getKey = (companySlug: string) => `${SETTINGS_KEY_PREFIX}${companySlug}`;
@@ -77,10 +118,21 @@ export const normalizeWorkspaceSettings = (
       typeof value.customerUpdatesEnabled === "boolean"
         ? value.customerUpdatesEnabled
         : defaultWorkspaceSettings.customerUpdatesEnabled,
+    operationalMode: isOperationalMode(value.operationalMode)
+      ? value.operationalMode
+      : defaultWorkspaceSettings.operationalMode,
     customerTrackingEnabled:
       typeof value.customerTrackingEnabled === "boolean"
         ? value.customerTrackingEnabled
         : defaultWorkspaceSettings.customerTrackingEnabled,
+    pickupVerificationEnabled:
+      typeof value.pickupVerificationEnabled === "boolean"
+        ? value.pickupVerificationEnabled
+        : defaultWorkspaceSettings.pickupVerificationEnabled,
+    deliveryVerificationEnabled:
+      typeof value.deliveryVerificationEnabled === "boolean"
+        ? value.deliveryVerificationEnabled
+        : defaultWorkspaceSettings.deliveryVerificationEnabled,
     proofOfDeliveryEnabled:
       typeof value.proofOfDeliveryEnabled === "boolean"
         ? value.proofOfDeliveryEnabled
@@ -89,6 +141,33 @@ export const normalizeWorkspaceSettings = (
       typeof value.qrHandoffEnabled === "boolean"
         ? value.qrHandoffEnabled
         : defaultWorkspaceSettings.qrHandoffEnabled,
+    photoProofEnabled:
+      typeof value.photoProofEnabled === "boolean"
+        ? value.photoProofEnabled
+        : defaultWorkspaceSettings.photoProofEnabled,
+    signatureConfirmationEnabled:
+      typeof value.signatureConfirmationEnabled === "boolean"
+        ? value.signatureConfirmationEnabled
+        : defaultWorkspaceSettings.signatureConfirmationEnabled,
+    dispatcherCanConfirmHandoff:
+      typeof value.dispatcherCanConfirmHandoff === "boolean"
+        ? value.dispatcherCanConfirmHandoff
+        : defaultWorkspaceSettings.dispatcherCanConfirmHandoff,
+    driverMustConfirmHandoff:
+      typeof value.driverMustConfirmHandoff === "boolean"
+        ? value.driverMustConfirmHandoff
+        : defaultWorkspaceSettings.driverMustConfirmHandoff,
+    jobStructureMode: isJobStructureMode(value.jobStructureMode)
+      ? value.jobStructureMode
+      : defaultWorkspaceSettings.jobStructureMode,
+    baseRequiredBeforeFinalStop:
+      typeof value.baseRequiredBeforeFinalStop === "boolean"
+        ? value.baseRequiredBeforeFinalStop
+        : defaultWorkspaceSettings.baseRequiredBeforeFinalStop,
+    returnToBaseAfterCompletion:
+      typeof value.returnToBaseAfterCompletion === "boolean"
+        ? value.returnToBaseAfterCompletion
+        : defaultWorkspaceSettings.returnToBaseAfterCompletion,
     jobIntakeSource: isJobIntakeSource(value.jobIntakeSource)
       ? value.jobIntakeSource
       : defaultWorkspaceSettings.jobIntakeSource,
