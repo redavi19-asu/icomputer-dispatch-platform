@@ -5,12 +5,15 @@ import Link from "next/link";
 import { AlertCircle, CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Modal } from "@/components/ui/modal";
+import type { WorkspaceSettingsState } from "@/lib/platform/workspace-preferences";
+import { getBookingSurfaceConfig } from "@/lib/platform/surface-preferences";
 
 type BookingRequestFormProps = {
   companySlug: string;
   companyColor: string;
   ctaLabel: string;
   selectedService?: string;
+  workspaceSettings: WorkspaceSettingsState;
   services: Array<{
     id: string;
     name: string;
@@ -23,6 +26,7 @@ export function BookingRequestForm({
   companyColor,
   ctaLabel,
   selectedService,
+  workspaceSettings,
   services,
 }: BookingRequestFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -33,7 +37,23 @@ export function BookingRequestForm({
   const [addressValue, setAddressValue] = useState("");
   const [verifiedAddress, setVerifiedAddress] = useState<string | null>(null);
   const [addressError, setAddressError] = useState<string | null>(null);
+  const [pickupAddressValue, setPickupAddressValue] = useState("");
+  const [dropoffAddressValue, setDropoffAddressValue] = useState("");
   const [submittedJobId, setSubmittedJobId] = useState<string | null>(null);
+
+  const bookingSurface = getBookingSurfaceConfig(workspaceSettings);
+  const requiresServiceAddress = bookingSurface.intakeFields.some(
+    (field) => field.key === "serviceAddress"
+  );
+  const requiresPickupAddress = bookingSurface.intakeFields.some(
+    (field) => field.key === "pickupAddress"
+  );
+  const requiresDropoffAddress = bookingSurface.intakeFields.some(
+    (field) => field.key === "dropoffAddress"
+  );
+  const allowsIntermediateStops = bookingSurface.intakeFields.some(
+    (field) => field.key === "intermediateStops"
+  );
 
   const REGION_VIEWBOX = "-79.8,40.2,-75.0,36.5";
   const DEFAULT_LOCAL_REGION_SUFFIX = "Silver Spring, MD";
@@ -121,12 +141,20 @@ export function BookingRequestForm({
         className="mt-8 space-y-4"
         onSubmit={async (e) => {
           e.preventDefault();
-          const trimmedAddress = addressValue.trim();
-          const isAddressVerified = verifiedAddress === trimmedAddress;
+          const primaryAddress = requiresServiceAddress
+            ? addressValue.trim()
+            : pickupAddressValue.trim();
+          const secondaryAddress = dropoffAddressValue.trim();
+          const isAddressVerified = verifiedAddress === primaryAddress;
 
           if (!isAddressVerified) {
-            const verified = await verifyAddress(trimmedAddress);
+            const verified = await verifyAddress(primaryAddress);
             if (!verified) return;
+          }
+
+          if (requiresDropoffAddress) {
+            const dropoffVerified = await verifyAddress(secondaryAddress);
+            if (!dropoffVerified) return;
           }
 
           setIsSubmitting(true);
@@ -140,7 +168,9 @@ export function BookingRequestForm({
               name: formData.get("name"),
               phone: formData.get("phone"),
               service: formData.get("service"),
-              address: trimmedAddress,
+              address: requiresServiceAddress
+                ? primaryAddress
+                : [primaryAddress, secondaryAddress].filter(Boolean).join(" -> "),
               details: formData.get("details"),
             };
 
@@ -160,6 +190,8 @@ export function BookingRequestForm({
             form.reset();
             setServiceValue(selectedService ?? "");
             setAddressValue("");
+            setPickupAddressValue("");
+            setDropoffAddressValue("");
             setVerifiedAddress(null);
             setAddressError(null);
             setSubmittedJobId(data?.job?.id ?? null);
@@ -221,63 +253,116 @@ export function BookingRequestForm({
           </select>
         </div>
 
-        <div>
-          <label className="mb-2 block text-sm text-white/75">Service Address</label>
-          <div className="space-y-2">
+        {requiresServiceAddress ? (
+          <div>
+            <label className="mb-2 block text-sm text-white/75">Service Address</label>
+            <div className="space-y-2">
+              <input
+                name="address"
+                type="text"
+                placeholder="Street address or landmark"
+                value={addressValue}
+                onChange={(event) => {
+                  const nextValue = event.target.value;
+                  setAddressValue(nextValue);
+
+                  if (verifiedAddress && verifiedAddress !== nextValue.trim()) {
+                    setVerifiedAddress(null);
+                  }
+
+                  if (addressError) {
+                    setAddressError(null);
+                  }
+                }}
+                onBlur={() => {
+                  const trimmed = addressValue.trim();
+                  if (!trimmed || verifiedAddress === trimmed) return;
+                  void verifyAddress(trimmed);
+                }}
+                className={fieldClassName}
+                style={{ colorScheme: "dark" }}
+                required
+              />
+
+              <div className="flex items-center justify-between gap-3">
+                <p
+                  className={`text-xs ${
+                    verifiedAddress === addressValue.trim() && addressValue.trim()
+                      ? "text-emerald-300"
+                      : addressError
+                      ? "text-rose-300"
+                      : "text-white/50"
+                  }`}
+                >
+                  {verifiedAddress === addressValue.trim() && addressValue.trim()
+                    ? "Address verified"
+                    : addressError ?? "Verify address before submitting"}
+                </p>
+
+                <Button
+                  type="button"
+                  variant="secondary"
+                  onClick={() => void verifyAddress(addressValue)}
+                  disabled={isVerifyingAddress || !addressValue.trim()}
+                  className="rounded-lg border border-white/15 bg-white/5 px-3 py-2 text-xs text-white hover:bg-white/10 disabled:opacity-50"
+                >
+                  {isVerifyingAddress ? "Verifying..." : "Verify Address"}
+                </Button>
+              </div>
+            </div>
+          </div>
+        ) : null}
+
+        {requiresPickupAddress ? (
+          <div>
+            <label className="mb-2 block text-sm text-white/75">Pickup Address</label>
             <input
-              name="address"
+              name="pickupAddress"
               type="text"
-              placeholder="Street address or landmark"
-              value={addressValue}
-              onChange={(event) => {
-                const nextValue = event.target.value;
-                setAddressValue(nextValue);
-
-                if (verifiedAddress && verifiedAddress !== nextValue.trim()) {
-                  setVerifiedAddress(null);
-                }
-
-                if (addressError) {
-                  setAddressError(null);
-                }
-              }}
-              onBlur={() => {
-                const trimmed = addressValue.trim();
-                if (!trimmed || verifiedAddress === trimmed) return;
-                void verifyAddress(trimmed);
-              }}
+              placeholder="Pickup location"
+              value={pickupAddressValue}
+              onChange={(event) => setPickupAddressValue(event.target.value)}
               className={fieldClassName}
               style={{ colorScheme: "dark" }}
               required
             />
-
-            <div className="flex items-center justify-between gap-3">
-              <p
-                className={`text-xs ${
-                  verifiedAddress === addressValue.trim() && addressValue.trim()
-                    ? "text-emerald-300"
-                    : addressError
-                    ? "text-rose-300"
-                    : "text-white/50"
-                }`}
-              >
-                {verifiedAddress === addressValue.trim() && addressValue.trim()
-                  ? "Address verified"
-                  : addressError ?? "Verify address before submitting"}
-              </p>
-
-              <Button
-                type="button"
-                variant="secondary"
-                onClick={() => void verifyAddress(addressValue)}
-                disabled={isVerifyingAddress || !addressValue.trim()}
-                className="rounded-lg border border-white/15 bg-white/5 px-3 py-2 text-xs text-white hover:bg-white/10 disabled:opacity-50"
-              >
-                {isVerifyingAddress ? "Verifying..." : "Verify Address"}
-              </Button>
-            </div>
           </div>
-        </div>
+        ) : null}
+
+        {requiresDropoffAddress ? (
+          <div>
+            <label className="mb-2 block text-sm text-white/75">Dropoff Address</label>
+            <input
+              name="dropoffAddress"
+              type="text"
+              placeholder="Dropoff location"
+              value={dropoffAddressValue}
+              onChange={(event) => setDropoffAddressValue(event.target.value)}
+              className={fieldClassName}
+              style={{ colorScheme: "dark" }}
+              required
+            />
+          </div>
+        ) : null}
+
+        {allowsIntermediateStops ? (
+          <div>
+            <label className="mb-2 block text-sm text-white/75">Intermediate Stops</label>
+            <textarea
+              name="intermediateStops"
+              rows={3}
+              placeholder="Optional stop list, one per line"
+              className={`${fieldClassName} min-h-[110px] resize-none`}
+              style={{ colorScheme: "dark" }}
+            />
+          </div>
+        ) : null}
+
+        {bookingSurface.verificationLanguage ? (
+          <div className="rounded-xl border border-cyan-500/30 bg-cyan-500/10 px-4 py-3 text-sm text-cyan-100">
+            {bookingSurface.verificationLanguage}
+          </div>
+        ) : null}
 
         <div>
           <label className="mb-2 block text-sm text-white/75">Details</label>
@@ -295,8 +380,9 @@ export function BookingRequestForm({
           disabled={
             isSubmitting ||
             isVerifyingAddress ||
-            verifiedAddress !== addressValue.trim() ||
-            !addressValue.trim()
+            (requiresServiceAddress && (verifiedAddress !== addressValue.trim() || !addressValue.trim())) ||
+            (requiresPickupAddress && !pickupAddressValue.trim()) ||
+            (requiresDropoffAddress && !dropoffAddressValue.trim())
           }
           className="w-full rounded-xl py-6 text-base font-semibold text-slate-950 hover:opacity-90 disabled:opacity-60"
           style={{ backgroundColor: companyColor }}

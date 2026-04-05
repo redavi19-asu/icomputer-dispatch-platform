@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="DispatchOS Driver maskable icon">
+  <defs>
+    <radialGradient id="maskBg" cx="30%" cy="22%" r="85%">
+      <stop offset="0%" stop-color="#0f172a" />
+      <stop offset="65%" stop-color="#082f49" />
+      <stop offset="100%" stop-color="#020617" />
+    </radialGradient>
+    <linearGradient id="ring" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#22d3ee" />
+      <stop offset="100%" stop-color="#06b6d4" />
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" fill="url(#maskBg)" />
+  <circle cx="256" cy="212" r="126" fill="none" stroke="url(#ring)" stroke-width="20" />
+  <path d="M108 338h296l-42 70H150l-42-70z" fill="#0b1220" stroke="#22d3ee" stroke-width="14" />
+  <circle cx="188" cy="356" r="28" fill="#a5f3fc" />
+  <circle cx="324" cy="356" r="28" fill="#a5f3fc" />
+  <path d="M204 248l50 38 82-96" fill="none" stroke="#a5f3fc" stroke-width="22" stroke-linecap="round" stroke-linejoin="round" />
+</svg>

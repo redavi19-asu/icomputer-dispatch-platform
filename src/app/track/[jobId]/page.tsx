@@ -16,6 +16,7 @@ import {
   type WorkspaceSettingsState,
 } from "@/lib/platform/workspace-preferences";
 import { getCompanyBySlug, getDriversByCompany } from "@/lib/platform/selectors";
+import { getTrackingSurfaceConfig } from "@/lib/platform/surface-preferences";
 
 type TrackJob = {
   id: string;
@@ -42,6 +43,7 @@ export default function TrackJobPage() {
   const [workspaceSettings, setWorkspaceSettings] = useState<WorkspaceSettingsState>(() =>
     readWorkspaceSettings("build-electric")
   );
+  const trackingSurface = getTrackingSurfaceConfig(workspaceSettings);
 
   useEffect(() => {
     const syncSettings = () => {
@@ -151,7 +153,7 @@ export default function TrackJobPage() {
     );
   }
 
-  if (!workspaceSettings.customerTrackingEnabled) {
+  if (!trackingSurface.enabled) {
     return (
       <main className="min-h-screen bg-slate-950 px-4 py-10 text-white">
         <div className="mx-auto max-w-xl rounded-2xl border border-white/10 bg-white/5 p-6">
@@ -172,6 +174,16 @@ export default function TrackJobPage() {
         </p>
         <h1 className="mt-2 text-2xl font-semibold">Job {job.id}</h1>
         <p className="mt-2 text-sm text-white/65">Live tracking and service progress updates.</p>
+        <div className="mt-3 flex flex-wrap gap-2 text-[11px]">
+          {trackingSurface.workflowStatuses.map((status) => (
+            <span
+              key={status}
+              className="rounded-full border border-white/15 bg-white/5 px-2 py-1 text-white/75"
+            >
+              {status}
+            </span>
+          ))}
+        </div>
 
         <Card className="mt-5 rounded-2xl border border-white/10 bg-white/5 text-white shadow-none">
           <CardContent className="p-5">
@@ -221,26 +233,28 @@ export default function TrackJobPage() {
           </CardContent>
         </Card>
 
-        <Card className="mt-4 rounded-2xl border border-white/10 bg-white/5 text-white shadow-none">
-          <CardContent className="p-5">
-            <p className="text-sm font-semibold text-cyan-200">Timeline</p>
-            <div className="mt-3 space-y-3">
-              {timeline.map((event, index) => (
-                <div key={`${event.at}-${index}`} className="rounded-xl border border-white/10 bg-slate-900/70 p-3">
-                  <div className="flex items-center justify-between gap-3">
-                    <p className="text-sm font-medium text-white">{event.label}</p>
-                    <p className="text-[11px] text-white/50">
-                      {new Date(event.at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
-                    </p>
+        {trackingSurface.showTimeline ? (
+          <Card className="mt-4 rounded-2xl border border-white/10 bg-white/5 text-white shadow-none">
+            <CardContent className="p-5">
+              <p className="text-sm font-semibold text-cyan-200">Timeline</p>
+              <div className="mt-3 space-y-3">
+                {timeline.map((event, index) => (
+                  <div key={`${event.at}-${index}`} className="rounded-xl border border-white/10 bg-slate-900/70 p-3">
+                    <div className="flex items-center justify-between gap-3">
+                      <p className="text-sm font-medium text-white">{event.label}</p>
+                      <p className="text-[11px] text-white/50">
+                        {new Date(event.at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                      </p>
+                    </div>
+                    {event.detail ? <p className="mt-1 text-xs text-white/65">{event.detail}</p> : null}
                   </div>
-                  {event.detail ? <p className="mt-1 text-xs text-white/65">{event.detail}</p> : null}
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        ) : null}
 
-        {workspaceSettings.proofOfDeliveryEnabled || workspaceSettings.qrHandoffEnabled ? (
+        {trackingSurface.showProofSection || trackingSurface.showVerificationSection ? (
           <Card className="mt-4 rounded-2xl border border-white/10 bg-white/5 text-white shadow-none">
             <CardContent className="p-5">
               <div className="flex items-start gap-3">
@@ -248,7 +262,9 @@ export default function TrackJobPage() {
                 <div>
                   <p className="text-sm font-semibold text-white">Handoff verification</p>
                   <p className="mt-1 text-xs text-white/65">
-                    QR handoff foundation is active. Full scanner rollout can be connected next.
+                    {workspaceSettings.operationalMode === "Chain of Custody"
+                      ? "Verification checkpoints are active for chain-of-custody handoff."
+                      : "Tracking proof and verification controls are active for this workspace."}
                   </p>
                   <p className="mt-2 text-xs text-cyan-200">
                     {job.handoffVerifiedAt

@@ -14,6 +14,7 @@ import {
   readWorkspaceSettings,
   type WorkspaceSettingsState,
 } from "@/lib/platform/workspace-preferences";
+import { getBookingSurfaceConfig } from "@/lib/platform/surface-preferences";
 
 const WORKSPACE_SETTINGS_UPDATED_EVENT = "dispatch:workspace-settings-updated";
 
@@ -32,6 +33,7 @@ export default function CompanyBookingPage() {
   const [workspaceSettings, setWorkspaceSettings] = useState<WorkspaceSettingsState>(() =>
     readWorkspaceSettings(companySlug || "build-electric")
   );
+  const bookingSurface = getBookingSurfaceConfig(workspaceSettings);
 
   useEffect(() => {
     const syncSettings = () => {
@@ -79,6 +81,25 @@ export default function CompanyBookingPage() {
 
   const companyColor = company.primaryColor ?? "#06b6d4";
 
+  if (!bookingSurface.enabled) {
+    return (
+      <main className="min-h-screen bg-slate-950 text-white">
+        <AppShellNav />
+        <section className="mx-auto max-w-4xl px-6 py-16 md:py-24">
+          <Card className="rounded-2xl border border-white/10 bg-white/5 text-white shadow-none">
+            <CardContent className="p-6">
+              <h1 className="text-2xl font-semibold">Booking is disabled</h1>
+              <p className="mt-3 text-white/70">
+                This company is currently using DispatchOS as an operations layer behind an
+                existing website. Intake can still be routed through dashboard or external forms.
+              </p>
+            </CardContent>
+          </Card>
+        </section>
+      </main>
+    );
+  }
+
   return (
     <main className="min-h-screen scroll-smooth bg-slate-950 text-white">
       <AppShellNav />
@@ -103,6 +124,24 @@ export default function CompanyBookingPage() {
             <p className="mt-5 max-w-2xl text-base leading-7 text-white/70 md:text-lg">
               {bookingConfig.subheadline}
             </p>
+
+            <div className="mt-4 flex flex-wrap gap-2 text-xs">
+              <span className="rounded-full border border-cyan-400/30 bg-cyan-500/10 px-3 py-1 text-cyan-100">
+                Mode: {bookingSurface.modeLabel}
+              </span>
+              <span className="rounded-full border border-cyan-400/30 bg-cyan-500/10 px-3 py-1 text-cyan-100">
+                Route template: {bookingSurface.routeTemplateLabel}
+              </span>
+              <span className="rounded-full border border-white/20 bg-white/10 px-3 py-1 text-white/75">
+                Flow: {bookingSurface.flowLabel}
+              </span>
+            </div>
+
+            {bookingSurface.verificationLanguage ? (
+              <p className="mt-4 max-w-2xl rounded-xl border border-cyan-500/35 bg-cyan-500/10 px-4 py-3 text-sm text-cyan-100">
+                {bookingSurface.verificationLanguage}
+              </p>
+            ) : null}
 
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
                 <Button
@@ -240,6 +279,7 @@ export default function CompanyBookingPage() {
           companyColor={companyColor}
           ctaLabel={bookingConfig.ctaLabel}
           selectedService={modalSelectedService}
+          workspaceSettings={workspaceSettings}
         />
       </Modal>
     </main>

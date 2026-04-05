@@ -36,6 +36,7 @@ import {
   type WorkspaceSettingsState,
 } from "@/lib/platform/workspace-preferences";
 import { getDisplayStatusLabel, type JobTimelineEvent } from "@/lib/platform/job-lifecycle";
+import { getDashboardSurfaceConfig } from "@/lib/platform/surface-preferences";
 
 const WORKSPACE_SETTINGS_UPDATED_EVENT = "dispatch:workspace-settings-updated";
 
@@ -123,6 +124,10 @@ export default function DashboardPage() {
   const [showDashboardControlsModal, setShowDashboardControlsModal] = useState(false);
   const [showCreateJobModal, setShowCreateJobModal] = useState(false);
   const [isCreatingJob, setIsCreatingJob] = useState(false);
+  const dashboardSurface = useMemo(
+    () => getDashboardSurfaceConfig(workspaceSettings),
+    [workspaceSettings]
+  );
 
   useEffect(() => {
     setDriverAcceptanceMode(
@@ -338,9 +343,16 @@ export default function DashboardPage() {
     const phone = String(formData.get("phone") ?? "").trim();
     const service = String(formData.get("service") ?? "").trim();
     const address = String(formData.get("address") ?? "").trim();
+    const pickupAddress = String(formData.get("pickupAddress") ?? "").trim();
+    const dropoffAddress = String(formData.get("dropoffAddress") ?? "").trim();
+    const intermediateStops = String(formData.get("intermediateStops") ?? "").trim();
     const details = String(formData.get("details") ?? "").trim();
+    const modeAddress =
+      workspaceSettings.operationalMode === "Direct Service"
+        ? address
+        : [pickupAddress, dropoffAddress].filter(Boolean).join(" -> ");
 
-    if (!name || !phone || !service || !address) {
+    if (!name || !phone || !service || !modeAddress) {
       return;
     }
 
@@ -361,8 +373,14 @@ export default function DashboardPage() {
           name,
           phone,
           service,
-          address,
-          details,
+          address: modeAddress,
+          details: [
+            details,
+            intermediateStops ? `Intermediate stops: ${intermediateStops}` : "",
+            `Route template: ${workspaceSettings.jobStructureMode}`,
+          ]
+            .filter(Boolean)
+            .join("\n"),
         }),
       });
 
@@ -614,7 +632,10 @@ export default function DashboardPage() {
                 Dispatch Mode: {dispatchMode}
               </span>
               <span className="rounded-full border border-cyan-400/30 bg-cyan-500/10 px-2.5 py-1 text-cyan-200">
-                Workflow: {workspaceSettings.operationalMode}
+                Workflow: {dashboardSurface.modeLabel}
+              </span>
+              <span className="rounded-full border border-cyan-400/30 bg-cyan-500/10 px-2.5 py-1 text-cyan-200">
+                Route: {dashboardSurface.routeTemplateLabel}
               </span>
             </div>
           </div>
@@ -775,8 +796,19 @@ export default function DashboardPage() {
                   <h2 className="text-lg font-semibold">Jobs Table View</h2>
                 </div>
                 <p className={`mt-1 text-sm ${mutedText}`}>
-                  Job list with service, customer, and assignment details.
+                  Job list and actions shaped by operational mode and route template.
                 </p>
+
+                <div className="mt-3 flex flex-wrap gap-2 text-[11px]">
+                  {dashboardSurface.workflowStatuses.map((status) => (
+                    <span
+                      key={status}
+                      className="rounded-full border border-white/15 bg-white/5 px-2 py-1 text-white/75"
+                    >
+                      {status}
+                    </span>
+                  ))}
+                </div>
 
                 <div className="mt-4 space-y-3">
                   {!isLoadingJobs && companyJobs.length === 0 ? (
@@ -795,6 +827,13 @@ export default function DashboardPage() {
                           <p>Address: <span className="font-semibold">{job.address ?? "—"}</span></p>
                           <p>Driver: <span className="font-semibold">{getDriverName(job.driverId)}</span></p>
                           <p>ETA: <span className="font-semibold">{job.etaMinutes != null ? `${job.etaMinutes} min` : "—"}</span></p>
+                          {dashboardSurface.showsVerificationColumn ? (
+                            <p>
+                              Verification: <span className="font-semibold">
+                                {job.handoffVerifiedAt ? "Completed" : "Pending"}
+                              </span>
+                            </p>
+                          ) : null}
                         </div>
 
                         {isClearableJob(job) ? (
@@ -826,7 +865,7 @@ export default function DashboardPage() {
                   <h2 className="text-lg font-semibold">Jobs Grid View</h2>
                 </div>
                 <p className={`mt-1 text-sm ${mutedText}`}>
-                  Responsive card view for active dispatch jobs.
+                  Mode-specific card structure for active dispatch jobs.
                 </p>
 
                 {!isLoadingJobs && companyJobs.length === 0 ? (
@@ -849,7 +888,12 @@ export default function DashboardPage() {
 
                         <div className="mt-4 space-y-1 text-sm text-white/70">
                           <p>Service: {job.service ?? "—"}</p>
-                          <p>Address: {job.address ?? "—"}</p>
+                          <p>
+                            {workspaceSettings.operationalMode === "Direct Service"
+                              ? "Address"
+                              : "Route"}
+                            : {job.address ?? "—"}
+                          </p>
                           <p>Driver: {getDriverName(job.driverId)}</p>
                           <p>ETA: {job.etaMinutes != null ? `${job.etaMinutes} min` : "—"}</p>
                         </div>
@@ -860,7 +904,7 @@ export default function DashboardPage() {
                               onClick={() => handleAssign(job.id)}
                               className="flex-1 bg-cyan-500 text-slate-950 hover:bg-cyan-400"
                             >
-                              Assign
+                              {dashboardSurface.assignActionLabel}
                             </Button>
                           ) : (
                             <Button
@@ -1051,7 +1095,12 @@ export default function DashboardPage() {
                       <div className="mt-4 space-y-1 text-sm text-white/70">
                         <p>Customer: {job.name ?? "—"}</p>
                         <p>Phone: {job.phone ?? "—"}</p>
-                        <p>Address: {job.address ?? "—"}</p>
+                        <p>
+                          {workspaceSettings.operationalMode === "Direct Service"
+                            ? "Address"
+                            : "Route"}
+                          : {job.address ?? "—"}
+                        </p>
                         <p>Driver: {getDriverName(job.driverId)}</p>
                         <p>ETA: {job.etaMinutes != null ? `${job.etaMinutes} min` : "—"}</p>
                       </div>
@@ -1066,7 +1115,7 @@ export default function DashboardPage() {
                             onClick={() => handleAssign(job.id)}
                             className="flex-1 bg-cyan-500 text-slate-950 hover:bg-cyan-400"
                           >
-                            Assign
+                            {dashboardSurface.assignActionLabel}
                           </Button>
                         ) : (
                           <Button
@@ -1429,15 +1478,51 @@ export default function DashboardPage() {
             />
           </label>
 
-          <label className="block">
-            <span className="mb-2 block text-sm text-slate-600">Address</span>
-            <input
-              name="address"
-              required
-              className="w-full rounded-xl border border-slate-300 px-4 py-3 text-slate-900 outline-none focus:border-slate-500"
-              placeholder="Street address"
-            />
-          </label>
+          {workspaceSettings.operationalMode === "Direct Service" ? (
+            <label className="block">
+              <span className="mb-2 block text-sm text-slate-600">Address</span>
+              <input
+                name="address"
+                required
+                className="w-full rounded-xl border border-slate-300 px-4 py-3 text-slate-900 outline-none focus:border-slate-500"
+                placeholder="Street address"
+              />
+            </label>
+          ) : (
+            <>
+              <label className="block">
+                <span className="mb-2 block text-sm text-slate-600">Pickup Address</span>
+                <input
+                  name="pickupAddress"
+                  required
+                  className="w-full rounded-xl border border-slate-300 px-4 py-3 text-slate-900 outline-none focus:border-slate-500"
+                  placeholder="Pickup location"
+                />
+              </label>
+
+              <label className="block">
+                <span className="mb-2 block text-sm text-slate-600">Dropoff Address</span>
+                <input
+                  name="dropoffAddress"
+                  required
+                  className="w-full rounded-xl border border-slate-300 px-4 py-3 text-slate-900 outline-none focus:border-slate-500"
+                  placeholder="Dropoff location"
+                />
+              </label>
+
+              {workspaceSettings.jobStructureMode === "Multi-stop route" ? (
+                <label className="block">
+                  <span className="mb-2 block text-sm text-slate-600">Intermediate Stops</span>
+                  <textarea
+                    name="intermediateStops"
+                    rows={3}
+                    className="w-full rounded-xl border border-slate-300 px-4 py-3 text-slate-900 outline-none focus:border-slate-500"
+                    placeholder="Optional stops, one per line"
+                  />
+                </label>
+              ) : null}
+            </>
+          )}
 
           <label className="block">
             <span className="mb-2 block text-sm text-slate-600">Notes</span>

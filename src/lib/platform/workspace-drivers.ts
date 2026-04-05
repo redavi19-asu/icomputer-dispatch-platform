@@ -1,14 +1,29 @@
 import { getDriversByCompany } from "@/lib/platform/selectors";
 import type { Driver, DriverStatus } from "@/lib/platform/types";
 
+export type DriverAccountStatus = "enabled" | "disabled";
+export type DriverLiveWorkStatus =
+  | "available"
+  | "assigned"
+  | "on-route"
+  | "at-pickup"
+  | "at-stop"
+  | "completed"
+  | "offline";
+export type DriverInviteStatus =
+  | "not-sent"
+  | "invite-sent"
+  | "invite-resent"
+  | "joined";
+
 export type WorkspaceDriver = {
   id: string;
   name: string;
   phone: string;
   zone: string;
-  isActive: boolean;
-  inviteStatus: "invited" | "active" | "pending";
-  status: DriverStatus;
+  accountStatus: DriverAccountStatus;
+  inviteStatus: DriverInviteStatus;
+  liveWorkStatus: DriverLiveWorkStatus;
 };
 
 const DRIVERS_KEY_PREFIX = "dispatch.workspace.drivers.";
@@ -16,9 +31,21 @@ export const WORKSPACE_DRIVERS_UPDATED_EVENT = "dispatch:workspace-drivers-updat
 
 const getKey = (companySlug: string) => `${DRIVERS_KEY_PREFIX}${companySlug}`;
 
-const asDispatchStatus = (status: DriverStatus, isActive: boolean): DriverStatus => {
-  if (!isActive) return "offline";
-  return status === "offline" ? "available" : status;
+const toLiveWorkStatus = (status: DriverStatus): DriverLiveWorkStatus => {
+  if (status === "offline") return "offline";
+  if (status === "en-route") return "on-route";
+  if (status === "busy") return "at-stop";
+  return "available";
+};
+
+const asDispatchStatus = (status: DriverLiveWorkStatus, accountStatus: DriverAccountStatus): DriverStatus => {
+  if (accountStatus === "disabled") return "offline";
+
+  if (status === "on-route") return "en-route";
+  if (status === "assigned" || status === "at-pickup" || status === "at-stop") return "busy";
+  if (status === "completed") return "available";
+  if (status === "offline") return "offline";
+  return "available";
 };
 
 export const seedWorkspaceDrivers = (companyId: string): WorkspaceDriver[] => {
@@ -27,9 +54,9 @@ export const seedWorkspaceDrivers = (companyId: string): WorkspaceDriver[] => {
     name: driver.name,
     phone: driver.phone ?? "",
     zone: driver.zone ?? "Unassigned",
-    isActive: driver.status !== "offline",
-    inviteStatus: index === 0 ? "active" : "invited",
-    status: driver.status,
+    accountStatus: driver.status === "offline" ? "disabled" : "enabled",
+    inviteStatus: index === 0 ? "joined" : "invite-sent",
+    liveWorkStatus: toLiveWorkStatus(driver.status),
   }));
 };
 
@@ -43,24 +70,56 @@ export const normalizeWorkspaceDrivers = (value: unknown): WorkspaceDriver[] => 
       const name = typeof item.name === "string" ? item.name : "Unnamed Driver";
       const phone = typeof item.phone === "string" ? item.phone : "";
       const zone = typeof item.zone === "string" && item.zone.trim().length > 0 ? item.zone : "Unassigned";
-      const isActive = typeof item.isActive === "boolean" ? item.isActive : true;
+
+      const legacyIsActive = typeof item.isActive === "boolean" ? item.isActive : null;
+      const accountStatus =
+        item.accountStatus === "enabled" || item.accountStatus === "disabled"
+          ? item.accountStatus
+          : legacyIsActive === false
+          ? "disabled"
+          : "enabled";
+
       const inviteStatus =
-        item.inviteStatus === "active" || item.inviteStatus === "pending" || item.inviteStatus === "invited"
+        item.inviteStatus === "not-sent" ||
+        item.inviteStatus === "invite-sent" ||
+        item.inviteStatus === "invite-resent" ||
+        item.inviteStatus === "joined"
           ? item.inviteStatus
-          : "invited";
-      const status =
-        item.status === "available" || item.status === "en-route" || item.status === "busy" || item.status === "offline"
-          ? asDispatchStatus(item.status, isActive)
-          : asDispatchStatus("available", isActive);
+          : item.inviteStatus === "pending"
+          ? "not-sent"
+          : item.inviteStatus === "invited"
+          ? "invite-sent"
+          : "joined";
+
+      const legacyStatus =
+        item.status === "available" ||
+        item.status === "en-route" ||
+        item.status === "busy" ||
+        item.status === "offline"
+          ? toLiveWorkStatus(item.status)
+          : "available";
+
+      const liveWorkStatus =
+        item.liveWorkStatus === "available" ||
+        item.liveWorkStatus === "assigned" ||
+        item.liveWorkStatus === "on-route" ||
+        item.liveWorkStatus === "at-pickup" ||
+        item.liveWorkStatus === "at-stop" ||
+        item.liveWorkStatus === "completed" ||
+        item.liveWorkStatus === "offline"
+          ? item.liveWorkStatus
+          : accountStatus === "disabled"
+          ? "offline"
+          : legacyStatus;
 
       return {
         id,
         name,
         phone,
         zone,
-        isActive,
+        accountStatus,
         inviteStatus,
-        status,
+        liveWorkStatus,
       };
     });
 };
@@ -116,7 +175,24 @@ export const toPlatformDrivers = (
     companyId,
     name: driver.name,
     phone: driver.phone,
-    status: asDispatchStatus(driver.status, driver.isActive),
+    status: asDispatchStatus(driver.liveWorkStatus, driver.accountStatus),
     zone: driver.zone,
   }));
+};
+
+export const getDriverInviteLabel = (status: DriverInviteStatus) => {
+  if (status === "not-sent") return "Not Sent";
+  if (status === "invite-sent") return "Invite Sent";
+  if (status === "invite-resent") return "Invite Resent";
+  return "Joined";
+};
+
+export const getDriverLiveWorkLabel = (status: DriverLiveWorkStatus) => {
+  if (status === "available") return "Available";
+  if (status === "assigned") return "Assigned";
+  if (status === "on-route") return "On Route";
+  if (status === "at-pickup") return "At Pickup";
+  if (status === "at-stop") return "At Stop";
+  if (status === "completed") return "Completed";
+  return "Offline";
 };

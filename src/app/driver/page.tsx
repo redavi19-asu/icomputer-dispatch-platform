@@ -1,7 +1,18 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { CarFront, Clock3, MapPin, Menu, Phone, User } from "lucide-react";
+import {
+  CarFront,
+  Clock3,
+  Download,
+  MapPin,
+  Menu,
+  Phone,
+  QrCode,
+  ShieldCheck,
+  Smartphone,
+  User,
+} from "lucide-react";
 
 import {
   getBroadcastAlerts,
@@ -28,6 +39,7 @@ import {
   getTrackingStagesForMode,
   type JobTimelineEvent,
 } from "@/lib/platform/job-lifecycle";
+import { getDriverSurfaceConfig } from "@/lib/platform/surface-preferences";
 
 const WORKSPACE_SETTINGS_UPDATED_EVENT = "dispatch:workspace-settings-updated";
 
@@ -54,6 +66,17 @@ type ApiJob = {
 
 type DrawerSection = "profile" | "queue" | "settings";
 
+type BeforeInstallPromptEvent = Event & {
+  prompt: () => Promise<void>;
+  userChoice: Promise<{ outcome: "accepted" | "dismissed" }>;
+};
+
+type DriverFutureReadiness = {
+  pushNotificationsReady: boolean;
+  cameraReady: boolean;
+  secureSignInReady: boolean;
+};
+
 const NEW_JOB_QUEUE_COUNTDOWN_SECONDS = 15;
 
 export default function DriverPage() {
@@ -61,6 +84,7 @@ export default function DriverPage() {
   const [workspaceSettings, setWorkspaceSettings] = useState<WorkspaceSettingsState>(() =>
     readWorkspaceSettings("build-electric")
   );
+  const driverSurface = getDriverSurfaceConfig(workspaceSettings);
   const defaultDriverAcceptanceMode = company?.driverAcceptanceMode ?? "manual";
 
   const [driverAcceptanceMode, setDriverAcceptanceMode] =
@@ -99,6 +123,17 @@ export default function DriverPage() {
   const [soundAlertsEnabled, setSoundAlertsEnabled] = useState(true);
   const [externalMapsFallbackEnabled, setExternalMapsFallbackEnabled] =
     useState(true);
+  const [isStandaloneMode, setIsStandaloneMode] = useState(false);
+  const [isMobileViewport, setIsMobileViewport] = useState(false);
+  const [isInstallModalOpen, setIsInstallModalOpen] = useState(false);
+  const [isInstallComplete, setIsInstallComplete] = useState(false);
+  const [deferredInstallPrompt, setDeferredInstallPrompt] =
+    useState<BeforeInstallPromptEvent | null>(null);
+  const [futureReadiness, setFutureReadiness] = useState<DriverFutureReadiness>({
+    pushNotificationsReady: false,
+    cameraReady: false,
+    secureSignInReady: false,
+  });
 
   const seenJobIdsRef = useRef<Set<string>>(new Set());
   const newJobAudioRef = useRef<HTMLAudioElement | null>(null);
@@ -106,6 +141,10 @@ export default function DriverPage() {
   const lastPlayedIncomingJobIdRef = useRef<string | null>(null);
   const lastPlayedBroadcastTsRef = useRef<number | null>(null);
   const broadcastLoopStartedRef = useRef<number | null>(null);
+
+  const installHintStorageKey = "dispatch.driver.install-hint-seen";
+
+  const canInstallPrompt = Boolean(deferredInstallPrompt) && !isStandaloneMode;
 
   const fetchJobs = async () => {
     try {
@@ -179,6 +218,88 @@ export default function DriverPage() {
     const interval = setInterval(fetchJobs, 3000);
     return () => clearInterval(interval);
   }, []);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    const mediaStandalone = window.matchMedia("(display-mode: standalone)");
+    const mediaMobile = window.matchMedia("(max-width: 768px)");
+
+    const syncEnvironment = () => {
+      const iosStandalone =
+        typeof navigator !== "undefined" &&
+        "standalone" in navigator &&
+        Boolean((navigator as Navigator & { standalone?: boolean }).standalone);
+
+      setIsStandaloneMode(mediaStandalone.matches || iosStandalone);
+      setIsMobileViewport(mediaMobile.matches);
+    };
+
+    const onBeforeInstallPrompt = (event: Event) => {
+      event.preventDefault();
+      setDeferredInstallPrompt(event as BeforeInstallPromptEvent);
+    };
+
+    const onInstalled = () => {
+      setIsInstallComplete(true);
+      setDeferredInstallPrompt(null);
+      setIsInstallModalOpen(false);
+      window.localStorage.setItem(installHintStorageKey, "1");
+    };
+
+    syncEnvironment();
+
+    const iosStandalone =
+      typeof navigator !== "undefined" &&
+      "standalone" in navigator &&
+      Boolean((navigator as Navigator & { standalone?: boolean }).standalone);
+
+    const inviteFlow = new URLSearchParams(window.location.search).get("invite") === "1";
+    const hasSeenInstallHint = window.localStorage.getItem(installHintStorageKey) === "1";
+    if ((inviteFlow || !hasSeenInstallHint) && !iosStandalone && !mediaStandalone.matches) {
+      setIsInstallModalOpen(true);
+    }
+
+    setFutureReadiness({
+      pushNotificationsReady:
+        "Notification" in window &&
+        "serviceWorker" in navigator &&
+        Boolean(window.isSecureContext),
+      cameraReady:
+        "mediaDevices" in navigator &&
+        typeof navigator.mediaDevices?.getUserMedia === "function",
+      secureSignInReady: Boolean(window.isSecureContext),
+    });
+
+    mediaStandalone.addEventListener("change", syncEnvironment);
+    mediaMobile.addEventListener("change", syncEnvironment);
+    window.addEventListener("beforeinstallprompt", onBeforeInstallPrompt);
+    window.addEventListener("appinstalled", onInstalled);
+
+    return () => {
+      mediaStandalone.removeEventListener("change", syncEnvironment);
+      mediaMobile.removeEventListener("change", syncEnvironment);
+      window.removeEventListener("beforeinstallprompt", onBeforeInstallPrompt);
+      window.removeEventListener("appinstalled", onInstalled);
+    };
+  }, []);
+
+  const handleInstallApp = async () => {
+    if (!deferredInstallPrompt) {
+      setIsInstallModalOpen(true);
+      return;
+    }
+
+    await deferredInstallPrompt.prompt();
+    const choice = await deferredInstallPrompt.userChoice;
+    if (choice.outcome === "accepted") {
+      setIsInstallComplete(true);
+      if (typeof window !== "undefined") {
+        window.localStorage.setItem(installHintStorageKey, "1");
+      }
+    }
+    setDeferredInstallPrompt(null);
+  };
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -506,6 +627,14 @@ export default function DriverPage() {
       return "Accept Job";
     }
 
+    if (workspaceSettings.operationalMode === "Pickup Then Deliver" && nextStatus === "Go to Pickup") {
+      return "Start Pickup Route";
+    }
+
+    if (workspaceSettings.operationalMode === "Chain of Custody" && nextStatus === "Pickup Required") {
+      return "Begin Custody Pickup";
+    }
+
     return `Mark ${getDisplayStatusLabel(nextStatus)}`;
   };
 
@@ -580,10 +709,38 @@ export default function DriverPage() {
     window.open(url, "_blank", "noopener,noreferrer");
   };
 
+  const isAppViewport = isMobileViewport || isStandaloneMode;
+  const frameContainerClass = isAppViewport
+    ? "flex w-full flex-1 min-h-0"
+    : "mx-auto flex w-full max-w-md flex-1 min-h-0 px-4 pt-4 pb-0";
+  const missionFrameClass = `relative h-full w-full overflow-hidden border bg-slate-900 shadow-[0_0_0_1px_rgba(34,211,238,0.08)] ${
+    isAppViewport ? "rounded-none border-x-0 border-b-0" : "rounded-[28px]"
+  } ${
+    driverVisualState === "alert"
+      ? "animate-driver-amber-glow border-amber-400/40"
+      : driverVisualState === "searching"
+      ? "animate-driver-cyan-glow border-cyan-400/40"
+      : "animate-driver-cyan-subtle border-cyan-500/25"
+  }`;
+
   if (isLoading) {
     return (
-      <main className="flex h-dvh flex-col bg-slate-950 text-white">
+      <main className="flex h-dvh flex-col bg-slate-950 pb-[env(safe-area-inset-bottom)] text-white">
         <div className="mx-auto max-w-md px-4 py-10">Loading driver console...</div>
+      </main>
+    );
+  }
+
+  if (!driverSurface.enabled) {
+    return (
+      <main className="flex h-dvh flex-col bg-slate-950 pb-[env(safe-area-inset-bottom)] text-white">
+        <div className="mx-auto mt-20 w-full max-w-md rounded-2xl border border-white/10 bg-white/5 p-6">
+          <h1 className="text-xl font-semibold">Driver app is disabled</h1>
+          <p className="mt-2 text-sm text-white/70">
+            Driver missions are disabled in company preferences. DispatchOS can still run as an
+            operations layer while field execution happens in another system.
+          </p>
+        </div>
       </main>
     );
   }
@@ -598,7 +755,7 @@ export default function DriverPage() {
         <source src="/sounds/broadcast-alert.wav" type="audio/wav" />
       </audio>
 
-      <main className="flex h-dvh flex-col bg-slate-950 text-white">
+      <main className="flex h-dvh flex-col bg-slate-950 pb-[env(safe-area-inset-bottom)] text-white">
         {showBroadcastAlert && broadcastAlerts.length > 0 ? (
           <div className="fixed inset-x-0 top-24 z-50 flex justify-center">
             <div className="max-w-xs w-full rounded-xl border border-yellow-400/30 bg-yellow-900/90 px-3 py-2 shadow-md backdrop-blur flex items-center gap-2">
@@ -716,7 +873,7 @@ export default function DriverPage() {
           </div>
         ) : null}
 
-        <div className="sticky top-0 z-30 shrink-0 border-b border-white/10 bg-slate-950/95 backdrop-blur">
+        <div className="sticky top-0 z-30 shrink-0 border-b border-white/10 bg-slate-950/95 pt-[env(safe-area-inset-top)] backdrop-blur">
           <div className="mx-auto flex max-w-md items-center justify-between px-4 py-3">
             <button
               onClick={() => setDrawerOpen((v) => !v)}
@@ -733,9 +890,20 @@ export default function DriverPage() {
               <h1 className="text-xl font-semibold">
                 {workspaceSettings.companyName || company?.name || "Driver"}
               </h1>
+              <p className="mt-1 text-[11px] text-cyan-200/85">
+                {driverSurface.modeLabel} • {driverSurface.routeTemplateLabel}
+              </p>
             </div>
 
             <div className="flex items-center gap-2">
+              {!isStandaloneMode ? (
+                <button
+                  onClick={() => setIsInstallModalOpen(true)}
+                  className="rounded-full border border-cyan-500/30 bg-cyan-500/10 px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.12em] text-cyan-200"
+                >
+                  Install
+                </button>
+              ) : null}
               <span className="rounded-full border border-emerald-500/40 bg-emerald-500/10 px-3 py-1 text-sm text-emerald-300">
                 Online
               </span>
@@ -883,22 +1051,63 @@ export default function DriverPage() {
                       {externalMapsFallbackEnabled ? "On" : "Off"}
                     </span>
                   </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setIsInstallModalOpen(true)}
+                    className="flex w-full items-center justify-between rounded-2xl border border-cyan-500/30 bg-cyan-500/10 px-4 py-3 text-cyan-100 transition hover:bg-cyan-500/20"
+                  >
+                    <span className="inline-flex items-center gap-2">
+                      <Download className="h-4 w-4" />
+                      Add to Home Screen
+                    </span>
+                    <span className="text-xs uppercase tracking-[0.12em]">
+                      {isStandaloneMode ? "Installed" : "Guide"}
+                    </span>
+                  </button>
+
+                  <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
+                    <p className="text-xs uppercase tracking-[0.2em] text-cyan-300">
+                      Future Readiness
+                    </p>
+                    <div className="mt-2 space-y-1 text-xs text-white/75">
+                      <p className="inline-flex items-center gap-2">
+                        <Smartphone className="h-3.5 w-3.5 text-cyan-300" />
+                        Push notifications: {futureReadiness.pushNotificationsReady ? "environment ready" : "needs backend + permissions"}
+                      </p>
+                      <p className="inline-flex items-center gap-2">
+                        <QrCode className="h-3.5 w-3.5 text-cyan-300" />
+                        QR / camera scans: {futureReadiness.cameraReady ? "device-ready" : "camera API unavailable"}
+                      </p>
+                      <p className="inline-flex items-center gap-2">
+                        <ShieldCheck className="h-3.5 w-3.5 text-cyan-300" />
+                        Secure sign-in: {futureReadiness.secureSignInReady ? "HTTPS-capable" : "secure context required"}
+                      </p>
+                    </div>
+                  </div>
                 </div>
               ) : null}
             </div>
           </div>
         ) : null}
 
-        <div className="mx-auto flex w-full max-w-md flex-1 min-h-0 px-4 pt-4 pb-0">
-          <div
-            className={`relative h-full w-full overflow-hidden rounded-[28px] border bg-slate-900 shadow-[0_0_0_1px_rgba(34,211,238,0.08)] ${
-              driverVisualState === "alert"
-                ? "animate-driver-amber-glow border-amber-400/40"
-                : driverVisualState === "searching"
-                ? "animate-driver-cyan-glow border-cyan-400/40"
-                : "animate-driver-cyan-subtle border-cyan-500/25"
-            }`}
-          >
+        {!isStandaloneMode && !isInstallComplete ? (
+          <div className="mx-auto mt-2 w-full max-w-md px-4">
+            <button
+              onClick={() => setIsInstallModalOpen(true)}
+              className="flex w-full items-center justify-between rounded-2xl border border-cyan-500/30 bg-cyan-500/10 px-4 py-3 text-left text-cyan-100"
+            >
+              <span>
+                <p className="text-xs uppercase tracking-[0.14em] text-cyan-300">Install Driver App</p>
+                <p className="mt-1 text-sm text-cyan-100/90">Add to home screen for full-screen mission mode.</p>
+              </span>
+              <Download className="h-5 w-5" />
+            </button>
+          </div>
+        ) : null}
+
+        <div className={frameContainerClass}>
+          <div className={missionFrameClass}>
             {activeJob && incomingJob ? (
               <div className="pointer-events-none absolute inset-x-3 top-3 z-30">
                 <div className="pointer-events-auto rounded-2xl border border-cyan-500/35 bg-slate-900/95 p-3 shadow-[0_10px_30px_rgba(8,47,73,0.5)] backdrop-blur">
@@ -1069,6 +1278,16 @@ export default function DriverPage() {
                             Driver confirmation is required for verification checkpoints.
                           </p>
                         ) : null}
+                        {driverSurface.showsVerificationChecklist ? (
+                          <p className="mt-2 text-xs text-cyan-200/80">
+                            Verification checklist active for this workflow.
+                          </p>
+                        ) : null}
+                        {driverSurface.showsHandoffControls ? (
+                          <p className="mt-1 text-xs text-cyan-200/80">
+                            Driver handoff confirmation controls are enabled.
+                          </p>
+                        ) : null}
                       </div>
                     </div>
                   ) : null}
@@ -1202,6 +1421,69 @@ export default function DriverPage() {
           </div>
         </div>
       </main>
+
+      <Modal
+        isOpen={isInstallModalOpen}
+        onClose={() => {
+          if (typeof window !== "undefined") {
+            window.localStorage.setItem(installHintStorageKey, "1");
+          }
+          setIsInstallModalOpen(false);
+        }}
+        title="Install Driver App"
+      >
+        <div className="space-y-4 text-slate-800">
+          <p className="text-sm text-slate-700">
+            Use DispatchOS Driver as an installable mobile web app for full-screen mission mode,
+            faster launch, and reduced browser chrome.
+          </p>
+
+          <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">Onboarding flow</p>
+            <ol className="mt-3 list-decimal space-y-2 pl-5 text-sm text-slate-700">
+              <li>Open the invite link on your phone.</li>
+              <li>Sign in or complete driver verification.</li>
+              <li>Use the live mission screen in mobile browser.</li>
+              <li>Tap Add to Home Screen for app-like launch.</li>
+            </ol>
+          </div>
+
+          <div className="rounded-2xl border border-cyan-200 bg-cyan-50 p-4 text-sm text-cyan-900">
+            Install path: invite link {"->"} mobile browser {"->"} add to home screen.
+          </div>
+
+          <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 text-xs text-slate-600">
+            <p className="font-semibold text-slate-700">Future capability groundwork</p>
+            <ul className="mt-2 space-y-1">
+              <li>Push notifications: environment checks added, server subscriptions pending.</li>
+              <li>QR/camera scans: device camera readiness checks added.</li>
+              <li>Secure sign-in: HTTPS readiness surfaced for future auth hardening.</li>
+            </ul>
+          </div>
+
+          <div className="flex gap-3 pt-1">
+            <Button
+              onClick={() => {
+                if (typeof window !== "undefined") {
+                  window.localStorage.setItem(installHintStorageKey, "1");
+                }
+                setIsInstallModalOpen(false);
+              }}
+              variant="secondary"
+              className="flex-1"
+            >
+              Continue in Browser
+            </Button>
+            <Button
+              onClick={() => void handleInstallApp()}
+              className="flex-1 bg-slate-900 text-white hover:bg-slate-800"
+            >
+              <Download className="h-4 w-4" />
+              {canInstallPrompt ? "Install Now" : "How to Install"}
+            </Button>
+          </div>
+        </div>
+      </Modal>
 
       <Modal
         isOpen={Boolean(pendingCompletionJob)}

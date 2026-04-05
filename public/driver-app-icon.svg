@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="DispatchOS Driver icon">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#020617" />
+      <stop offset="50%" stop-color="#0f172a" />
+      <stop offset="100%" stop-color="#082f49" />
+    </linearGradient>
+    <linearGradient id="accent" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#22d3ee" />
+      <stop offset="100%" stop-color="#38bdf8" />
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" rx="108" fill="url(#bg)" />
+  <circle cx="256" cy="204" r="112" fill="none" stroke="url(#accent)" stroke-width="20" opacity="0.95" />
+  <path d="M112 332h288l-40 64H152l-40-64z" fill="#0b1220" stroke="#38bdf8" stroke-width="14" />
+  <circle cx="188" cy="348" r="26" fill="#a5f3fc" />
+  <circle cx="324" cy="348" r="26" fill="#a5f3fc" />
+  <path d="M208 246l46 34 78-90" fill="none" stroke="#67e8f9" stroke-width="22" stroke-linecap="round" stroke-linejoin="round" />
+  <text x="256" y="442" text-anchor="middle" font-size="44" font-family="Segoe UI,Arial,sans-serif" font-weight="700" fill="#e0f2fe">DRIVER</text>
+</svg>
