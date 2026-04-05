@@ -203,10 +203,10 @@ export default function Home() {
                 Start Platform Build
               </Button>
               <Button
-                onClick={() => router.push("/demo")}
+                onClick={() => router.push("/workspace")}
                 className="rounded-xl border border-white/20 bg-black/35 px-6 py-6 text-base font-semibold text-white backdrop-blur-md hover:bg-black/50"
               >
-                View Product Structure
+                Open Workspace
               </Button>
             </div>
 
@@ -437,10 +437,10 @@ export default function Home() {
               <Button onClick={() => router.push("/demo")} className="rounded-xl px-6 py-6 text-base font-semibold">Request Demo</Button>
               <Button onClick={() => router.push("/build-electric/booking")} className="rounded-xl px-6 py-6 text-base font-semibold">Start Platform Build</Button>
               <Button
-                onClick={() => router.push("/demo")}
+                onClick={() => router.push("/workspace")}
                 className="rounded-xl border border-white/20 bg-black/35 px-6 py-6 text-base font-semibold text-white backdrop-blur-md hover:bg-black/50"
               >
-                View Product Structure
+                Open Workspace
               </Button>
             </div>
           </CardContent>

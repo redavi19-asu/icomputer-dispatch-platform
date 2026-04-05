@@ -1,53 +1,87 @@
 import Link from "next/link";
-import { ArrowRight, LayoutDashboard, Smartphone, Wand2 } from "lucide-react";
+import {
+  ArrowRight,
+  Building2,
+  CarFront,
+  CreditCard,
+  LayoutDashboard,
+  Settings2,
+  Wand2,
+} from "lucide-react";
 
+import { AppShellNav } from "@/components/platform/app-shell-nav";
 import { Card, CardContent } from "@/components/ui/card";
 
 const demoEntries = [
   {
-    title: "Booking Demo",
+    title: "Settings",
+    description:
+      "Configure company intake, dispatch behavior, and platform controls before going live.",
+    href: "/workspace/settings",
+    cta: "Open Settings",
+    icon: Settings2,
+  },
+  {
+    title: "Billing",
+    description:
+      "Review company subscription status, payment details, and invoice activity.",
+    href: "/billing",
+    cta: "Open Billing",
+    icon: CreditCard,
+  },
+  {
+    title: "Drivers",
+    description:
+      "Manage your driver roster, activity status, and invite lifecycle in one place.",
+    href: "/workspace/drivers",
+    cta: "Open Drivers",
+    icon: CarFront,
+  },
+  {
+    title: "Booking",
     description:
       "Branded customer booking flow with service selection, address verification, and request submission.",
     href: "/build-electric/booking",
-    cta: "Open Booking Demo",
+    cta: "Open Booking",
     icon: Wand2,
   },
   {
-    title: "Dispatcher Dashboard Demo",
+    title: "Dispatch",
     description:
       "Map-first operations board for dispatch mode, assignment workflows, and active job management.",
     href: "/dashboard",
-    cta: "Open Dashboard Demo",
+    cta: "Open Dispatch",
     icon: LayoutDashboard,
   },
   {
-    title: "Driver App Demo",
+    title: "Workspace",
     description:
-      "Mission workflow with live queue behavior, routing context, and broadcast alert handling.",
-    href: "/driver",
-    cta: "Open Driver Demo",
-    icon: Smartphone,
+      "Company control center for dispatch preferences, drivers, billing, and operational settings.",
+    href: "/workspace",
+    cta: "Open Workspace",
+    icon: Building2,
   },
 ];
 
 export default function DemoPage() {
   return (
     <main className="min-h-screen bg-slate-950 text-white">
+      <AppShellNav />
       <section className="relative overflow-hidden border-b border-white/10">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_15%_20%,rgba(34,211,238,0.18),transparent_32%),radial-gradient(circle_at_82%_65%,rgba(59,130,246,0.16),transparent_38%)]" />
         <div className="relative mx-auto max-w-7xl px-6 py-16 md:py-24">
-          <p className="text-xs uppercase tracking-[0.25em] text-cyan-300">DispatchOS Demo Hub</p>
+          <p className="text-xs uppercase tracking-[0.25em] text-cyan-300">DispatchOS Platform Hub</p>
           <h1 className="mt-4 max-w-4xl text-4xl font-semibold tracking-tight md:text-6xl">
-            Walk through the complete dispatch experience
+            Navigate the complete dispatch platform
           </h1>
           <p className="mt-5 max-w-3xl text-base leading-7 text-white/70 md:text-lg">
-            Start at booking, continue to dispatch command, and finish in the driver mission view.
-            This keeps demos structured and avoids fragmented entry points.
+            Launch booking, dispatch, driver operations, and workspace controls from one connected
+            hub.
           </p>
         </div>
       </section>
 
-      <section className="mx-auto grid max-w-7xl gap-6 px-6 py-12 md:grid-cols-3 md:py-16">
+      <section className="mx-auto grid max-w-7xl gap-6 px-6 py-12 md:grid-cols-2 xl:grid-cols-3 md:py-16">
         {demoEntries.map((entry) => (
           <Card
             key={entry.title}

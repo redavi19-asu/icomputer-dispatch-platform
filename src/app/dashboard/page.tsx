@@ -1,12 +1,14 @@
 "use client";
 import { addBroadcastAlert } from "@/lib/utils";
 
+import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import {
   Bell,
   LayoutDashboard,
   MapPinned,
   Settings2,
+  ShieldCheck,
   Trash2,
   Users,
 } from "lucide-react";
@@ -14,17 +16,33 @@ import {
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Modal } from "@/components/ui/modal";
+import { AppShellNav } from "@/components/platform/app-shell-nav";
 import { DispatchMap } from "@/components/platform/dispatch-map";
-import { getCompanyBySlug, getDriversByCompany } from "@/lib/platform/selectors";
+import { getCompanyBySlug } from "@/lib/platform/selectors";
+import {
+  WORKSPACE_DRIVERS_UPDATED_EVENT,
+  readWorkspaceDrivers,
+  toPlatformDrivers,
+  type WorkspaceDriver,
+} from "@/lib/platform/workspace-drivers";
 import {
   resolveDriverAcceptanceMode,
   setStoredDriverAcceptanceMode,
   type DriverAcceptanceMode,
 } from "@/lib/platform/driver-acceptance-mode";
+import {
+  readWorkspaceSettings,
+  writeWorkspaceSettings,
+  type WorkspaceSettingsState,
+} from "@/lib/platform/workspace-preferences";
+import { getDisplayStatusLabel, type JobTimelineEvent } from "@/lib/platform/job-lifecycle";
+
+const WORKSPACE_SETTINGS_UPDATED_EVENT = "dispatch:workspace-settings-updated";
 
 type ApiJob = {
   id: string;
   createdAt: string;
+  updatedAt?: string;
   status: string;
   companySlug?: string | null;
   name?: string | null;
@@ -34,6 +52,9 @@ type ApiJob = {
   details?: string | null;
   driverId?: string | null;
   etaMinutes?: number | null;
+  statusHistory?: JobTimelineEvent[];
+  verificationToken?: string | null;
+  handoffVerifiedAt?: string | null;
 };
 
 type PendingAssistedAssign = {
@@ -62,7 +83,16 @@ export default function DashboardPage() {
     };
   const company = getCompanyBySlug("build-electric");
   const defaultDriverAcceptanceMode = company?.driverAcceptanceMode ?? "manual";
-  const companyDrivers = company ? getDriversByCompany(company.id) : [];
+  const [workspaceDrivers, setWorkspaceDrivers] = useState<WorkspaceDriver[]>(() =>
+    company ? readWorkspaceDrivers(company.id, company.slug) : []
+  );
+  const [workspaceSettings, setWorkspaceSettings] = useState<WorkspaceSettingsState>(() =>
+    readWorkspaceSettings(company?.slug ?? "build-electric")
+  );
+  const companyDrivers = useMemo(
+    () => (company ? toPlatformDrivers(workspaceDrivers, company.id) : []),
+    [workspaceDrivers, company]
+  );
   const [driverAcceptanceMode, setDriverAcceptanceMode] =
     useState<DriverAcceptanceMode>(defaultDriverAcceptanceMode);
 
@@ -83,13 +113,49 @@ export default function DashboardPage() {
   );
   const [themeMode, setThemeMode] = useState<"dark" | "light">("dark");
   const [isClearingJobs, setIsClearingJobs] = useState(false);
+  const [isConfirmingHandoff, setIsConfirmingHandoff] = useState(false);
+  const [handoffConfirmError, setHandoffConfirmError] = useState<string | null>(null);
+  const [handoffConfirmSuccess, setHandoffConfirmSuccess] = useState<string | null>(null);
   const [showDashboardControlsModal, setShowDashboardControlsModal] = useState(false);
+  const [showCreateJobModal, setShowCreateJobModal] = useState(false);
+  const [isCreatingJob, setIsCreatingJob] = useState(false);
 
   useEffect(() => {
     setDriverAcceptanceMode(
       resolveDriverAcceptanceMode(defaultDriverAcceptanceMode, company?.slug)
     );
   }, [defaultDriverAcceptanceMode, company?.slug]);
+
+  useEffect(() => {
+    if (!company) return;
+
+    const syncSettings = () => {
+      const next = readWorkspaceSettings(company.slug);
+      setWorkspaceSettings(next);
+      setDispatchMode(next.dispatchMode);
+      setDriverAcceptanceMode(next.driverAcceptanceMode);
+      setStoredDriverAcceptanceMode(company.slug, next.driverAcceptanceMode);
+    };
+
+    const syncDrivers = () => {
+      setWorkspaceDrivers(readWorkspaceDrivers(company.id, company.slug));
+    };
+
+    syncSettings();
+    syncDrivers();
+
+    window.addEventListener("storage", syncSettings);
+    window.addEventListener("storage", syncDrivers);
+    window.addEventListener(WORKSPACE_SETTINGS_UPDATED_EVENT, syncSettings as EventListener);
+    window.addEventListener(WORKSPACE_DRIVERS_UPDATED_EVENT, syncDrivers as EventListener);
+
+    return () => {
+      window.removeEventListener("storage", syncSettings);
+      window.removeEventListener("storage", syncDrivers);
+      window.removeEventListener(WORKSPACE_SETTINGS_UPDATED_EVENT, syncSettings as EventListener);
+      window.removeEventListener(WORKSPACE_DRIVERS_UPDATED_EVENT, syncDrivers as EventListener);
+    };
+  }, [company]);
 
   const assignJobToDriver = async (jobId: string, driverId: string) => {
     try {
@@ -252,6 +318,55 @@ export default function DashboardPage() {
     setPendingClearJob(job);
   };
 
+  const createManualJob = async (formData: FormData) => {
+    const name = String(formData.get("name") ?? "").trim();
+    const phone = String(formData.get("phone") ?? "").trim();
+    const service = String(formData.get("service") ?? "").trim();
+    const address = String(formData.get("address") ?? "").trim();
+    const details = String(formData.get("details") ?? "").trim();
+
+    if (!name || !phone || !service || !address) {
+      return;
+    }
+
+    if (workspaceSettings.jobIntakeSource === "booking") {
+      return;
+    }
+
+    setIsCreatingJob(true);
+
+    try {
+      const res = await fetch("/api/jobs", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          companySlug: company?.slug ?? "build-electric",
+          name,
+          phone,
+          service,
+          address,
+          details,
+        }),
+      });
+
+      if (!res.ok) {
+        throw new Error("Failed to create manual job");
+      }
+
+      const data = await res.json();
+      const createdJob = data.job as ApiJob;
+
+      setCompanyJobs((prev) => [createdJob, ...prev]);
+      setShowCreateJobModal(false);
+    } catch (error) {
+      console.error("Manual job creation failed:", error);
+    } finally {
+      setIsCreatingJob(false);
+    }
+  };
+
   const confirmClearJob = async () => {
     if (!pendingClearJob) return;
     const job = pendingClearJob;
@@ -293,6 +408,94 @@ export default function DashboardPage() {
     return companyJobs.filter((job) => job.driverId === driverId).length;
   };
 
+  const getJobTimeline = (job: ApiJob): JobTimelineEvent[] => {
+    const rawTimeline = Array.isArray(job.statusHistory) ? job.statusHistory : [];
+    if (rawTimeline.length > 0) {
+      return [...rawTimeline].sort(
+        (a, b) => new Date(b.at).getTime() - new Date(a.at).getTime()
+      );
+    }
+
+    return [
+      {
+        type: "system",
+        label: "Request created",
+        detail: "Customer request entered dispatch queue",
+        at: job.createdAt,
+        status: "Awaiting Dispatch",
+      },
+    ];
+  };
+
+  const formatTimelineAt = (value?: string) => {
+    if (!value) return "Unknown time";
+    const parsed = new Date(value);
+    if (Number.isNaN(parsed.getTime())) return value;
+    return parsed.toLocaleString(undefined, {
+      month: "short",
+      day: "numeric",
+      hour: "numeric",
+      minute: "2-digit",
+    });
+  };
+
+  const confirmSelectedJobHandoff = async () => {
+    if (!selectedJob?.verificationToken) return;
+
+    setIsConfirmingHandoff(true);
+    setHandoffConfirmError(null);
+    setHandoffConfirmSuccess(null);
+
+    try {
+      const res = await fetch("/api/jobs", {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          id: selectedJob.id,
+          verificationAction: "confirm-handoff",
+          verificationToken: selectedJob.verificationToken,
+        }),
+      });
+
+      if (!res.ok) {
+        throw new Error("Failed to confirm handoff");
+      }
+
+      const data = await res.json();
+      const updatedJob = data.job as ApiJob;
+
+      setCompanyJobs((prev) =>
+        prev.map((job) => (job.id === updatedJob.id ? updatedJob : job))
+      );
+      setSelectedJob(updatedJob);
+      setHandoffConfirmSuccess("Handoff verified successfully.");
+    } catch (error) {
+      console.error("Handoff confirmation failed:", error);
+      setHandoffConfirmError("Could not confirm handoff right now. Please retry.");
+    } finally {
+      setIsConfirmingHandoff(false);
+    }
+  };
+
+  useEffect(() => {
+    setHandoffConfirmError(null);
+    setHandoffConfirmSuccess(null);
+  }, [selectedJob?.id]);
+
+  useEffect(() => {
+    if (!handoffConfirmSuccess) return;
+
+    const timeout = window.setTimeout(() => {
+      setHandoffConfirmSuccess(null);
+    }, 2500);
+
+    return () => {
+      window.clearTimeout(timeout);
+    };
+  }, [handoffConfirmSuccess]);
+
   const recentActivityJobs = companyJobs.slice(0, 5);
 
   useEffect(() => {
@@ -309,7 +512,6 @@ export default function DashboardPage() {
         }
 
         const data = await res.json();
-        console.log("[dashboard] fetched build-electric jobs", (data.jobs ?? []).length);
 
         if (isMounted) {
           setCompanyJobs(data.jobs ?? []);
@@ -367,6 +569,7 @@ export default function DashboardPage() {
 
   return (
     <main className={`min-h-screen ${pageBg}`}>
+      <AppShellNav />
       <div className={`border-b ${topBarBg} backdrop-blur`}>
         <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
           <div>
@@ -374,11 +577,30 @@ export default function DashboardPage() {
               Dispatch Platform
             </p>
             <h1 className="mt-1 text-2xl font-semibold">
-              {company?.name} Dispatch Dashboard
+              {workspaceSettings.companyName} Dispatch Dashboard
             </h1>
+            <div className="mt-2 flex flex-wrap gap-2 text-[11px]">
+              <span className="rounded-full border border-cyan-400/30 bg-cyan-500/10 px-2.5 py-1 text-cyan-200">
+                Intake: {workspaceSettings.jobIntakeSource}
+              </span>
+              <span className="rounded-full border border-cyan-400/30 bg-cyan-500/10 px-2.5 py-1 text-cyan-200">
+                Driver Acceptance: {driverAcceptanceMode}
+              </span>
+              <span className="rounded-full border border-cyan-400/30 bg-cyan-500/10 px-2.5 py-1 text-cyan-200">
+                Dispatch Mode: {dispatchMode}
+              </span>
+            </div>
           </div>
 
           <div className="flex items-center gap-2">
+            <Button
+              onClick={() => setShowCreateJobModal(true)}
+              disabled={workspaceSettings.jobIntakeSource === "booking"}
+              className="h-9 rounded-lg bg-cyan-500 px-3 text-xs font-semibold text-slate-950 hover:bg-cyan-400"
+            >
+              Create Job
+            </Button>
+
             <div className={toolbarGroup}>
               <span className="mr-2 text-[11px] font-semibold uppercase tracking-widest text-cyan-300/80">
                 Dispatch Mode
@@ -386,7 +608,14 @@ export default function DashboardPage() {
               {(["Manual", "Assisted", "Auto"] as const).map((mode) => (
                 <button
                   key={mode}
-                  onClick={() => setDispatchMode(mode)}
+                  onClick={() => {
+                    setDispatchMode(mode);
+                    const next = writeWorkspaceSettings({
+                      ...workspaceSettings,
+                      dispatchMode: mode,
+                    });
+                    setWorkspaceSettings(next);
+                  }}
                   className={`rounded-md px-2.5 py-1.5 transition ${
                     dispatchMode === mode
                       ? "bg-cyan-500 text-slate-950"
@@ -494,7 +723,7 @@ export default function DashboardPage() {
 
                 <div className="relative">
                   <DispatchMap
-                    companyName={company?.name ?? "Dispatch Platform"}
+                    companyName={workspaceSettings.companyName || "Dispatch Platform"}
                     themeMode={themeMode}
                   />
                   <div
@@ -532,7 +761,7 @@ export default function DashboardPage() {
                       <div key={job.id} className={`rounded-xl border ${panelBg} p-4`}>
                         <div className="grid gap-2 text-sm md:grid-cols-2">
                           <p>ID: <span className="font-semibold">{job.id}</span></p>
-                          <p>Status: <span className="font-semibold">{job.status}</span></p>
+                          <p>Status: <span className="font-semibold">{getDisplayStatusLabel(job.status)}</span></p>
                           <p>Service: <span className="font-semibold">{job.service ?? "—"}</span></p>
                           <p>Customer: <span className="font-semibold">{job.name ?? "—"}</span></p>
                           <p>Phone: <span className="font-semibold">{job.phone ?? "—"}</span></p>
@@ -587,7 +816,7 @@ export default function DashboardPage() {
                             <p className="mt-1 text-sm text-white/65">{job.name ?? "—"}</p>
                           </div>
                           <span className="rounded-full bg-cyan-400/10 px-2 py-1 text-[11px] text-cyan-300">
-                            {job.status}
+                            {getDisplayStatusLabel(job.status)}
                           </span>
                         </div>
 
@@ -707,7 +936,7 @@ export default function DashboardPage() {
                         <div key={job.id} className={`rounded-xl border ${panelBg} p-3 text-sm`}>
                           <p className="font-semibold">{job.id}</p>
                           <p className={`mt-1 ${mutedText}`}>
-                            {job.status} • {job.service ?? "Service Request"} • {job.name ?? "—"}
+                            {getDisplayStatusLabel(job.status)} • {job.service ?? "Service Request"} • {job.name ?? "—"}
                           </p>
                         </div>
                       ))
@@ -720,6 +949,19 @@ export default function DashboardPage() {
         </section>
 
         <aside>
+          {workspaceSettings.jobIntakeSource === "booking" ? (
+            <Card className={`mb-6 rounded-2xl ${cardBg}`}>
+              <CardContent className="p-5">
+                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-emerald-300">
+                  Intake Policy
+                </p>
+                <p className="mt-2 text-sm text-white/75">
+                  Booking-first intake is enabled. New jobs should enter through the booking flow.
+                </p>
+              </CardContent>
+            </Card>
+          ) : null}
+
           {/* Broadcast Alert Panel */}
           <Card className={`rounded-2xl ${cardBg}`}>
             <CardContent className="p-5">
@@ -775,7 +1017,7 @@ export default function DashboardPage() {
                           </p>
                         </div>
                         <span className="rounded-full bg-cyan-400/10 px-2 py-1 text-[11px] text-cyan-300">
-                          {job.status}
+                          {getDisplayStatusLabel(job.status)}
                         </span>
                       </div>
 
@@ -828,7 +1070,11 @@ export default function DashboardPage() {
 
       <Modal
         isOpen={!!selectedJob}
-        onClose={() => setSelectedJob(null)}
+        onClose={() => {
+          setSelectedJob(null);
+          setHandoffConfirmError(null);
+          setHandoffConfirmSuccess(null);
+        }}
         title={selectedJob ? `Job ${selectedJob.id}` : "Job Details"}
       >
         {selectedJob ? (
@@ -838,7 +1084,9 @@ export default function DashboardPage() {
                 <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">
                   Status
                 </p>
-                <p className="mt-2 text-lg font-semibold">{selectedJob.status}</p>
+                <p className="mt-2 text-lg font-semibold">
+                  {getDisplayStatusLabel(selectedJob.status)}
+                </p>
               </div>
 
               <div className="rounded-2xl bg-slate-100 p-4">
@@ -876,6 +1124,102 @@ export default function DashboardPage() {
               <p className="text-sm text-slate-600">
                 ETA: {selectedJob.etaMinutes != null ? `${selectedJob.etaMinutes} min` : "—"}
               </p>
+            </div>
+
+            <div className="rounded-2xl bg-slate-100 p-4">
+              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">
+                Customer Tracking
+              </p>
+              {workspaceSettings.customerTrackingEnabled ? (
+                <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
+                  <Link
+                    href={`/track/${selectedJob.id}`}
+                    className="inline-flex items-center rounded-full border border-slate-300 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50"
+                  >
+                    Open tracking page
+                  </Link>
+                  <p className="text-xs text-slate-500">
+                    Last update: {formatTimelineAt(selectedJob.updatedAt ?? selectedJob.createdAt)}
+                  </p>
+                </div>
+              ) : (
+                <p className="mt-2 text-sm text-slate-600">
+                  Customer tracking is disabled in workspace settings.
+                </p>
+              )}
+            </div>
+
+            <div className="rounded-2xl bg-slate-100 p-4">
+              <div className="flex items-center justify-between gap-2">
+                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">
+                  Handoff Verification
+                </p>
+                {selectedJob.handoffVerifiedAt ? (
+                  <span className="inline-flex items-center gap-1 rounded-full border border-emerald-300 bg-emerald-50 px-2 py-0.5 text-[11px] font-semibold text-emerald-700">
+                    <ShieldCheck className="h-3.5 w-3.5" />
+                    Verified
+                  </span>
+                ) : (
+                  <span className="rounded-full border border-amber-300 bg-amber-50 px-2 py-0.5 text-[11px] font-semibold text-amber-700">
+                    Pending
+                  </span>
+                )}
+              </div>
+              <p className="mt-2 text-sm text-slate-700">
+                {!workspaceSettings.proofOfDeliveryEnabled && !workspaceSettings.qrHandoffEnabled
+                  ? "Verification controls are disabled in workspace settings."
+                  : selectedJob.handoffVerifiedAt
+                  ? `Verified at ${formatTimelineAt(selectedJob.handoffVerifiedAt)}`
+                  : "Customer confirmation not yet recorded."}
+              </p>
+              {workspaceSettings.qrHandoffEnabled && selectedJob.verificationToken ? (
+                <p className="mt-1 text-xs text-slate-500">
+                  Verification token: {selectedJob.verificationToken}
+                </p>
+              ) : null}
+              {(workspaceSettings.proofOfDeliveryEnabled || workspaceSettings.qrHandoffEnabled) &&
+              selectedJob.verificationToken &&
+              !selectedJob.handoffVerifiedAt ? (
+                <div className="mt-3 flex flex-wrap items-center gap-2">
+                  <Button
+                    onClick={() => void confirmSelectedJobHandoff()}
+                    disabled={isConfirmingHandoff}
+                    className="h-8 rounded-lg bg-slate-900 px-3 text-xs text-white hover:bg-slate-800 disabled:opacity-50"
+                  >
+                    {isConfirmingHandoff ? "Confirming..." : "Confirm Handoff"}
+                  </Button>
+                  {handoffConfirmError ? (
+                    <p className="text-xs text-rose-600">{handoffConfirmError}</p>
+                  ) : null}
+                  {handoffConfirmSuccess ? (
+                    <p className="text-xs text-emerald-700">{handoffConfirmSuccess}</p>
+                  ) : null}
+                </div>
+              ) : null}
+            </div>
+
+            <div className="rounded-2xl bg-slate-100 p-4">
+              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">
+                Timeline & Audit Trail
+              </p>
+              <div className="mt-3 space-y-2">
+                {getJobTimeline(selectedJob).map((event, index) => (
+                  <div key={`${event.at}-${event.label}-${index}`} className="rounded-xl border border-slate-200 bg-white p-3">
+                    <div className="flex items-center justify-between gap-3">
+                      <p className="text-sm font-semibold text-slate-900">{event.label}</p>
+                      <p className="text-xs text-slate-500">{formatTimelineAt(event.at)}</p>
+                    </div>
+                    {event.status ? (
+                      <p className="mt-1 text-xs font-medium text-cyan-700">
+                        Status: {getDisplayStatusLabel(event.status)}
+                      </p>
+                    ) : null}
+                    {event.detail ? (
+                      <p className="mt-1 text-sm text-slate-600">{event.detail}</p>
+                    ) : null}
+                  </div>
+                ))}
+              </div>
             </div>
 
             <div className="rounded-2xl bg-slate-100 p-4">
@@ -955,6 +1299,92 @@ export default function DashboardPage() {
       </Modal>
 
       <Modal
+        isOpen={showCreateJobModal}
+        onClose={() => setShowCreateJobModal(false)}
+        title="Create Manual Job"
+      >
+        <form
+          className="space-y-4 text-slate-800"
+          onSubmit={async (event) => {
+            event.preventDefault();
+            await createManualJob(new FormData(event.currentTarget));
+          }}
+        >
+          <label className="block">
+            <span className="mb-2 block text-sm text-slate-600">Customer Name</span>
+            <input
+              name="name"
+              required
+              className="w-full rounded-xl border border-slate-300 px-4 py-3 text-slate-900 outline-none focus:border-slate-500"
+              placeholder="Customer full name"
+            />
+          </label>
+
+          <label className="block">
+            <span className="mb-2 block text-sm text-slate-600">Phone</span>
+            <input
+              name="phone"
+              required
+              className="w-full rounded-xl border border-slate-300 px-4 py-3 text-slate-900 outline-none focus:border-slate-500"
+              placeholder="(555) 555-5555"
+            />
+          </label>
+
+          <label className="block">
+            <span className="mb-2 block text-sm text-slate-600">Service / Job Type</span>
+            <input
+              name="service"
+              required
+              className="w-full rounded-xl border border-slate-300 px-4 py-3 text-slate-900 outline-none focus:border-slate-500"
+              placeholder="Emergency Service"
+            />
+          </label>
+
+          <label className="block">
+            <span className="mb-2 block text-sm text-slate-600">Address</span>
+            <input
+              name="address"
+              required
+              className="w-full rounded-xl border border-slate-300 px-4 py-3 text-slate-900 outline-none focus:border-slate-500"
+              placeholder="Street address"
+            />
+          </label>
+
+          <label className="block">
+            <span className="mb-2 block text-sm text-slate-600">Notes</span>
+            <textarea
+              name="details"
+              rows={4}
+              className="w-full rounded-xl border border-slate-300 px-4 py-3 text-slate-900 outline-none focus:border-slate-500"
+              placeholder="Additional dispatch notes"
+            />
+          </label>
+
+          <div className="flex gap-3 pt-2">
+            <Button
+              onClick={() => setShowCreateJobModal(false)}
+              type="button"
+              variant="secondary"
+              className="flex-1"
+            >
+              Cancel
+            </Button>
+            <Button
+              type="submit"
+              disabled={isCreatingJob || workspaceSettings.jobIntakeSource === "booking"}
+              className="flex-1 bg-slate-900 text-white hover:bg-slate-800 disabled:opacity-50"
+            >
+              {workspaceSettings.jobIntakeSource === "booking"
+                ? "Manual Intake Disabled"
+                : isCreatingJob
+                ? "Creating..."
+                : "Create Job"}
+            </Button>
+          </div>
+        </form>
+      </Modal>
+
+      <Modal
         isOpen={showDashboardControlsModal}
         onClose={() => setShowDashboardControlsModal(false)}
         title="Dashboard Controls"
@@ -976,6 +1406,11 @@ export default function DashboardPage() {
                     setDriverAcceptanceMode(mode.value);
                     if (company?.slug) {
                       setStoredDriverAcceptanceMode(company.slug, mode.value);
+                      const next = writeWorkspaceSettings({
+                        ...workspaceSettings,
+                        driverAcceptanceMode: mode.value,
+                      });
+                      setWorkspaceSettings(next);
                     }
                   }}
                 >

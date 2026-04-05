@@ -1,9 +1,16 @@
 import { NextResponse } from "next/server";
 import db from "@/lib/server/db";
+import {
+  appendStatusEvent,
+  appendVerificationEvent,
+  createInitialStatusHistory,
+  normalizeTimeline,
+} from "@/lib/platform/job-lifecycle";
 
 type JobRecord = {
   id: string;
   createdAt: string;
+  updatedAt?: string | null;
   status: string;
   companySlug?: string | null;
   name?: string | null;
@@ -13,17 +20,72 @@ type JobRecord = {
   details?: string | null;
   driverId?: string | null;
   etaMinutes?: number | null;
+  statusHistory?: string | null;
+  verificationToken?: string | null;
+  handoffVerifiedAt?: string | null;
+};
+
+const toApiJob = (job: JobRecord) => {
+  let parsedHistory: unknown = null;
+  if (job.statusHistory) {
+    try {
+      parsedHistory = JSON.parse(job.statusHistory);
+    } catch {
+      parsedHistory = null;
+    }
+  }
+
+  return {
+    ...job,
+    updatedAt: job.updatedAt ?? job.createdAt,
+    statusHistory: normalizeTimeline(parsedHistory, job.createdAt),
+    verificationToken: job.verificationToken ?? null,
+    handoffVerifiedAt: job.handoffVerifiedAt ?? null,
+  };
+};
+
+const createVerificationToken = (id: string) => {
+  const compact = id.replace(/[^A-Za-z0-9]/g, "").toUpperCase();
+  return compact.slice(-8);
 };
 
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
   const companySlug = searchParams.get("company");
+  const jobId = searchParams.get("id");
+
+  if (jobId) {
+    const job = db
+      .prepare(
+        `
+        SELECT id, createdAt, updatedAt, status, companySlug, name, phone, service, address, details, driverId, etaMinutes, statusHistory, verificationToken, handoffVerifiedAt
+        FROM jobs
+        WHERE id = ?
+      `
+      )
+      .get(jobId) as JobRecord | undefined;
+
+    if (!job) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: "Job not found",
+        },
+        { status: 404 }
+      );
+    }
+
+    return NextResponse.json({
+      success: true,
+      job: toApiJob(job),
+    });
+  }
 
   const jobs = companySlug
     ? db
         .prepare(
           `
-          SELECT id, createdAt, status, companySlug, name, phone, service, address, details, driverId, etaMinutes
+          SELECT id, createdAt, updatedAt, status, companySlug, name, phone, service, address, details, driverId, etaMinutes, statusHistory, verificationToken, handoffVerifiedAt
           FROM jobs
           WHERE companySlug = ?
           ORDER BY datetime(createdAt) DESC
@@ -33,31 +95,26 @@ export async function GET(req: Request) {
     : db
         .prepare(
           `
-          SELECT id, createdAt, status, companySlug, name, phone, service, address, details, driverId, etaMinutes
+          SELECT id, createdAt, updatedAt, status, companySlug, name, phone, service, address, details, driverId, etaMinutes, statusHistory, verificationToken, handoffVerifiedAt
           FROM jobs
           ORDER BY datetime(createdAt) DESC
         `
         )
         .all();
 
-  if (companySlug === "build-electric") {
-    console.log("[api/jobs GET] build-electric count", jobs.length);
-  }
-
   return NextResponse.json({
     success: true,
-    jobs,
+    jobs: (jobs as JobRecord[]).map(toApiJob),
   });
 }
 
 export async function POST(req: Request) {
   const data = await req.json();
 
-  console.log("[api/jobs POST] body", data);
-
   const job: JobRecord = {
     id: crypto.randomUUID(),
     createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
     status: "Awaiting Dispatch",
     companySlug: data.companySlug ?? null,
     name: data.name ?? null,
@@ -67,27 +124,27 @@ export async function POST(req: Request) {
     details: data.details ?? null,
     driverId: null,
     etaMinutes: null,
+    statusHistory: JSON.stringify(createInitialStatusHistory(new Date().toISOString())),
+    verificationToken: createVerificationToken(crypto.randomUUID()),
+    handoffVerifiedAt: null,
   };
+
+  job.verificationToken = createVerificationToken(job.id);
+  job.statusHistory = JSON.stringify(createInitialStatusHistory(job.createdAt));
 
   db.prepare(
     `
     INSERT INTO jobs (
-      id, createdAt, status, companySlug, name, phone, service, address, details, driverId, etaMinutes
+      id, createdAt, updatedAt, status, companySlug, name, phone, service, address, details, driverId, etaMinutes, statusHistory, verificationToken, handoffVerifiedAt
     ) VALUES (
-      @id, @createdAt, @status, @companySlug, @name, @phone, @service, @address, @details, @driverId, @etaMinutes
+      @id, @createdAt, @updatedAt, @status, @companySlug, @name, @phone, @service, @address, @details, @driverId, @etaMinutes, @statusHistory, @verificationToken, @handoffVerifiedAt
     )
   `
   ).run(job);
 
-  console.log("[api/jobs POST] inserted", {
-    id: job.id,
-    companySlug: job.companySlug,
-    status: job.status,
-  });
-
   return NextResponse.json({
     success: true,
-    job,
+    job: toApiJob(job),
   });
 }
 
@@ -98,6 +155,7 @@ export async function PATCH(req: Request) {
     .prepare(
       `
       SELECT id, createdAt, status, companySlug, name, phone, service, address, details, driverId, etaMinutes
+              ,updatedAt, statusHistory, verificationToken, handoffVerifiedAt
       FROM jobs
       WHERE id = ?
     `
@@ -114,12 +172,51 @@ export async function PATCH(req: Request) {
     );
   }
 
+  let history: unknown = null;
+  if (existingJob.statusHistory) {
+    try {
+      history = JSON.parse(existingJob.statusHistory);
+    } catch {
+      history = null;
+    }
+  }
+
+  let timeline = normalizeTimeline(history, existingJob.createdAt);
+  const now = new Date().toISOString();
+  const statusChanged = data.status && data.status !== existingJob.status;
+
+  if (statusChanged) {
+    timeline = appendStatusEvent(
+      timeline,
+      data.status,
+      now,
+      data.note ?? "Status updated by operations"
+    );
+  }
+
+  let handoffVerifiedAt = existingJob.handoffVerifiedAt ?? null;
+  if (
+    data.verificationAction === "confirm-handoff" &&
+    data.verificationToken &&
+    data.verificationToken === existingJob.verificationToken
+  ) {
+    handoffVerifiedAt = now;
+    timeline = appendVerificationEvent(
+      timeline,
+      now,
+      "Verification token confirmed"
+    );
+  }
+
   const updatedJob: JobRecord = {
     ...existingJob,
     status: data.status ?? existingJob.status,
     driverId: data.driverId ?? existingJob.driverId ?? null,
     etaMinutes:
       data.etaMinutes !== undefined ? data.etaMinutes : existingJob.etaMinutes ?? null,
+    updatedAt: now,
+    statusHistory: JSON.stringify(timeline),
+    handoffVerifiedAt,
   };
 
   db.prepare(
@@ -127,7 +224,10 @@ export async function PATCH(req: Request) {
     UPDATE jobs
     SET status = @status,
         driverId = @driverId,
-        etaMinutes = @etaMinutes
+        etaMinutes = @etaMinutes,
+        updatedAt = @updatedAt,
+        statusHistory = @statusHistory,
+        handoffVerifiedAt = @handoffVerifiedAt
     WHERE id = @id
   `
   ).run({
@@ -135,11 +235,14 @@ export async function PATCH(req: Request) {
     status: updatedJob.status,
     driverId: updatedJob.driverId,
     etaMinutes: updatedJob.etaMinutes,
+    updatedAt: updatedJob.updatedAt,
+    statusHistory: updatedJob.statusHistory,
+    handoffVerifiedAt: updatedJob.handoffVerifiedAt,
   });
 
   return NextResponse.json({
     success: true,
-    job: updatedJob,
+    job: toApiJob(updatedJob),
   });
 }
 

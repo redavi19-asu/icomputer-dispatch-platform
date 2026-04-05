@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { AlertCircle, CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Modal } from "@/components/ui/modal";
@@ -32,6 +33,7 @@ export function BookingRequestForm({
   const [addressValue, setAddressValue] = useState("");
   const [verifiedAddress, setVerifiedAddress] = useState<string | null>(null);
   const [addressError, setAddressError] = useState<string | null>(null);
+  const [submittedJobId, setSubmittedJobId] = useState<string | null>(null);
 
   const REGION_VIEWBOX = "-79.8,40.2,-75.0,36.5";
   const DEFAULT_LOCAL_REGION_SUFFIX = "Silver Spring, MD";
@@ -142,8 +144,6 @@ export function BookingRequestForm({
               details: formData.get("details"),
             };
 
-            console.log("[booking-submit] payload", payload);
-
             const res = await fetch("/api/jobs", {
               method: "POST",
               headers: {
@@ -156,12 +156,13 @@ export function BookingRequestForm({
               throw new Error("Failed to submit request");
             }
 
-            await res.json();
+            const data = await res.json();
             form.reset();
             setServiceValue(selectedService ?? "");
             setAddressValue("");
             setVerifiedAddress(null);
             setAddressError(null);
+            setSubmittedJobId(data?.job?.id ?? null);
             setShowSuccessModal(true);
           } catch (error) {
             console.error(error);
@@ -321,6 +322,11 @@ export function BookingRequestForm({
             <p className="mt-2 text-sm text-slate-600">
               Dispatch has been notified and your request is now in the queue.
             </p>
+            {submittedJobId ? (
+              <p className="mt-2 text-sm text-slate-600">
+                Track status: <Link href={`/track/${submittedJobId}`} className="font-semibold text-cyan-700 underline">/track/{submittedJobId}</Link>
+              </p>
+            ) : null}
             <p className="mt-2 text-sm text-slate-600">
               You can close this window or submit another request if needed.
             </p>

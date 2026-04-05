@@ -18,6 +18,13 @@ import {
   resolveDriverAcceptanceMode,
   type DriverAcceptanceMode,
 } from "@/lib/platform/driver-acceptance-mode";
+import {
+  readWorkspaceSettings,
+  type WorkspaceSettingsState,
+} from "@/lib/platform/workspace-preferences";
+import { getDisplayStatusLabel } from "@/lib/platform/job-lifecycle";
+
+const WORKSPACE_SETTINGS_UPDATED_EVENT = "dispatch:workspace-settings-updated";
 
 type ApiJob = {
   id: string;
@@ -31,6 +38,8 @@ type ApiJob = {
   details?: string | null;
   driverId?: string | null;
   etaMinutes?: number | null;
+  verificationToken?: string | null;
+  handoffVerifiedAt?: string | null;
 };
 
 type DrawerSection = "profile" | "queue" | "settings";
@@ -39,6 +48,9 @@ const NEW_JOB_QUEUE_COUNTDOWN_SECONDS = 15;
 
 export default function DriverPage() {
   const company = getCompanyBySlug("build-electric");
+  const [workspaceSettings, setWorkspaceSettings] = useState<WorkspaceSettingsState>(() =>
+    readWorkspaceSettings("build-electric")
+  );
   const defaultDriverAcceptanceMode = company?.driverAcceptanceMode ?? "manual";
 
   const [driverAcceptanceMode, setDriverAcceptanceMode] =
@@ -96,7 +108,6 @@ export default function DriverPage() {
       }
 
       const data = await res.json();
-      console.log("[driver] fetched build-electric jobs", (data.jobs ?? []).length);
       setJobs(data.jobs ?? []);
       setIsLoading(false);
     } catch (error) {
@@ -118,6 +129,21 @@ export default function DriverPage() {
       broadcastAudioRef.current.currentTime = 0;
     }
   };
+
+  useEffect(() => {
+    const syncSettings = () => {
+      setWorkspaceSettings(readWorkspaceSettings("build-electric"));
+    };
+
+    syncSettings();
+    window.addEventListener("storage", syncSettings);
+    window.addEventListener(WORKSPACE_SETTINGS_UPDATED_EVENT, syncSettings as EventListener);
+
+    return () => {
+      window.removeEventListener("storage", syncSettings);
+      window.removeEventListener(WORKSPACE_SETTINGS_UPDATED_EVENT, syncSettings as EventListener);
+    };
+  }, []);
 
   useEffect(() => {
     setDriverAcceptanceMode(
@@ -172,18 +198,12 @@ export default function DriverPage() {
 
   const myJobs = useMemo(() => {
     if (!activeDriver) return [];
-    const filtered = jobs.filter(
+    return jobs.filter(
       (job) =>
         job.driverId === activeDriver.id &&
         job.status !== "Completed" &&
         job.status !== "Cancelled"
     );
-    console.log("[driver] myJobs for active driver", {
-      activeDriverId: activeDriver.id,
-      totalJobs: jobs.length,
-      myJobs: filtered.length,
-    });
-    return filtered;
   }, [jobs, activeDriver]);
 
   const activeJob = useMemo(() => {
@@ -475,6 +495,45 @@ export default function DriverPage() {
     }
   };
 
+  const getPrimaryMissionLabel = (job: ApiJob) => {
+    if (job.status === "Assigned") {
+      return requiresManualAcceptance ? "Mission pending acceptance" : "Driver assigned";
+    }
+
+    if (job.status === "Accepted") {
+      return "Mission accepted";
+    }
+
+    if (job.status === "En Route") {
+      return "En route to customer";
+    }
+
+    if (job.status === "Arrived") {
+      return "Arrived on location";
+    }
+
+    if (job.status === "In Progress") {
+      return "Service started";
+    }
+
+    if (job.status === "Completed") {
+      return "Delivered / completed";
+    }
+
+    return "Mission active";
+  };
+
+  const getAdvanceActionLabel = (job: ApiJob) => {
+    const nextStatus = getNextStatus(job.status);
+    if (!nextStatus) return "Completed";
+
+    if (job.status === "Assigned" && requiresManualAcceptance) {
+      return "Accept Job";
+    }
+
+    return `Mark ${getDisplayStatusLabel(nextStatus)}`;
+  };
+
   const updateJobStatus = async (job: ApiJob, nextStatus: string) => {
     try {
       const res = await fetch("/api/jobs", {
@@ -696,7 +755,9 @@ export default function DriverPage() {
               <p className="text-xs uppercase tracking-[0.25em] text-cyan-300">
                 Mission Screen
               </p>
-              <h1 className="text-xl font-semibold">{company?.name ?? "Driver"}</h1>
+              <h1 className="text-xl font-semibold">
+                {workspaceSettings.companyName || company?.name || "Driver"}
+              </h1>
             </div>
 
             <div className="flex items-center gap-2">
@@ -715,7 +776,7 @@ export default function DriverPage() {
             <div className="rounded-3xl border border-white/10 bg-slate-900/95 p-4">
               <p className="text-lg font-semibold">{activeDriver?.name ?? "Driver"}</p>
               <p className="mt-1 text-sm text-white/60">
-                {company?.name ?? "Dispatch Platform"}
+                {workspaceSettings.companyName || company?.name || "Dispatch Platform"}
               </p>
               <p className="mt-3 text-sm text-white/70">Queue: {queueCount}</p>
 
@@ -945,7 +1006,7 @@ export default function DriverPage() {
                         </span>
                       ) : null}
                       <span className="rounded-full border border-cyan-500/30 bg-cyan-500/10 px-3 py-1 text-sm text-cyan-300">
-                        {activeJob.status}
+                        {getDisplayStatusLabel(activeJob.status)}
                       </span>
                     </div>
                   </div>
@@ -983,21 +1044,30 @@ export default function DriverPage() {
                           </span>
                         </div>
                       </div>
+
+                      {(workspaceSettings.qrHandoffEnabled || workspaceSettings.proofOfDeliveryEnabled) ? (
+                        <div className="mt-3 rounded-2xl border border-cyan-500/25 bg-slate-800/80 p-3 text-sm text-cyan-100">
+                          <p className="text-xs uppercase tracking-[0.2em] text-cyan-300">Handoff</p>
+                          <p className="mt-1 text-cyan-100/95">
+                            {activeJob.handoffVerifiedAt
+                              ? `Verified at ${new Date(activeJob.handoffVerifiedAt).toLocaleTimeString([], {
+                                  hour: "numeric",
+                                  minute: "2-digit",
+                                })}`
+                              : "Pending customer confirmation"}
+                          </p>
+                          {workspaceSettings.qrHandoffEnabled && activeJob.verificationToken ? (
+                            <p className="mt-1 text-xs text-cyan-200/80">
+                              QR token: {activeJob.verificationToken}
+                            </p>
+                          ) : null}
+                        </div>
+                      ) : null}
                     </div>
                   ) : null}
 
                   <div className="mt-3 rounded-2xl border border-cyan-500/30 bg-cyan-500/10 px-3 py-2 text-sm text-cyan-100">
-                    <p className="font-medium">
-                      {activeJob.status === "Assigned"
-                        ? requiresManualAcceptance
-                          ? "Mission pending acceptance"
-                          : "Mission assigned"
-                        : activeJob.status === "Accepted"
-                        ? "Mission accepted"
-                        : isNavigationActive
-                        ? "Navigating to customer"
-                        : "Mission active"}
-                    </p>
+                    <p className="font-medium">{getPrimaryMissionLabel(activeJob)}</p>
                     <p className="text-cyan-200/90">
                       Distance estimate: {distanceEstimateLabel}
                     </p>
@@ -1009,7 +1079,7 @@ export default function DriverPage() {
                         In-App Directions
                       </p>
                       <p className="mt-1 font-medium">
-                        Route status: {activeJob.status}
+                        Route status: {getDisplayStatusLabel(activeJob.status)}
                       </p>
                       {routeData?.offRoute ? (
                         <p className="mt-1 rounded-lg border border-rose-400/30 bg-rose-500/10 px-2 py-1 text-rose-200">
@@ -1095,13 +1165,7 @@ export default function DriverPage() {
                       className="rounded-2xl bg-cyan-500 text-white hover:bg-cyan-600 disabled:opacity-50"
                     >
                       <CarFront className="mr-2 h-4 w-4" />
-                      {activeJob.status === "Assigned" && requiresManualAcceptance
-                        ? "Accept Job"
-                        : activeJob.status === "Accepted"
-                        ? "Mark En Route"
-                        : getNextStatus(activeJob.status)
-                        ? `Mark ${getNextStatus(activeJob.status)}`
-                        : "Completed"}
+                      {getAdvanceActionLabel(activeJob)}
                     </Button>
 
                     {panelExpanded ? (

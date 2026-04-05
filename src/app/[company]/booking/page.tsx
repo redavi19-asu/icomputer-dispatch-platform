@@ -1,14 +1,21 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useParams } from "next/navigation";
 import { ArrowRight, Building2, Clock3, MapPin, ShieldCheck } from "lucide-react";
 
+import { AppShellNav } from "@/components/platform/app-shell-nav";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { BookingRequestForm } from "@/components/platform/booking-request-form";
 import { Modal } from "@/components/ui/modal";
 import { getBookingPageConfigByCompany, getCompanyBySlug } from "@/lib/platform/selectors";
+import {
+  readWorkspaceSettings,
+  type WorkspaceSettingsState,
+} from "@/lib/platform/workspace-preferences";
+
+const WORKSPACE_SETTINGS_UPDATED_EVENT = "dispatch:workspace-settings-updated";
 
 export default function CompanyBookingPage() {
   const params = useParams<{ company: string }>();
@@ -22,6 +29,24 @@ export default function CompanyBookingPage() {
 
   const [isServiceModalOpen, setIsServiceModalOpen] = useState(false);
   const [modalSelectedService, setModalSelectedService] = useState("");
+  const [workspaceSettings, setWorkspaceSettings] = useState<WorkspaceSettingsState>(() =>
+    readWorkspaceSettings(companySlug || "build-electric")
+  );
+
+  useEffect(() => {
+    const syncSettings = () => {
+      setWorkspaceSettings(readWorkspaceSettings(companySlug || "build-electric"));
+    };
+
+    syncSettings();
+    window.addEventListener("storage", syncSettings);
+    window.addEventListener(WORKSPACE_SETTINGS_UPDATED_EVENT, syncSettings as EventListener);
+
+    return () => {
+      window.removeEventListener("storage", syncSettings);
+      window.removeEventListener(WORKSPACE_SETTINGS_UPDATED_EVENT, syncSettings as EventListener);
+    };
+  }, [companySlug]);
 
   const openBookingModal = (serviceName?: string) => {
     setModalSelectedService(serviceName ?? "");
@@ -56,6 +81,7 @@ export default function CompanyBookingPage() {
 
   return (
     <main className="min-h-screen scroll-smooth bg-slate-950 text-white">
+      <AppShellNav />
       <section className="relative overflow-hidden border-b border-white/10">
         <div
           className="absolute inset-0 opacity-20"
@@ -67,7 +93,7 @@ export default function CompanyBookingPage() {
           <div className="max-w-4xl">
             <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm text-white/80">
               <Building2 className="h-4 w-4" />
-              {company.name} Booking Page
+              {workspaceSettings.companyName} Booking Page
             </div>
 
             <h1 className="mt-6 text-4xl font-semibold tracking-tight md:text-6xl">
@@ -148,7 +174,7 @@ export default function CompanyBookingPage() {
                       className="inline-flex rounded-full px-3 py-1 text-xs font-semibold text-slate-950"
                       style={{ backgroundColor: companyColor }}
                     >
-                      {company.name}
+                      {workspaceSettings.companyName}
                     </div>
 
                     <h3 className="mt-4 text-xl font-semibold">{service.name}</h3>
