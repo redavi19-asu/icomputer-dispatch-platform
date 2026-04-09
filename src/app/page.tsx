@@ -155,7 +155,7 @@ export default function Home() {
         <div className="absolute inset-0 bg-black/45" />
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_45%,rgba(255,255,255,0.08),transparent_22%),radial-gradient(circle_at_50%_50%,rgba(0,0,0,0.12),rgba(0,0,0,0.58)_75%)]" />
 
-        <div className="pointer-events-none absolute inset-0 overflow-hidden">
+        <div className="pointer-events-none absolute inset-0 hidden overflow-hidden sm:block">
           {Array.from({ length: 42 }).map((_, i) => (
             <div
               key={i}
@@ -174,13 +174,13 @@ export default function Home() {
           ))}
         </div>
 
-        <div className="relative z-10 mx-auto flex min-h-screen max-w-7xl items-center px-6 py-20">
+        <div className="relative z-10 mx-auto flex min-h-screen max-w-7xl items-center px-4 py-16 sm:px-6 sm:py-20">
           <div className="max-w-3xl">
             <a
               href="https://redavi19-asu.github.io/icomuteranythingV3/"
               target="_blank"
               rel="noreferrer"
-              className="inline-flex items-center gap-2 rounded-full border border-cyan-300/30 bg-black/35 px-4 py-1.5 text-xs font-medium tracking-[0.08em] text-cyan-100 transition-colors hover:border-cyan-200/50 hover:text-cyan-50"
+              className="inline-flex items-center gap-2 rounded-full border border-cyan-300/30 bg-black/35 px-4 py-1.5 text-[11px] font-medium tracking-[0.08em] text-cyan-100 transition-colors hover:border-cyan-200/50 hover:text-cyan-50 sm:text-xs"
             >
               Built by I Computer Anything
             </a>
@@ -189,11 +189,11 @@ export default function Home() {
               DispatchOS
             </div>
 
-            <h1 className="mt-6 text-5xl font-semibold tracking-tight text-white md:text-7xl">
+            <h1 className="mt-6 text-4xl font-semibold tracking-tight text-white sm:text-5xl md:text-7xl">
               DispatchOS turns service operations into a live command system
             </h1>
 
-            <p className="mt-6 max-w-2xl text-lg leading-8 text-white/80">
+            <p className="mt-6 max-w-2xl text-base leading-7 text-white/80 sm:text-lg sm:leading-8">
               Booking intake, dispatch command, driver missions, and customer updates—run together
               in one premium platform.
             </p>
@@ -214,25 +214,25 @@ export default function Home() {
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
               <Button
                 onClick={() => router.push("/demo")}
-                className="rounded-xl border border-white/20 bg-black/35 px-6 py-6 text-base font-semibold text-white backdrop-blur-md hover:bg-black/50"
+                className="w-full rounded-xl border border-white/20 bg-black/35 px-6 py-6 text-base font-semibold text-white backdrop-blur-md hover:bg-black/50 sm:w-auto"
               >
                 Request Demo
               </Button>
               <Button
                 onClick={() => router.push("/build-electric/booking")}
-                className="rounded-xl px-6 py-6 text-base font-semibold"
+                className="w-full rounded-xl px-6 py-6 text-base font-semibold sm:w-auto"
               >
                 Start Platform Build
               </Button>
               <Button
                 onClick={() => router.push("/workspace")}
-                className="rounded-xl border border-white/20 bg-black/35 px-6 py-6 text-base font-semibold text-white backdrop-blur-md hover:bg-black/50"
+                className="w-full rounded-xl border border-white/20 bg-black/35 px-6 py-6 text-base font-semibold text-white backdrop-blur-md hover:bg-black/50 sm:w-auto"
               >
                 Open Workspace
               </Button>
             </div>
 
-            <div className="mt-6 grid max-w-2xl grid-cols-2 gap-2 rounded-2xl border border-white/15 bg-black/35 p-2 backdrop-blur md:grid-cols-4">
+            <div className="mt-6 grid max-w-2xl grid-cols-1 gap-2 rounded-2xl border border-white/15 bg-black/35 p-2 backdrop-blur sm:grid-cols-2 md:grid-cols-4">
               {liveStatus.map((item) => (
                 <div key={item.label} className="rounded-xl border border-white/10 bg-white/[0.03] px-3 py-2">
                   <p className="text-xs text-white/55">{item.label}</p>
@@ -280,7 +280,7 @@ export default function Home() {
         `}</style>
       </section>
 
-      <section className="mx-auto max-w-7xl px-6 py-16 md:py-24">
+      <section className="mx-auto max-w-7xl px-4 py-14 sm:px-6 sm:py-16 md:py-24">
         <div className="max-w-2xl">
           <h2 className="text-3xl font-semibold tracking-tight md:text-4xl">
             One live workflow across every surface
@@ -335,7 +335,7 @@ export default function Home() {
       </section>
 
       <section className="border-y border-white/10 bg-white/[0.03]">
-        <div className="mx-auto max-w-7xl px-6 py-16 md:py-24">
+        <div className="mx-auto max-w-7xl px-4 py-14 sm:px-6 sm:py-16 md:py-24">
           <div className="max-w-2xl">
             <h2 className="text-3xl font-semibold tracking-tight md:text-4xl">
               Built for two kinds of companies
@@ -375,7 +375,7 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="mx-auto max-w-7xl px-6 py-16 md:py-24">
+      <section className="mx-auto max-w-7xl px-4 py-14 sm:px-6 sm:py-16 md:py-24">
         <div className="max-w-2xl">
           <h2 className="text-3xl font-semibold tracking-tight md:text-4xl">
             Works with your current setup
@@ -407,7 +407,7 @@ export default function Home() {
       </section>
 
       <section className="border-y border-white/10 bg-white/[0.03]">
-        <div className="mx-auto max-w-7xl px-6 py-16 md:py-24">
+        <div className="mx-auto max-w-7xl px-4 py-14 sm:px-6 sm:py-16 md:py-24">
           <div className="max-w-2xl">
             <h2 className="text-3xl font-semibold tracking-tight md:text-4xl">Software modules</h2>
             <p className="mt-3 text-white/65">
@@ -442,10 +442,10 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="mx-auto max-w-7xl px-6 py-16 md:py-24">
+      <section className="mx-auto max-w-7xl px-4 py-14 sm:px-6 sm:py-16 md:py-24">
         <Card className="relative overflow-hidden rounded-3xl border border-cyan-400/25 bg-gradient-to-br from-slate-900 via-slate-950 to-black text-white shadow-[0_0_0_1px_rgba(56,189,248,0.18)]">
           <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgba(34,211,238,0.18),transparent_35%),radial-gradient(circle_at_80%_65%,rgba(14,165,233,0.12),transparent_40%)]" />
-          <CardContent className="p-8 md:p-12">
+          <CardContent className="p-6 sm:p-8 md:p-12">
             <p className="text-sm uppercase tracking-[0.25em] text-cyan-300">DispatchOS Platform</p>
             <h2 className="mt-4 max-w-3xl text-3xl font-semibold tracking-tight md:text-5xl">
               Launch your dispatch platform
@@ -456,11 +456,11 @@ export default function Home() {
             </p>
 
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-              <Button onClick={() => router.push("/demo")} className="rounded-xl px-6 py-6 text-base font-semibold">Request Demo</Button>
-              <Button onClick={() => router.push("/build-electric/booking")} className="rounded-xl px-6 py-6 text-base font-semibold">Start Platform Build</Button>
+              <Button onClick={() => router.push("/demo")} className="w-full rounded-xl px-6 py-6 text-base font-semibold sm:w-auto">Request Demo</Button>
+              <Button onClick={() => router.push("/build-electric/booking")} className="w-full rounded-xl px-6 py-6 text-base font-semibold sm:w-auto">Start Platform Build</Button>
               <Button
                 onClick={() => router.push("/workspace")}
-                className="rounded-xl border border-white/20 bg-black/35 px-6 py-6 text-base font-semibold text-white backdrop-blur-md hover:bg-black/50"
+                className="w-full rounded-xl border border-white/20 bg-black/35 px-6 py-6 text-base font-semibold text-white backdrop-blur-md hover:bg-black/50 sm:w-auto"
               >
                 Open Workspace
               </Button>
@@ -481,7 +481,7 @@ export default function Home() {
       </section>
 
       <footer className="border-t border-white/10 bg-black/60">
-        <div className="mx-auto flex max-w-7xl flex-col gap-2 px-6 py-8 text-sm text-white/70 md:flex-row md:items-center md:justify-between">
+        <div className="mx-auto flex max-w-7xl flex-col gap-2 px-4 py-8 text-sm text-white/70 sm:px-6 md:flex-row md:items-center md:justify-between">
           <a
             href="https://redavi19-asu.github.io/icomuteranythingV3/"
             target="_blank"
