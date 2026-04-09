@@ -5,7 +5,8 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "build:pages": "NEXT_OUTPUT_EXPORT=true npm run build && rm -rf docs && cp -R out docs && touch docs/.nojekyll",
+    "build:export": "NEXT_OUTPUT_EXPORT=true npm run build",
+    "build:pages": "npm run build:export && rm -rf docs && cp -R out docs && touch docs/.nojekyll",
     "start": "npx --yes serve out",
     "lint": "eslint"
   },

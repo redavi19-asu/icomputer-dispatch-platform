@@ -1,5 +1,8 @@
 import type { MetadataRoute } from "next";
 
+export const dynamic = "force-static";
+export const revalidate = false;
+
 export default function manifest(): MetadataRoute.Manifest {
   return {
     id: "/driver",
@@ -26,7 +29,7 @@ export default function manifest(): MetadataRoute.Manifest {
         src: "/driver-app-icon-maskable.svg",
         sizes: "any",
         type: "image/svg+xml",
-        purpose: "maskable any",
+        purpose: "maskable",
       },
     ],
     shortcuts: [

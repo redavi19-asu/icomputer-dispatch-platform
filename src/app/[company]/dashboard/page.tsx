@@ -8,8 +8,6 @@ import { DispatchMap } from "@/components/platform/dispatch-map";
 import { companies } from "@/lib/platform/mock-data";
 import { getCompanyBySlug, getDriversByCompany } from "@/lib/platform/selectors";
 
-export const dynamic = "force-dynamic";
-
 export function generateStaticParams() {
   return companies.map((company) => ({
     company: company.slug,
@@ -43,6 +41,22 @@ export default async function CompanyDashboardPage({ params }: CompanyDashboardP
   }
 
   const companyDrivers = getDriversByCompany(company.id);
+
+  if (process.env.NEXT_OUTPUT_EXPORT === "true") {
+    return (
+      <main className="min-h-screen bg-slate-950 text-white">
+        <div className="border-b border-white/10 bg-slate-950/90 backdrop-blur">
+          <div className="mx-auto max-w-7xl px-6 py-6">
+            <p className="text-xs uppercase tracking-[0.25em] text-cyan-300">Dispatch Platform</p>
+            <h1 className="mt-1 text-2xl font-semibold">{company.name} Dispatch Dashboard</h1>
+            <p className="mt-3 max-w-2xl text-sm text-white/65">
+              Live dashboard data is available in the full application runtime.
+            </p>
+          </div>
+        </div>
+      </main>
+    );
+  }
 
   const headerList = await headers();
   const host = headerList.get("host") ?? "localhost:3000";

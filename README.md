@@ -22,11 +22,14 @@ Open `http://localhost:3000` to preview the site. The primary implementation liv
 - `npm run dev` – start the local development server with hot reload
 - `npm run lint` – run ESLint with the project configuration
 - `npm run build` – generate the production build and export static assets to `out/`
+- `npm run build:export` – run an export-compatible production build for GitHub Pages
 - `npm run build:pages` – build and copy the exported files into `docs/` for GitHub Pages
 - `npm run start` – serve the generated `out/` directory locally (`npx serve out`)
 
 ### Deploying to GitHub Pages
 The project is configured for static export so it can run on GitHub Pages.
+
+This repository is configured to deploy under the GitHub Pages subpath `/icomputer-dispatch-platform`.
 
 Recommended setup (root-friendly): GitHub Actions deployment
 
@@ -34,7 +37,7 @@ Recommended setup (root-friendly): GitHub Actions deployment
 2. In GitHub: Settings -> Pages -> Build and deployment -> Source, choose `GitHub Actions`.
 3. Push to `main` and GitHub Actions will build and deploy `out/` automatically.
 
-The build automatically sets `basePath`/`assetPrefix` to `/chargenext` in production. If you fork this repo under a different name, update `basePath` in `next.config.ts` to match your repository slug.
+The build automatically sets `basePath`/`assetPrefix` to `/icomputer-dispatch-platform` in production. If you fork this repo under a different name, update `basePath` in `next.config.ts` to match your repository slug.
 
 Legacy option (main/docs)
 

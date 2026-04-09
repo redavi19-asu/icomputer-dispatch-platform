@@ -17,6 +17,8 @@ import {
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 
+const ICA_URL = "https://example.com";
+
 const liveStatus = [
   { label: "Bookings live", value: "24" },
   { label: "Dispatch active", value: "8" },
@@ -176,6 +178,15 @@ export default function Home() {
 
         <div className="relative z-10 mx-auto flex min-h-screen max-w-7xl items-center px-6 py-20">
           <div className="max-w-3xl">
+            <a
+              href={ICA_URL}
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex items-center gap-2 rounded-full border border-cyan-300/30 bg-black/35 px-4 py-1.5 text-xs font-medium tracking-[0.08em] text-cyan-100 transition-colors hover:border-cyan-200/50 hover:text-cyan-50"
+            >
+              Built by I Computer Anything
+            </a>
+
             <div className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-black/30 px-4 py-2 text-sm text-white/85 backdrop-blur">
               DispatchOS
             </div>
@@ -187,6 +198,19 @@ export default function Home() {
             <p className="mt-6 max-w-2xl text-lg leading-8 text-white/80">
               Booking intake, dispatch command, driver missions, and customer updates—run together
               in one premium platform.
+            </p>
+
+            <p className="mt-4 max-w-2xl text-sm text-white/65 md:text-base">
+              Custom-built service software by the team at{" "}
+              <a
+                href={ICA_URL}
+                target="_blank"
+                rel="noreferrer"
+                className="font-medium text-cyan-200 underline decoration-cyan-300/40 underline-offset-4 transition-colors hover:text-cyan-100"
+              >
+                I Computer Anything
+              </a>
+              .
             </p>
 
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
@@ -443,9 +467,36 @@ export default function Home() {
                 Open Workspace
               </Button>
             </div>
+
+            <p className="mt-6 text-sm text-white/70">
+              <a
+                href={ICA_URL}
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex items-center rounded-lg border border-white/15 bg-white/[0.03] px-4 py-2 font-medium text-cyan-200 transition-colors hover:border-cyan-300/40 hover:text-cyan-100"
+              >
+                Need a custom version for your company?
+              </a>
+            </p>
           </CardContent>
         </Card>
       </section>
+
+      <footer className="border-t border-white/10 bg-black/60">
+        <div className="mx-auto flex max-w-7xl flex-col gap-2 px-6 py-8 text-sm text-white/70 md:flex-row md:items-center md:justify-between">
+          <a
+            href={ICA_URL}
+            target="_blank"
+            rel="noreferrer"
+            className="inline-flex items-center text-sm font-medium text-cyan-200 transition-colors hover:text-cyan-100"
+          >
+            Built by I Computer Anything
+          </a>
+          <p className="text-xs tracking-wide text-white/55 md:text-right">
+            Custom software, web systems, and service platform builds
+          </p>
+        </div>
+      </footer>
     </main>
   );
 }

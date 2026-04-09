@@ -6,8 +6,8 @@ const nextConfig = {
     : {}),
   ...(process.env.NODE_ENV === "production"
     ? {
-        basePath: "/chargenext",
-        assetPrefix: "/chargenext/",
+        basePath: "/icomputer-dispatch-platform",
+        assetPrefix: "/icomputer-dispatch-platform/",
       }
     : {}),
   images: {

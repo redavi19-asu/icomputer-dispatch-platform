@@ -7,6 +7,8 @@ import {
   normalizeTimeline,
 } from "@/lib/platform/job-lifecycle";
 
+export const dynamic = "force-static";
+
 type JobRecord = {
   id: string;
   createdAt: string;
