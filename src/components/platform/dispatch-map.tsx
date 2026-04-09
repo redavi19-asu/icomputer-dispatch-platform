@@ -16,9 +16,31 @@ export function DispatchMap({
   const mapRef = useRef<mapboxgl.Map | null>(null);
 
   useEffect(() => {
-    const token = process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
+    // Mapbox GL JS runs in the browser and must use a publishable token (pk.*).
+    // Never pass secret tokens (sk.*) through NEXT_PUBLIC_ variables.
+    const token = process.env.NEXT_PUBLIC_MAPBOX_TOKEN?.trim();
 
-    if (!token || !mapContainerRef.current || mapRef.current) {
+    if (token?.startsWith("sk.")) {
+      if (process.env.NODE_ENV !== "production") {
+        console.error(
+          "Invalid Mapbox token exposure: NEXT_PUBLIC_MAPBOX_TOKEN must be a publishable pk.* token, not sk.*."
+        );
+      }
+      return;
+    }
+
+    const hasValidPublicToken = Boolean(token?.startsWith("pk."));
+
+    if (!hasValidPublicToken) {
+      if (process.env.NODE_ENV !== "production") {
+        console.warn(
+          "Mapbox map disabled: set NEXT_PUBLIC_MAPBOX_TOKEN to a valid publishable pk.* token."
+        );
+      }
+      return;
+    }
+
+    if (!mapContainerRef.current || mapRef.current) {
       return;
     }
 

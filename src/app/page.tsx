@@ -17,7 +17,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 
-const ICA_URL = "https://example.com";
+const ICA_URL = "https://redavi19-asu.github.io/icomuteranythingV3/";
 
 const liveStatus = [
   { label: "Bookings live", value: "24" },
