@@ -155,7 +155,7 @@ export default function Home() {
         <div className="absolute inset-0 bg-black/45" />
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_45%,rgba(255,255,255,0.08),transparent_22%),radial-gradient(circle_at_50%_50%,rgba(0,0,0,0.12),rgba(0,0,0,0.58)_75%)]" />
 
-        <div className="pointer-events-none absolute inset-0 hidden overflow-hidden sm:block">
+        <div className="pointer-events-none absolute inset-0 overflow-hidden">
           {Array.from({ length: 42 }).map((_, i) => (
             <div
               key={i}
