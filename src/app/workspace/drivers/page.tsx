@@ -126,7 +126,7 @@ export default function WorkspaceDriversPage() {
     const baseUrl =
       typeof window !== "undefined"
         ? window.location.origin
-        : "https://dispatch.example.com";
+        : "https://redavi19-asu.github.io/icomuteranythingV3/";
     return `${baseUrl}/driver?company=build-electric&driver=${encodeURIComponent(
       driver.id
     )}&invite=1`;

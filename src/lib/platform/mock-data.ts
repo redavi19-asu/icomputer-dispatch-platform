@@ -39,7 +39,7 @@ export const customers: Customer[] = [
     companyId: "co_001",
     name: "Ryan Davis",
     phone: "(240) 555-0100",
-    email: "ryan@example.com",
+    email: "ryan@redavi19-asu.github.io",
     address: "Washington, DC",
   },
   {
@@ -47,7 +47,7 @@ export const customers: Customer[] = [
     companyId: "co_002",
     name: "Metro Mobile Tech Client",
     phone: "(301) 555-0102",
-    email: "client2@example.com",
+    email: "client2@redavi19-asu.github.io",
     address: "Silver Spring, MD",
   },
   {
@@ -55,7 +55,7 @@ export const customers: Customer[] = [
     companyId: "co_003",
     name: "Priority Fleet Customer",
     phone: "(703) 555-0103",
-    email: "fleet@example.com",
+    email: "fleet@redavi19-asu.github.io",
     address: "Arlington, VA",
   },
 ];
