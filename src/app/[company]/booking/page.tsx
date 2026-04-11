@@ -11,6 +11,7 @@ import { BookingRequestForm } from "@/components/platform/booking-request-form";
 import { Modal } from "@/components/ui/modal";
 import { getBookingPageConfigByCompany, getCompanyBySlug } from "@/lib/platform/selectors";
 import {
+  defaultWorkspaceSettings,
   readWorkspaceSettings,
   type WorkspaceSettingsState,
 } from "@/lib/platform/workspace-preferences";
@@ -30,9 +31,11 @@ export default function CompanyBookingPage() {
 
   const [isServiceModalOpen, setIsServiceModalOpen] = useState(false);
   const [modalSelectedService, setModalSelectedService] = useState("");
-  const [workspaceSettings, setWorkspaceSettings] = useState<WorkspaceSettingsState>(() =>
-    readWorkspaceSettings(companySlug || "build-electric")
-  );
+  const [workspaceSettings, setWorkspaceSettings] = useState<WorkspaceSettingsState>(() => ({
+    ...defaultWorkspaceSettings,
+    companySlug: companySlug || "build-electric",
+    companyName: company?.name ?? defaultWorkspaceSettings.companyName,
+  }));
   const bookingSurface = getBookingSurfaceConfig(workspaceSettings);
 
   useEffect(() => {
@@ -53,13 +56,6 @@ export default function CompanyBookingPage() {
   const openBookingModal = (serviceName?: string) => {
     setModalSelectedService(serviceName ?? "");
     setIsServiceModalOpen(true);
-  };
-
-  const scrollToRequestSection = () => {
-    document.getElementById("request-section")?.scrollIntoView({
-      behavior: "smooth",
-      block: "start",
-    });
   };
 
   const scrollToServiceOptions = () => {
@@ -145,7 +141,7 @@ export default function CompanyBookingPage() {
 
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
                 <Button
-                  onClick={scrollToRequestSection}
+                  onClick={() => openBookingModal()}
                   className="h-9 rounded-lg border border-cyan-500/35 bg-cyan-500/15 px-3 text-xs font-semibold text-cyan-100 hover:bg-cyan-500/25"
                   style={{ backgroundColor: companyColor }}
                 >
@@ -279,6 +275,8 @@ export default function CompanyBookingPage() {
           companyColor={companyColor}
           ctaLabel={bookingConfig.ctaLabel}
           selectedService={modalSelectedService}
+          onCancel={() => setIsServiceModalOpen(false)}
+          onSuccess={() => setIsServiceModalOpen(false)}
           workspaceSettings={workspaceSettings}
         />
       </Modal>

@@ -18,6 +18,7 @@ import {
   getBroadcastAlerts,
   persistBroadcastAlerts,
   clearBroadcastAlert,
+  BROADCAST_ALERT_UPDATED_EVENT,
 } from "@/lib/utils";
 import type { BroadcastAlert } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -377,10 +378,15 @@ export default function DriverPage() {
     checkAlert();
     const interval = setInterval(checkAlert, 2000);
     window.addEventListener("storage", checkAlert);
+    window.addEventListener(BROADCAST_ALERT_UPDATED_EVENT, checkAlert as EventListener);
 
     return () => {
       clearInterval(interval);
       window.removeEventListener("storage", checkAlert);
+      window.removeEventListener(
+        BROADCAST_ALERT_UPDATED_EVENT,
+        checkAlert as EventListener
+      );
     };
   }, []);
 

@@ -10,6 +10,12 @@ export type BroadcastAlert = {
 };
 
 const BROADCAST_ALERT_KEY = "dispatch_broadcast_alert";
+export const BROADCAST_ALERT_UPDATED_EVENT = "dispatch:broadcast-alert-updated";
+
+function notifyBroadcastAlertUpdated() {
+  if (typeof window === "undefined") return;
+  window.dispatchEvent(new Event(BROADCAST_ALERT_UPDATED_EVENT));
+}
 
 export function getBroadcastAlerts(): BroadcastAlert[] {
   if (typeof window === "undefined") return [];
@@ -51,16 +57,19 @@ export function addBroadcastAlert(alert: BroadcastAlert) {
     BROADCAST_ALERT_KEY,
     JSON.stringify([...current, alert])
   );
+  notifyBroadcastAlertUpdated();
 }
 
 export function persistBroadcastAlerts(alerts: BroadcastAlert[]) {
   if (typeof window === "undefined") return;
 
   localStorage.setItem(BROADCAST_ALERT_KEY, JSON.stringify(alerts));
+  notifyBroadcastAlertUpdated();
 }
 
 export function clearBroadcastAlert() {
   if (typeof window === "undefined") return;
 
   localStorage.removeItem(BROADCAST_ALERT_KEY);
+  notifyBroadcastAlertUpdated();
 }

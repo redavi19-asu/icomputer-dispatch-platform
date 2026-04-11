@@ -2,9 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { AlertCircle, CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Modal } from "@/components/ui/modal";
 import type { WorkspaceSettingsState } from "@/lib/platform/workspace-preferences";
 import { getBookingSurfaceConfig } from "@/lib/platform/surface-preferences";
 
@@ -13,6 +11,8 @@ type BookingRequestFormProps = {
   companyColor: string;
   ctaLabel: string;
   selectedService?: string;
+  onCancel?: () => void;
+  onSuccess?: () => void;
   workspaceSettings: WorkspaceSettingsState;
   services: Array<{
     id: string;
@@ -26,13 +26,15 @@ export function BookingRequestForm({
   companyColor,
   ctaLabel,
   selectedService,
+  onCancel,
+  onSuccess,
   workspaceSettings,
   services,
 }: BookingRequestFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isVerifyingAddress, setIsVerifyingAddress] = useState(false);
-  const [showSuccessModal, setShowSuccessModal] = useState(false);
-  const [showErrorModal, setShowErrorModal] = useState(false);
+  const [submitStatus, setSubmitStatus] = useState<"success" | "error" | null>(null);
+  const [formError, setFormError] = useState<string | null>(null);
   const [serviceValue, setServiceValue] = useState(selectedService ?? "");
   const [addressValue, setAddressValue] = useState("");
   const [verifiedAddress, setVerifiedAddress] = useState<string | null>(null);
@@ -89,6 +91,8 @@ export function BookingRequestForm({
       let verified = false;
 
       for (const candidate of queryCandidates) {
+        const controller = new AbortController();
+        const timeoutId = window.setTimeout(() => controller.abort(), 8000);
         const response = await fetch(
           `https://nominatim.openstreetmap.org/search?format=json&limit=1&countrycodes=us&bounded=1&viewbox=${encodeURIComponent(
             REGION_VIEWBOX
@@ -97,8 +101,10 @@ export function BookingRequestForm({
             headers: {
               Accept: "application/json",
             },
+            signal: controller.signal,
           }
         );
+        window.clearTimeout(timeoutId);
 
         if (!response.ok) continue;
 
@@ -120,9 +126,10 @@ export function BookingRequestForm({
       setAddressError(null);
       return true;
     } catch {
-      setVerifiedAddress(null);
-      setAddressError("Address could not be verified. Please try again.");
-      return false;
+      // Do not block booking submission when external address verification is unavailable.
+      setVerifiedAddress(trimmed);
+      setAddressError("Address verification is temporarily unavailable. Submitting as entered.");
+      return true;
     } finally {
       setIsVerifyingAddress(false);
     }
@@ -141,10 +148,43 @@ export function BookingRequestForm({
         className="mt-8 space-y-4"
         onSubmit={async (e) => {
           e.preventDefault();
+          setSubmitStatus(null);
+          setFormError(null);
+
+          const form = e.currentTarget;
+          const formData = new FormData(form);
+
+          const name = String(formData.get("name") ?? "").trim();
+          const phone = String(formData.get("phone") ?? "").trim();
+          const service = String(formData.get("service") ?? "").trim();
+          const details = String(formData.get("details") ?? "").trim();
+
           const primaryAddress = requiresServiceAddress
             ? addressValue.trim()
             : pickupAddressValue.trim();
           const secondaryAddress = dropoffAddressValue.trim();
+
+          if (!name || !phone || !service) {
+            setFormError("Please complete name, phone number, and service type.");
+            return;
+          }
+
+          if (requiresServiceAddress && !primaryAddress) {
+            setAddressError("Please enter a service address.");
+            setFormError("Please enter the required address fields.");
+            return;
+          }
+
+          if (requiresPickupAddress && !primaryAddress) {
+            setFormError("Please enter a pickup address.");
+            return;
+          }
+
+          if (requiresDropoffAddress && !secondaryAddress) {
+            setFormError("Please enter a dropoff address.");
+            return;
+          }
+
           const isAddressVerified = verifiedAddress === primaryAddress;
 
           if (!isAddressVerified) {
@@ -160,18 +200,15 @@ export function BookingRequestForm({
           setIsSubmitting(true);
 
           try {
-            const form = e.currentTarget;
-            const formData = new FormData(form);
-
             const payload = {
               companySlug,
-              name: formData.get("name"),
-              phone: formData.get("phone"),
-              service: formData.get("service"),
+              name,
+              phone,
+              service,
               address: requiresServiceAddress
                 ? primaryAddress
                 : [primaryAddress, secondaryAddress].filter(Boolean).join(" -> "),
-              details: formData.get("details"),
+              details,
             };
 
             const res = await fetch("/api/jobs", {
@@ -195,10 +232,11 @@ export function BookingRequestForm({
             setVerifiedAddress(null);
             setAddressError(null);
             setSubmittedJobId(data?.job?.id ?? null);
-            setShowSuccessModal(true);
+            setSubmitStatus("success");
+            onSuccess?.();
           } catch (error) {
             console.error(error);
-            setShowErrorModal(true);
+            setSubmitStatus("error");
           } finally {
             setIsSubmitting(false);
           }
@@ -364,6 +402,12 @@ export function BookingRequestForm({
           </div>
         ) : null}
 
+        {formError ? (
+          <div className="rounded-xl border border-rose-500/35 bg-rose-500/10 px-4 py-3 text-sm text-rose-200">
+            {formError}
+          </div>
+        ) : null}
+
         <div>
           <label className="mb-2 block text-sm text-white/75">Details</label>
           <textarea
@@ -377,87 +421,45 @@ export function BookingRequestForm({
 
         <Button
           type="submit"
-          disabled={
-            isSubmitting ||
-            isVerifyingAddress ||
-            (requiresServiceAddress && (verifiedAddress !== addressValue.trim() || !addressValue.trim())) ||
-            (requiresPickupAddress && !pickupAddressValue.trim()) ||
-            (requiresDropoffAddress && !dropoffAddressValue.trim())
-          }
+          disabled={isSubmitting || isVerifyingAddress}
           className="w-full rounded-xl py-6 text-base font-semibold text-slate-950 hover:opacity-90 disabled:opacity-60"
           style={{ backgroundColor: companyColor }}
         >
           {isSubmitting ? "Submitting..." : ctaLabel}
         </Button>
-      </form>
 
-      <Modal
-        isOpen={showSuccessModal}
-        onClose={() => setShowSuccessModal(false)}
-        title="Request Submitted"
-      >
-        <div className="space-y-4 text-slate-800">
-          <div className="flex justify-center">
-            <div className="rounded-full bg-emerald-100 p-4">
-              <CheckCircle2 className="h-10 w-10 text-emerald-600" />
-            </div>
-          </div>
-
-          <div className="text-center">
-            <p className="text-lg font-semibold">Your request was sent successfully.</p>
-            <p className="mt-2 text-sm text-slate-600">
-              Dispatch has been notified and your request is now in the queue.
-            </p>
+        {submitStatus === "success" ? (
+          <div className="rounded-xl border border-emerald-500/35 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-200">
+            Request submitted successfully.
             {submittedJobId ? (
-              <p className="mt-2 text-sm text-slate-600">
-                Track status: <Link href={`/track/${submittedJobId}`} className="font-semibold text-cyan-700 underline">/track/{submittedJobId}</Link>
-              </p>
+              <span className="ml-1">
+                Track status at{" "}
+                <Link href={`/track/${submittedJobId}`} className="font-semibold underline">
+                  /track/{submittedJobId}
+                </Link>
+                .
+              </span>
             ) : null}
-            <p className="mt-2 text-sm text-slate-600">
-              You can close this window or submit another request if needed.
-            </p>
           </div>
+        ) : null}
 
-          <div className="pt-2">
-            <Button
-              onClick={() => setShowSuccessModal(false)}
-              className="w-full rounded-xl bg-slate-900 py-6 text-base font-semibold text-white hover:bg-slate-800"
-            >
-              Close
-            </Button>
+        {submitStatus === "error" ? (
+          <div className="rounded-xl border border-rose-500/35 bg-rose-500/10 px-4 py-3 text-sm text-rose-200">
+            We could not submit your request right now. Please try again.
           </div>
-        </div>
-      </Modal>
+        ) : null}
 
-      <Modal
-        isOpen={showErrorModal}
-        onClose={() => setShowErrorModal(false)}
-        title="Submission Failed"
-      >
-        <div className="space-y-4 text-slate-800">
-          <div className="flex justify-center">
-            <div className="rounded-full bg-rose-100 p-4">
-              <AlertCircle className="h-10 w-10 text-rose-600" />
-            </div>
-          </div>
-
-          <div className="text-center">
-            <p className="text-lg font-semibold">Something went wrong.</p>
-            <p className="mt-2 text-sm text-slate-600">
-              We could not submit your request right now. Please try again.
-            </p>
-          </div>
-
-          <div className="pt-2">
-            <Button
-              onClick={() => setShowErrorModal(false)}
-              className="w-full rounded-xl bg-slate-900 py-6 text-base font-semibold text-white hover:bg-slate-800"
-            >
-              Close
-            </Button>
-          </div>
-        </div>
-      </Modal>
+        {onCancel ? (
+          <Button
+            type="button"
+            onClick={onCancel}
+            variant="secondary"
+            className="w-full rounded-xl border border-white/15 bg-white/5 py-6 text-base font-semibold text-white hover:bg-white/10"
+          >
+            Close
+          </Button>
+        ) : null}
+      </form>
     </>
   );
 }
