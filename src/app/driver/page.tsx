@@ -141,6 +141,7 @@ export default function DriverPage() {
   const lastPlayedIncomingJobIdRef = useRef<string | null>(null);
   const lastPlayedBroadcastTsRef = useRef<number | null>(null);
   const broadcastLoopStartedRef = useRef<number | null>(null);
+  const audioUnlockedRef = useRef(false);
 
   const installHintStorageKey = "dispatch.driver.install-hint-seen";
 
@@ -176,6 +177,15 @@ export default function DriverPage() {
     if (broadcastAudioRef.current) {
       broadcastAudioRef.current.pause();
       broadcastAudioRef.current.currentTime = 0;
+    }
+  };
+
+  const safePlayAudio = async (audio: HTMLAudioElement | null) => {
+    if (!audio) return;
+    try {
+      await audio.play();
+    } catch {
+      // Browsers may block autoplay until user interaction; unlock flow handles this.
     }
   };
 
@@ -217,6 +227,53 @@ export default function DriverPage() {
     fetchJobs();
     const interval = setInterval(fetchJobs, 3000);
     return () => clearInterval(interval);
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    const unlockAudio = () => {
+      if (audioUnlockedRef.current) return;
+
+      const audioTargets = [newJobAudioRef.current, broadcastAudioRef.current].filter(
+        Boolean
+      ) as HTMLAudioElement[];
+
+      if (!audioTargets.length) return;
+
+      Promise.all(
+        audioTargets.map(async (audio) => {
+          audio.muted = true;
+          audio.currentTime = 0;
+          try {
+            await audio.play();
+            audio.pause();
+            audio.currentTime = 0;
+          } catch {
+            // Ignore: unlock can fail before a true gesture in some browsers.
+          } finally {
+            audio.muted = false;
+          }
+        })
+      )
+        .catch(() => {
+          // No-op: best effort unlock.
+        })
+        .finally(() => {
+          audioUnlockedRef.current = true;
+        });
+    };
+
+    const events: Array<keyof WindowEventMap> = ["pointerdown", "touchstart", "keydown"];
+    events.forEach((eventName) => {
+      window.addEventListener(eventName, unlockAudio, { once: true, passive: true });
+    });
+
+    return () => {
+      events.forEach((eventName) => {
+        window.removeEventListener(eventName, unlockAudio);
+      });
+    };
   }, []);
 
   useEffect(() => {
@@ -395,7 +452,7 @@ export default function DriverPage() {
     if (newJobAudioRef.current) {
       newJobAudioRef.current.loop = true;
       newJobAudioRef.current.currentTime = 0;
-      newJobAudioRef.current.play().catch(() => {});
+      void safePlayAudio(newJobAudioRef.current);
     }
   }, [incomingJobId, activeJob?.id, activeJob?.status, soundAlertsEnabled]);
 
@@ -446,7 +503,7 @@ export default function DriverPage() {
     if (broadcastAudioRef.current) {
       broadcastAudioRef.current.loop = true;
       broadcastAudioRef.current.currentTime = 0;
-      broadcastAudioRef.current.play().catch(() => {});
+      void safePlayAudio(broadcastAudioRef.current);
     }
   }, [broadcastAlerts, showBroadcastAlert, soundAlertsEnabled]);
 

@@ -2,6 +2,7 @@
 
 import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
+import { useState } from "react";
 import {
   Building2,
   CreditCard,
@@ -126,30 +127,46 @@ const modules = [
 
 export default function Home() {
   const router = useRouter();
+  const [globeVideoFailed, setGlobeVideoFailed] = useState(false);
 
   return (
     <main className="min-h-screen bg-slate-950 text-white">
       <section className="relative min-h-screen overflow-hidden border-b border-white/10 bg-black">
         <div className="absolute inset-0">
-          <video
-            autoPlay
-            muted
-            playsInline
-            loop
-            className="absolute inset-0 h-full w-full object-cover animate-[videoFadeA_12s_linear_infinite]"
-          >
-            <source src="/earthbg.mp4" type="video/mp4" />
-          </video>
+          {!globeVideoFailed ? (
+            <>
+              <video
+                autoPlay
+                muted
+                playsInline
+                loop
+                preload="metadata"
+                poster="/globe.svg"
+                onError={() => setGlobeVideoFailed(true)}
+                className="absolute inset-0 h-full w-full object-cover animate-[videoFadeA_12s_linear_infinite]"
+              >
+                <source src="/earthbg.mp4" type="video/mp4" />
+              </video>
 
-          <video
-            autoPlay
-            muted
-            playsInline
-            loop
-            className="absolute inset-0 h-full w-full object-cover animate-[videoFadeB_12s_linear_infinite]"
-          >
-            <source src="/earthbg.mp4" type="video/mp4" />
-          </video>
+              <video
+                autoPlay
+                muted
+                playsInline
+                loop
+                preload="metadata"
+                poster="/globe.svg"
+                onError={() => setGlobeVideoFailed(true)}
+                className="absolute inset-0 h-full w-full object-cover animate-[videoFadeB_12s_linear_infinite]"
+              >
+                <source src="/earthbg.mp4" type="video/mp4" />
+              </video>
+            </>
+          ) : (
+            <div
+              className="absolute inset-0 bg-cover bg-center"
+              style={{ backgroundImage: "url('/globe.svg')" }}
+            />
+          )}
         </div>
 
         <div className="absolute inset-0 bg-black/45" />
