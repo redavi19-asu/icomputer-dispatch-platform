@@ -141,6 +141,12 @@ export function BookingRequestForm({
   const fieldClassName =
     "w-full rounded-xl border border-white/10 bg-slate-950/80 px-4 py-3 text-white outline-none placeholder:text-white/35 focus:border-white/25 focus:ring-2 focus:ring-white/10";
 
+  const withBasePath = (path: string) => {
+    const base = process.env.NODE_ENV === "production" ? "/icomputer-dispatch-platform" : "";
+    const normalized = path.startsWith("/") ? path : `/${path}`;
+    return `${base}${normalized}`;
+  };
+
   return (
     <>
       <form
@@ -216,7 +222,7 @@ export function BookingRequestForm({
             let data: { job?: { id: string } } | null = null;
 
             try {
-              const res = await fetch("/api/jobs", {
+              const res = await fetch(withBasePath("/api/jobs"), {
                 method: "POST",
                 headers: {
                   "Content-Type": "application/json",

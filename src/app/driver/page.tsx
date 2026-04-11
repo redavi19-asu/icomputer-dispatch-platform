@@ -79,6 +79,110 @@ type DriverFutureReadiness = {
 };
 
 const NEW_JOB_QUEUE_COUNTDOWN_SECONDS = 15;
+const LOCAL_JOBS_KEY = "dispatch_jobs";
+
+const withBasePath = (path: string) => {
+  const base = process.env.NODE_ENV === "production" ? "/icomputer-dispatch-platform" : "";
+  const normalized = path.startsWith("/") ? path : `/${path}`;
+  return `${base}${normalized}`;
+};
+
+const loadLocalJobs = (): ApiJob[] => {
+  if (typeof window === "undefined") return [];
+
+  try {
+    const raw = window.localStorage.getItem(LOCAL_JOBS_KEY);
+    const parsed = raw ? JSON.parse(raw) : [];
+    return Array.isArray(parsed) ? (parsed as ApiJob[]) : [];
+  } catch {
+    return [];
+  }
+};
+
+const saveLocalJobs = (jobs: ApiJob[]) => {
+  if (typeof window === "undefined") return;
+  window.localStorage.setItem(LOCAL_JOBS_KEY, JSON.stringify(jobs));
+};
+
+const sortJobs = (jobs: ApiJob[]) => {
+  return [...jobs].sort(
+    (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+  );
+};
+
+const fetchJobsWithFallback = async (companySlug: string): Promise<ApiJob[]> => {
+  try {
+    const res = await fetch(withBasePath(`/api/jobs?company=${encodeURIComponent(companySlug)}`), {
+      cache: "no-store",
+    });
+
+    if (!res.ok) {
+      throw new Error("Failed to fetch jobs");
+    }
+
+    const data = await res.json();
+    return Array.isArray(data.jobs) ? (data.jobs as ApiJob[]) : [];
+  } catch {
+    return sortJobs(
+      loadLocalJobs().filter((job) => (job.companySlug ?? "build-electric") === companySlug)
+    );
+  }
+};
+
+const patchJobWithFallback = async (payload: {
+  id: string;
+  status?: string;
+  driverId?: string | null;
+  etaMinutes?: number | null;
+}): Promise<ApiJob | null> => {
+  try {
+    const res = await fetch(withBasePath("/api/jobs"), {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(payload),
+    });
+
+    if (!res.ok) {
+      throw new Error("Failed to patch job");
+    }
+
+    const data = await res.json();
+    return (data.job as ApiJob) ?? null;
+  } catch {
+    const jobs = loadLocalJobs();
+    const index = jobs.findIndex((job) => job.id === payload.id);
+    if (index < 0) return null;
+
+    const current = jobs[index];
+    const now = new Date().toISOString();
+    const next: ApiJob = {
+      ...current,
+      status: payload.status ?? current.status,
+      driverId: payload.driverId ?? current.driverId ?? null,
+      etaMinutes:
+        payload.etaMinutes !== undefined ? payload.etaMinutes : current.etaMinutes ?? null,
+    };
+
+    if (payload.status && payload.status !== current.status) {
+      next.statusHistory = [
+        ...(current.statusHistory ?? []),
+        {
+          type: "status",
+          at: now,
+          label: getDisplayStatusLabel(payload.status),
+          detail: "Status updated by driver",
+          status: payload.status as JobTimelineEvent["status"],
+        },
+      ];
+    }
+
+    jobs[index] = next;
+    saveLocalJobs(jobs);
+    return next;
+  }
+};
 
 export default function DriverPage() {
   const company = getCompanyBySlug("build-electric");
@@ -150,16 +254,8 @@ export default function DriverPage() {
 
   const fetchJobs = async () => {
     try {
-      const res = await fetch("/api/jobs?company=build-electric", {
-        cache: "no-store",
-      });
-
-      if (!res.ok) {
-        throw new Error("Failed to fetch jobs");
-      }
-
-      const data = await res.json();
-      setJobs(data.jobs ?? []);
+      const nextJobs = await fetchJobsWithFallback("build-electric");
+      setJobs(nextJobs);
       setIsLoading(false);
     } catch (error) {
       console.error("Driver fetch failed:", error);
@@ -703,36 +799,27 @@ export default function DriverPage() {
 
   const updateJobStatus = async (job: ApiJob, nextStatus: string) => {
     try {
-      const res = await fetch("/api/jobs", {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          id: job.id,
-          status: nextStatus,
-          driverId: job.driverId ?? activeDriver?.id ?? null,
-          etaMinutes:
-            nextStatus === "Accepted"
-              ? job.etaMinutes ?? 12
-              : nextStatus === "En Route"
-              ? 12
-              : nextStatus === "Arrived"
-              ? 2
-              : nextStatus === "In Progress"
-              ? 0
-              : nextStatus === "Completed"
-              ? 0
-              : job.etaMinutes ?? null,
-        }),
+      const updatedJob = await patchJobWithFallback({
+        id: job.id,
+        status: nextStatus,
+        driverId: job.driverId ?? activeDriver?.id ?? null,
+        etaMinutes:
+          nextStatus === "Accepted"
+            ? job.etaMinutes ?? 12
+            : nextStatus === "En Route"
+            ? 12
+            : nextStatus === "Arrived"
+            ? 2
+            : nextStatus === "In Progress"
+            ? 0
+            : nextStatus === "Completed"
+            ? 0
+            : job.etaMinutes ?? null,
       });
 
-      if (!res.ok) {
+      if (!updatedJob) {
         throw new Error("Failed to update status");
       }
-
-      const data = await res.json();
-      const updatedJob = data.job;
 
       setJobs((prev) =>
         prev.map((item) => (item.id === updatedJob.id ? updatedJob : item))
@@ -811,11 +898,11 @@ export default function DriverPage() {
   return (
     <>
       <audio ref={newJobAudioRef} preload="auto">
-        <source src="/sounds/new-job-alert.wav" type="audio/wav" />
+        <source src={withBasePath("/sounds/new-job-alert.wav")} type="audio/wav" />
       </audio>
 
       <audio ref={broadcastAudioRef} preload="auto">
-        <source src="/sounds/broadcast-alert.wav" type="audio/wav" />
+        <source src={withBasePath("/sounds/broadcast-alert.wav")} type="audio/wav" />
       </audio>
 
       <main className="flex h-dvh flex-col bg-slate-950 pb-[env(safe-area-inset-bottom)] text-white">

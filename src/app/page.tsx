@@ -2,7 +2,7 @@
 
 import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Building2,
   CreditCard,
@@ -128,6 +128,31 @@ const modules = [
 export default function Home() {
   const router = useRouter();
   const [globeVideoFailed, setGlobeVideoFailed] = useState(false);
+  const [companySlug, setCompanySlug] = useState("build-electric");
+
+  const withBasePath = (path: string) => {
+    const base = process.env.NODE_ENV === "production" ? "/icomputer-dispatch-platform" : "";
+    const normalized = path.startsWith("/") ? path : `/${path}`;
+    return `${base}${normalized}`;
+  };
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    try {
+      const raw = window.localStorage.getItem("dispatch.workspace.settings.build-electric");
+      if (!raw) return;
+
+      const parsed = JSON.parse(raw) as { companySlug?: unknown };
+      if (typeof parsed.companySlug === "string" && parsed.companySlug.trim().length > 0) {
+        setCompanySlug(parsed.companySlug.trim());
+      }
+    } catch {
+      // Ignore malformed local settings values.
+    }
+  }, []);
+
+  const bookingPath = `/${companySlug}/booking`;
 
   return (
     <main className="min-h-screen bg-slate-950 text-white">
@@ -141,11 +166,11 @@ export default function Home() {
                 playsInline
                 loop
                 preload="metadata"
-                poster="/globe.svg"
+                poster={withBasePath("/globe.svg")}
                 onError={() => setGlobeVideoFailed(true)}
                 className="absolute inset-0 h-full w-full object-cover animate-[videoFadeA_12s_linear_infinite]"
               >
-                <source src="/earthbg.mp4" type="video/mp4" />
+                <source src={withBasePath("/earthbg.mp4")} type="video/mp4" />
               </video>
 
               <video
@@ -154,17 +179,17 @@ export default function Home() {
                 playsInline
                 loop
                 preload="metadata"
-                poster="/globe.svg"
+                poster={withBasePath("/globe.svg")}
                 onError={() => setGlobeVideoFailed(true)}
                 className="absolute inset-0 h-full w-full object-cover animate-[videoFadeB_12s_linear_infinite]"
               >
-                <source src="/earthbg.mp4" type="video/mp4" />
+                <source src={withBasePath("/earthbg.mp4")} type="video/mp4" />
               </video>
             </>
           ) : (
             <div
               className="absolute inset-0 bg-cover bg-center"
-              style={{ backgroundImage: "url('/globe.svg')" }}
+              style={{ backgroundImage: `url('${withBasePath("/globe.svg")}')` }}
             />
           )}
         </div>
@@ -236,7 +261,7 @@ export default function Home() {
                 Request Demo
               </Button>
               <Button
-                onClick={() => router.push("/build-electric/booking")}
+                onClick={() => router.push(bookingPath)}
                 className="w-full rounded-xl px-6 py-6 text-base font-semibold sm:w-auto"
               >
                 Start Platform Build
@@ -474,7 +499,7 @@ export default function Home() {
 
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
               <Button onClick={() => router.push("/demo")} className="w-full rounded-xl px-6 py-6 text-base font-semibold sm:w-auto">Request Demo</Button>
-              <Button onClick={() => router.push("/build-electric/booking")} className="w-full rounded-xl px-6 py-6 text-base font-semibold sm:w-auto">Start Platform Build</Button>
+              <Button onClick={() => router.push(bookingPath)} className="w-full rounded-xl px-6 py-6 text-base font-semibold sm:w-auto">Start Platform Build</Button>
               <Button
                 onClick={() => router.push("/workspace")}
                 className="w-full rounded-xl border border-white/20 bg-black/35 px-6 py-6 text-base font-semibold text-white backdrop-blur-md hover:bg-black/50 sm:w-auto"

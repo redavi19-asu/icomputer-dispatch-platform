@@ -69,8 +69,237 @@ type PendingAssistedAssign = {
   driverName: string;
 };
 
+const LOCAL_JOBS_KEY = "dispatch_jobs";
+
 const isClearableJob = (job: ApiJob) =>
   job.status === "Completed" || job.status === "Cancelled";
+
+const withBasePath = (path: string) => {
+  const base = process.env.NODE_ENV === "production" ? "/icomputer-dispatch-platform" : "";
+  const normalized = path.startsWith("/") ? path : `/${path}`;
+  return `${base}${normalized}`;
+};
+
+const loadLocalJobs = (): ApiJob[] => {
+  if (typeof window === "undefined") return [];
+
+  try {
+    const raw = window.localStorage.getItem(LOCAL_JOBS_KEY);
+    const parsed = raw ? JSON.parse(raw) : [];
+    return Array.isArray(parsed) ? (parsed as ApiJob[]) : [];
+  } catch {
+    return [];
+  }
+};
+
+const saveLocalJobs = (jobs: ApiJob[]) => {
+  if (typeof window === "undefined") return;
+  window.localStorage.setItem(LOCAL_JOBS_KEY, JSON.stringify(jobs));
+};
+
+const sortJobs = (jobs: ApiJob[]) => {
+  return [...jobs].sort(
+    (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+  );
+};
+
+const filterByCompany = (jobs: ApiJob[], companySlug?: string) => {
+  if (!companySlug) return jobs;
+  return jobs.filter((job) => (job.companySlug ?? "build-electric") === companySlug);
+};
+
+const createLocalJob = (payload: {
+  companySlug?: string;
+  name?: string;
+  phone?: string;
+  service?: string;
+  address?: string;
+  details?: string;
+}): ApiJob => {
+  const createdAt = new Date().toISOString();
+  return {
+    id:
+      typeof crypto !== "undefined" && typeof crypto.randomUUID === "function"
+        ? crypto.randomUUID()
+        : `local-job-${Date.now()}`,
+    createdAt,
+    updatedAt: createdAt,
+    status: "Awaiting Dispatch",
+    companySlug: payload.companySlug ?? "build-electric",
+    name: payload.name ?? null,
+    phone: payload.phone ?? null,
+    service: payload.service ?? null,
+    address: payload.address ?? null,
+    details: payload.details ?? null,
+    driverId: null,
+    etaMinutes: null,
+    statusHistory: [
+      {
+        type: "status",
+        at: createdAt,
+        label: "Request created",
+        detail: "Customer request entered dispatch queue",
+        status: "Awaiting Dispatch",
+      },
+    ],
+  };
+};
+
+const fetchJobsWithFallback = async (companySlug?: string): Promise<ApiJob[]> => {
+  try {
+    const query = companySlug ? `?company=${encodeURIComponent(companySlug)}` : "";
+    const res = await fetch(withBasePath(`/api/jobs${query}`), {
+      cache: "no-store",
+    });
+
+    if (!res.ok) {
+      throw new Error("Failed to fetch jobs");
+    }
+
+    const data = await res.json();
+    return Array.isArray(data.jobs) ? (data.jobs as ApiJob[]) : [];
+  } catch {
+    return sortJobs(filterByCompany(loadLocalJobs(), companySlug));
+  }
+};
+
+const createJobWithFallback = async (payload: {
+  companySlug?: string;
+  name?: string;
+  phone?: string;
+  service?: string;
+  address?: string;
+  details?: string;
+}): Promise<ApiJob> => {
+  try {
+    const res = await fetch(withBasePath("/api/jobs"), {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(payload),
+    });
+
+    if (!res.ok) {
+      throw new Error("Failed to create job");
+    }
+
+    const data = await res.json();
+    return data.job as ApiJob;
+  } catch {
+    const localJob = createLocalJob(payload);
+    const jobs = loadLocalJobs();
+    saveLocalJobs([localJob, ...jobs]);
+    return localJob;
+  }
+};
+
+const patchJobWithFallback = async (payload: {
+  id: string;
+  status?: string;
+  driverId?: string | null;
+  etaMinutes?: number | null;
+  verificationAction?: "confirm-handoff" | "confirm-pickup" | "confirm-delivery";
+  verificationToken?: string | null;
+  note?: string;
+}): Promise<ApiJob | null> => {
+  try {
+    const res = await fetch(withBasePath("/api/jobs"), {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(payload),
+    });
+
+    if (!res.ok) {
+      throw new Error("Failed to patch job");
+    }
+
+    const data = await res.json();
+    return (data.job as ApiJob) ?? null;
+  } catch {
+    const jobs = loadLocalJobs();
+    const index = jobs.findIndex((job) => job.id === payload.id);
+    if (index < 0) return null;
+
+    const now = new Date().toISOString();
+    const current = jobs[index];
+    const next: ApiJob = {
+      ...current,
+      status: payload.status ?? current.status,
+      driverId: payload.driverId ?? current.driverId ?? null,
+      etaMinutes:
+        payload.etaMinutes !== undefined ? payload.etaMinutes : current.etaMinutes ?? null,
+      updatedAt: now,
+      statusHistory: current.statusHistory ?? [],
+    };
+
+    if (payload.status && payload.status !== current.status) {
+      next.statusHistory = [
+        ...(next.statusHistory ?? []),
+        {
+          type: "status",
+          at: now,
+          label: getDisplayStatusLabel(payload.status),
+          detail: payload.note ?? "Status updated by operations",
+          status: payload.status as JobTimelineEvent["status"],
+        },
+      ];
+    }
+
+    if (payload.verificationAction === "confirm-handoff") {
+      next.handoffVerifiedAt = now;
+    }
+    if (payload.verificationAction === "confirm-pickup") {
+      next.pickupVerifiedAt = now;
+    }
+    if (payload.verificationAction === "confirm-delivery") {
+      next.deliveryVerifiedAt = now;
+    }
+
+    jobs[index] = next;
+    saveLocalJobs(jobs);
+    return next;
+  }
+};
+
+const deleteJobWithFallback = async (jobId: string): Promise<void> => {
+  try {
+    const res = await fetch(withBasePath(`/api/jobs?id=${encodeURIComponent(jobId)}`), {
+      method: "DELETE",
+    });
+
+    if (!res.ok) {
+      throw new Error("Failed to delete job");
+    }
+  } catch {
+    const jobs = loadLocalJobs();
+    saveLocalJobs(jobs.filter((job) => job.id !== jobId));
+  }
+};
+
+const clearCompletedJobsWithFallback = async (companySlug?: string): Promise<void> => {
+  try {
+    const query = companySlug
+      ? `?company=${encodeURIComponent(companySlug)}&clearCompleted=1`
+      : "?clearCompleted=1";
+    const res = await fetch(withBasePath(`/api/jobs${query}`), {
+      method: "DELETE",
+    });
+
+    if (!res.ok) {
+      throw new Error("Failed to clear completed jobs");
+    }
+  } catch {
+    const jobs = loadLocalJobs();
+    const next = jobs.filter((job) => {
+      if (companySlug && (job.companySlug ?? "build-electric") !== companySlug) return true;
+      return !isClearableJob(job);
+    });
+    saveLocalJobs(next);
+  }
+};
 
 export default function DashboardPage() {
     // Broadcast Alert panel state
@@ -174,25 +403,16 @@ export default function DashboardPage() {
         : "Assigned";
 
     try {
-      const res = await fetch("/api/jobs", {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          id: jobId,
-          status: assignStatus,
-          driverId,
-          etaMinutes: 15,
-        }),
+      const updatedJob = await patchJobWithFallback({
+        id: jobId,
+        status: assignStatus,
+        driverId,
+        etaMinutes: 15,
       });
 
-      if (!res.ok) {
+      if (!updatedJob) {
         throw new Error("Failed to assign job");
       }
-
-      const data = await res.json();
-      const updatedJob = data.job;
 
       setCompanyJobs((prev) =>
         prev.map((job) => (job.id === updatedJob.id ? updatedJob : job))
@@ -258,25 +478,16 @@ export default function DashboardPage() {
     }
 
     try {
-      const res = await fetch("/api/jobs", {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          id: job.id,
-          status: assignStatus,
-          driverId: recommendedDriver.id,
-          etaMinutes: 15,
-        }),
+      const updatedJob = await patchJobWithFallback({
+        id: job.id,
+        status: assignStatus,
+        driverId: recommendedDriver.id,
+        etaMinutes: 15,
       });
 
-      if (!res.ok) {
+      if (!updatedJob) {
         throw new Error("Failed to auto-assign job");
       }
-
-      const data = await res.json();
-      const updatedJob = data.job;
 
       setCompanyJobs((prev) =>
         prev.map((item) => (item.id === updatedJob.id ? updatedJob : item))
@@ -292,13 +503,7 @@ export default function DashboardPage() {
     setIsClearingJobs(true);
 
     try {
-      const res = await fetch(`/api/jobs?id=${encodeURIComponent(job.id)}`, {
-        method: "DELETE",
-      });
-
-      if (!res.ok) {
-        throw new Error("Failed to clear job");
-      }
+      await deleteJobWithFallback(job.id);
 
       setCompanyJobs((prev) => prev.filter((item) => item.id !== job.id));
       setSelectedJob((prev) => (prev?.id === job.id ? null : prev));
@@ -316,13 +521,7 @@ export default function DashboardPage() {
     setIsClearingJobs(true);
 
     try {
-      const res = await fetch("/api/jobs?company=build-electric&clearCompleted=1", {
-        method: "DELETE",
-      });
-
-      if (!res.ok) {
-        throw new Error("Failed to clear completed jobs");
-      }
+      await clearCompletedJobsWithFallback(company?.slug ?? "build-electric");
 
       setCompanyJobs((prev) => prev.filter((job) => !isClearableJob(job)));
       setSelectedJob((prev) => (prev && isClearableJob(prev) ? null : prev));
@@ -363,33 +562,20 @@ export default function DashboardPage() {
     setIsCreatingJob(true);
 
     try {
-      const res = await fetch("/api/jobs", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          companySlug: company?.slug ?? "build-electric",
-          name,
-          phone,
-          service,
-          address: modeAddress,
-          details: [
-            details,
-            intermediateStops ? `Intermediate stops: ${intermediateStops}` : "",
-            `Route template: ${workspaceSettings.jobStructureMode}`,
-          ]
-            .filter(Boolean)
-            .join("\n"),
-        }),
+      const createdJob = await createJobWithFallback({
+        companySlug: company?.slug ?? "build-electric",
+        name,
+        phone,
+        service,
+        address: modeAddress,
+        details: [
+          details,
+          intermediateStops ? `Intermediate stops: ${intermediateStops}` : "",
+          `Route template: ${workspaceSettings.jobStructureMode}`,
+        ]
+          .filter(Boolean)
+          .join("\n"),
       });
-
-      if (!res.ok) {
-        throw new Error("Failed to create manual job");
-      }
-
-      const data = await res.json();
-      const createdJob = data.job as ApiJob;
 
       setCompanyJobs((prev) => [createdJob, ...prev]);
       setShowCreateJobModal(false);
@@ -483,24 +669,15 @@ export default function DashboardPage() {
     setHandoffConfirmSuccess(null);
 
     try {
-      const res = await fetch("/api/jobs", {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          id: selectedJob.id,
-          verificationAction: action,
-          verificationToken: token,
-        }),
+      const updatedJob = await patchJobWithFallback({
+        id: selectedJob.id,
+        verificationAction: action,
+        verificationToken: token,
       });
 
-      if (!res.ok) {
+      if (!updatedJob) {
         throw new Error("Failed to confirm handoff");
       }
-
-      const data = await res.json();
-      const updatedJob = data.job as ApiJob;
 
       setCompanyJobs((prev) =>
         prev.map((job) => (job.id === updatedJob.id ? updatedJob : job))
@@ -545,18 +722,10 @@ export default function DashboardPage() {
 
     const fetchJobs = async () => {
       try {
-        const res = await fetch("/api/jobs?company=build-electric", {
-          cache: "no-store",
-        });
-
-        if (!res.ok) {
-          throw new Error("Failed to fetch jobs");
-        }
-
-        const data = await res.json();
+        const jobs = await fetchJobsWithFallback(company?.slug ?? "build-electric");
 
         if (isMounted) {
-          setCompanyJobs(data.jobs ?? []);
+          setCompanyJobs(jobs);
           setIsLoadingJobs(false);
         }
       } catch (error) {
@@ -575,7 +744,7 @@ export default function DashboardPage() {
       isMounted = false;
       clearInterval(interval);
     };
-  }, []);
+  }, [company?.slug]);
 
   useEffect(() => {
     if (dispatchMode !== "Auto" || companyJobs.length === 0) return;
