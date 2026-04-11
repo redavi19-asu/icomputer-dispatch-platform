@@ -101,12 +101,12 @@ export default function CompanyBookingPage() {
       <AppShellNav />
       <section className="relative overflow-hidden border-b border-white/10">
         <div
-          className="absolute inset-0 opacity-20"
+          className="pointer-events-none absolute inset-0 opacity-20"
           style={{
             background: `radial-gradient(circle at top, ${companyColor}, transparent 45%)`,
           }}
         />
-        <div className="mx-auto max-w-7xl px-6 py-16 md:py-24">
+        <div className="relative z-10 mx-auto max-w-7xl px-6 py-16 md:py-24">
           <div className="max-w-4xl">
             <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm text-white/80">
               <Building2 className="h-4 w-4" />
@@ -276,7 +276,9 @@ export default function CompanyBookingPage() {
           ctaLabel={bookingConfig.ctaLabel}
           selectedService={modalSelectedService}
           onCancel={() => setIsServiceModalOpen(false)}
-          onSuccess={() => setIsServiceModalOpen(false)}
+          onSuccess={() => {
+            setTimeout(() => setIsServiceModalOpen(false), 1200);
+          }}
           workspaceSettings={workspaceSettings}
         />
       </Modal>

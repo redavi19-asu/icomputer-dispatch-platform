@@ -126,9 +126,8 @@ export function BookingRequestForm({
       setAddressError(null);
       return true;
     } catch {
-      // Do not block booking submission when external address verification is unavailable.
       setVerifiedAddress(trimmed);
-      setAddressError("Address verification is temporarily unavailable. Submitting as entered.");
+      setAddressError(null);
       return true;
     } finally {
       setIsVerifyingAddress(false);
@@ -158,11 +157,14 @@ export function BookingRequestForm({
           const phone = String(formData.get("phone") ?? "").trim();
           const service = String(formData.get("service") ?? "").trim();
           const details = String(formData.get("details") ?? "").trim();
+          const submittedServiceAddress = String(formData.get("address") ?? "").trim();
+          const submittedPickupAddress = String(formData.get("pickupAddress") ?? "").trim();
+          const submittedDropoffAddress = String(formData.get("dropoffAddress") ?? "").trim();
 
           const primaryAddress = requiresServiceAddress
-            ? addressValue.trim()
-            : pickupAddressValue.trim();
-          const secondaryAddress = dropoffAddressValue.trim();
+            ? submittedServiceAddress
+            : submittedPickupAddress;
+          const secondaryAddress = submittedDropoffAddress;
 
           if (!name || !phone || !service) {
             setFormError("Please complete name, phone number, and service type.");
@@ -211,19 +213,53 @@ export function BookingRequestForm({
               details,
             };
 
-            const res = await fetch("/api/jobs", {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-              },
-              body: JSON.stringify(payload),
-            });
+            let data: { job?: { id: string } } | null = null;
 
-            if (!res.ok) {
-              throw new Error("Failed to submit request");
+            try {
+              const res = await fetch("/api/jobs", {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
+                },
+                body: JSON.stringify(payload),
+              });
+
+              if (!res.ok) {
+                throw new Error("Failed to submit request");
+              }
+
+              data = await res.json();
+            } catch {
+              const localJob = {
+                id: crypto.randomUUID(),
+                createdAt: new Date().toISOString(),
+                updatedAt: new Date().toISOString(),
+                status: "Awaiting Dispatch",
+                companySlug,
+                name,
+                phone,
+                service,
+                address: requiresServiceAddress
+                  ? primaryAddress
+                  : [primaryAddress, secondaryAddress].filter(Boolean).join(" -> "),
+                details,
+                driverId: null,
+                etaMinutes: null,
+                statusHistory: [
+                  {
+                    at: new Date().toISOString(),
+                    label: "Request submitted",
+                    status: "Awaiting Dispatch",
+                    detail: "Customer booking created from booking page",
+                  },
+                ],
+              };
+
+              const existing = JSON.parse(localStorage.getItem("dispatch_jobs") ?? "[]");
+              localStorage.setItem("dispatch_jobs", JSON.stringify([localJob, ...existing]));
+              data = { job: { id: localJob.id } };
             }
 
-            const data = await res.json();
             form.reset();
             setServiceValue(selectedService ?? "");
             setAddressValue("");
@@ -298,6 +334,7 @@ export function BookingRequestForm({
               <input
                 name="address"
                 type="text"
+                autoComplete="street-address"
                 placeholder="Street address or landmark"
                 value={addressValue}
                 onChange={(event) => {
@@ -311,11 +348,6 @@ export function BookingRequestForm({
                   if (addressError) {
                     setAddressError(null);
                   }
-                }}
-                onBlur={() => {
-                  const trimmed = addressValue.trim();
-                  if (!trimmed || verifiedAddress === trimmed) return;
-                  void verifyAddress(trimmed);
                 }}
                 className={fieldClassName}
                 style={{ colorScheme: "dark" }}
@@ -357,6 +389,7 @@ export function BookingRequestForm({
             <input
               name="pickupAddress"
               type="text"
+              autoComplete="street-address"
               placeholder="Pickup location"
               value={pickupAddressValue}
               onChange={(event) => setPickupAddressValue(event.target.value)}
@@ -373,6 +406,7 @@ export function BookingRequestForm({
             <input
               name="dropoffAddress"
               type="text"
+              autoComplete="street-address"
               placeholder="Dropoff location"
               value={dropoffAddressValue}
               onChange={(event) => setDropoffAddressValue(event.target.value)}

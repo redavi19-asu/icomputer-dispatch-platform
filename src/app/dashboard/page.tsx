@@ -31,6 +31,7 @@ import {
   type DriverAcceptanceMode,
 } from "@/lib/platform/driver-acceptance-mode";
 import {
+  defaultWorkspaceSettings,
   readWorkspaceSettings,
   writeWorkspaceSettings,
   type WorkspaceSettingsState,
@@ -88,12 +89,11 @@ export default function DashboardPage() {
     };
   const company = getCompanyBySlug("build-electric");
   const defaultDriverAcceptanceMode = company?.driverAcceptanceMode ?? "manual";
-  const [workspaceDrivers, setWorkspaceDrivers] = useState<WorkspaceDriver[]>(() =>
-    company ? readWorkspaceDrivers(company.id, company.slug) : []
-  );
-  const [workspaceSettings, setWorkspaceSettings] = useState<WorkspaceSettingsState>(() =>
-    readWorkspaceSettings(company?.slug ?? "build-electric")
-  );
+  const [workspaceDrivers, setWorkspaceDrivers] = useState<WorkspaceDriver[]>([]);
+  const [workspaceSettings, setWorkspaceSettings] = useState<WorkspaceSettingsState>({
+    ...defaultWorkspaceSettings,
+    companySlug: company?.slug ?? "build-electric",
+  });
   const companyDrivers = useMemo(
     () => (company ? toPlatformDrivers(workspaceDrivers, company.id) : []),
     [workspaceDrivers, company]
