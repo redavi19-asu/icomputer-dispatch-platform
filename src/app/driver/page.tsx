@@ -377,6 +377,11 @@ export default function DriverPage() {
   useEffect(() => {
     if (typeof window === "undefined") return;
 
+    const removeUnlockListeners = () => {
+      window.removeEventListener("click", unlockAudio);
+      window.removeEventListener("touchstart", unlockAudio);
+    };
+
     const unlockAudio = () => {
       if (audioUnlockedRef.current) return;
 
@@ -388,7 +393,6 @@ export default function DriverPage() {
 
       Promise.all(
         audioTargets.map(async (audio) => {
-          audio.muted = true;
           audio.currentTime = 0;
           try {
             await audio.play();
@@ -396,8 +400,6 @@ export default function DriverPage() {
             audio.currentTime = 0;
           } catch {
             // Ignore: unlock can fail before a true gesture in some browsers.
-          } finally {
-            audio.muted = false;
           }
         })
       )
@@ -406,18 +408,15 @@ export default function DriverPage() {
         })
         .finally(() => {
           audioUnlockedRef.current = true;
+          removeUnlockListeners();
         });
     };
 
-    const events: Array<keyof WindowEventMap> = ["pointerdown", "touchstart", "keydown"];
-    events.forEach((eventName) => {
-      window.addEventListener(eventName, unlockAudio, { once: true, passive: true });
-    });
+    window.addEventListener("click", unlockAudio, { passive: true });
+    window.addEventListener("touchstart", unlockAudio, { passive: true });
 
     return () => {
-      events.forEach((eventName) => {
-        window.removeEventListener(eventName, unlockAudio);
-      });
+      removeUnlockListeners();
     };
   }, []);
 
