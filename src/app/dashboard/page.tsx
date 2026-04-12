@@ -159,7 +159,9 @@ const fetchJobsWithFallback = async (companySlug?: string): Promise<ApiJob[]> =>
     const data = await res.json();
     return Array.isArray(data.jobs) ? (data.jobs as ApiJob[]) : [];
   } catch {
-    return sortJobs(filterByCompany(loadLocalJobs(), companySlug));
+    const localJobs = loadLocalJobs();
+    const scoped = filterByCompany(localJobs, companySlug);
+    return sortJobs(scoped.length > 0 ? scoped : localJobs);
   }
 };
 

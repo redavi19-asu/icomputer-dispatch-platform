@@ -14,6 +14,9 @@ export function DispatchMap({
 }: DispatchMapProps) {
   const mapContainerRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<mapboxgl.Map | null>(null);
+  const hasPublicMapboxToken = Boolean(
+    process.env.NEXT_PUBLIC_MAPBOX_TOKEN?.trim().startsWith("pk.")
+  );
 
   useEffect(() => {
     // Mapbox GL JS runs in the browser and must use a publishable token (pk.*).
@@ -121,7 +124,17 @@ export function DispatchMap({
 
   return (
     <div className="relative h-[620px] w-full overflow-hidden bg-slate-950">
-      <div ref={mapContainerRef} className="h-full w-full" />
+      {hasPublicMapboxToken ? (
+        <div ref={mapContainerRef} className="h-full w-full" />
+      ) : (
+        <iframe
+          title={`${companyName} dispatch map fallback`}
+          className="h-full w-full border-0"
+          loading="lazy"
+          referrerPolicy="no-referrer-when-downgrade"
+          src="https://www.openstreetmap.org/export/embed.html?bbox=-77.12%2C38.84%2C-76.97%2C38.95&layer=mapnik"
+        />
+      )}
       <div className="pointer-events-none absolute left-4 top-4 rounded-xl border border-white/10 bg-slate-900/80 px-4 py-3 text-sm text-white/80 backdrop-blur">
         Live dispatch map
       </div>

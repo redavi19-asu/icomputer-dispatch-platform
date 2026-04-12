@@ -123,9 +123,9 @@ const fetchJobsWithFallback = async (companySlug: string): Promise<ApiJob[]> => 
     const data = await res.json();
     return Array.isArray(data.jobs) ? (data.jobs as ApiJob[]) : [];
   } catch {
-    return sortJobs(
-      loadLocalJobs().filter((job) => (job.companySlug ?? "build-electric") === companySlug)
-    );
+    const localJobs = loadLocalJobs();
+    const scoped = localJobs.filter((job) => (job.companySlug ?? "build-electric") === companySlug);
+    return sortJobs(scoped.length > 0 ? scoped : localJobs);
   }
 };
 
@@ -487,13 +487,17 @@ export default function DriverPage() {
   }, []);
 
   const myJobs = useMemo(() => {
-    if (!activeDriver) return [];
-    return jobs.filter(
-      (job) =>
-        job.driverId === activeDriver.id &&
-        job.status !== "Completed" &&
-        job.status !== "Cancelled"
+    const activeJobs = jobs.filter(
+      (job) => job.status !== "Completed" && job.status !== "Cancelled"
     );
+
+    if (!activeDriver) return activeJobs;
+
+    const ownedJobs = activeJobs.filter((job) => job.driverId === activeDriver.id);
+    if (ownedJobs.length > 0) return ownedJobs;
+
+    // Fallback for demo/static mode where driver IDs can differ between surfaces.
+    return activeJobs.filter((job) => !job.driverId || job.status === "Assigned");
   }, [jobs, activeDriver]);
 
   const activeJob = useMemo(() => {
