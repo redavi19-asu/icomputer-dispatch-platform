@@ -87,6 +87,9 @@ const withBasePath = (path: string) => {
   return `${base}${normalized}`;
 };
 
+const isPages =
+  typeof window !== "undefined" && window.location.hostname.includes("github.io");
+
 const loadLocalJobs = (): ApiJob[] => {
   if (typeof window === "undefined") return [];
 
@@ -111,7 +114,16 @@ const sortJobs = (jobs: ApiJob[]) => {
 };
 
 const fetchJobsWithFallback = async (companySlug: string): Promise<ApiJob[]> => {
+  if (isPages) {
+    const localJobs = loadLocalJobs();
+    const scoped = localJobs.filter((job) => (job.companySlug ?? "build-electric") === companySlug);
+    return sortJobs(scoped.length > 0 ? scoped : localJobs);
+  }
+
   try {
+    if (typeof window !== "undefined" && window.location.hostname.includes("github.io")) {
+      throw new Error("Pages mode");
+    }
     const res = await fetch(withBasePath(`/api/jobs?company=${encodeURIComponent(companySlug)}`), {
       cache: "no-store",
     });
@@ -135,7 +147,43 @@ const patchJobWithFallback = async (payload: {
   driverId?: string | null;
   etaMinutes?: number | null;
 }): Promise<ApiJob | null> => {
+  if (isPages) {
+    const jobs = loadLocalJobs();
+    const index = jobs.findIndex((job) => job.id === payload.id);
+    if (index < 0) return null;
+
+    const current = jobs[index];
+    const now = new Date().toISOString();
+    const next: ApiJob = {
+      ...current,
+      status: payload.status ?? current.status,
+      driverId: payload.driverId ?? current.driverId ?? null,
+      etaMinutes:
+        payload.etaMinutes !== undefined ? payload.etaMinutes : current.etaMinutes ?? null,
+    };
+
+    if (payload.status && payload.status !== current.status) {
+      next.statusHistory = [
+        ...(current.statusHistory ?? []),
+        {
+          type: "status",
+          at: now,
+          label: getDisplayStatusLabel(payload.status),
+          detail: "Status updated by driver",
+          status: payload.status as JobTimelineEvent["status"],
+        },
+      ];
+    }
+
+    jobs[index] = next;
+    saveLocalJobs(jobs);
+    return next;
+  }
+
   try {
+    if (typeof window !== "undefined" && window.location.hostname.includes("github.io")) {
+      throw new Error("Pages mode");
+    }
     const res = await fetch(withBasePath("/api/jobs"), {
       method: "PATCH",
       headers: {

@@ -2,15 +2,38 @@
 
 import { useEffect, useRef } from "react";
 import mapboxgl from "mapbox-gl";
+import type { Driver } from "@/lib/platform/types";
 
 type DispatchMapProps = {
   companyName?: string;
   themeMode?: "dark" | "light";
+  drivers?: Driver[];
+};
+
+const zoneToCoordinate = (zone: string | undefined, index: number): [number, number] => {
+  const normalized = (zone ?? "").toLowerCase();
+
+  if (normalized.includes("north")) return [-77.0588, 38.9049];
+  if (normalized.includes("central")) return [-77.0441, 38.8965];
+  if (normalized.includes("south")) return [-77.0317, 38.888];
+  if (normalized.includes("east")) return [-77.0215, 38.8938];
+  if (normalized.includes("west")) return [-77.066, 38.8929];
+
+  const fallbackOffsets: Array<[number, number]> = [
+    [-77.0588, 38.9049],
+    [-77.0441, 38.8965],
+    [-77.0317, 38.888],
+    [-77.0224, 38.901],
+    [-77.0522, 38.8858],
+  ];
+
+  return fallbackOffsets[index % fallbackOffsets.length];
 };
 
 export function DispatchMap({
   companyName = "Company",
   themeMode = "dark",
+  drivers = [],
 }: DispatchMapProps) {
   const mapContainerRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<mapboxgl.Map | null>(null);
@@ -63,11 +86,26 @@ export function DispatchMap({
     mapRef.current = map;
     map.addControl(new mapboxgl.NavigationControl(), "top-right");
 
-    const driverCoordinates: [number, number][] = [
-      [-77.0588, 38.9049],
-      [-77.0441, 38.8965],
-      [-77.0317, 38.888],
-    ];
+    const driverCoordinates =
+      drivers.length > 0
+        ? drivers.map((driver, index) => ({
+            driver,
+            coordinate: zoneToCoordinate(driver.zone, index),
+          }))
+        : [
+            {
+              driver: { name: "Driver 1", status: "available", zone: "North Zone" } as Driver,
+              coordinate: [-77.0588, 38.9049] as [number, number],
+            },
+            {
+              driver: { name: "Driver 2", status: "en-route", zone: "Central Zone" } as Driver,
+              coordinate: [-77.0441, 38.8965] as [number, number],
+            },
+            {
+              driver: { name: "Driver 3", status: "busy", zone: "South Zone" } as Driver,
+              coordinate: [-77.0317, 38.888] as [number, number],
+            },
+          ];
 
     const jobCoordinates: [number, number][] = [
       [-77.0522, 38.9003],
@@ -85,14 +123,14 @@ export function DispatchMap({
       .addTo(map);
 
     map.on("load", () => {
-      driverCoordinates.forEach((coord, index) => {
+      driverCoordinates.forEach(({ driver, coordinate }) => {
         const driverPopup = new mapboxgl.Popup({ offset: 18 }).setHTML(`
-          <div style="color:#0f172a;font-weight:600;">Driver ${index + 1}</div>
-          <div style="color:#475569;font-size:12px;">Active in service zone</div>
+          <div style="color:#0f172a;font-weight:600;">${driver.name}</div>
+          <div style="color:#475569;font-size:12px;">${driver.status} • ${driver.zone ?? "Service zone"}</div>
         `);
 
         new mapboxgl.Marker({ color: "#22d3ee", scale: 1.05 })
-          .setLngLat(coord)
+          .setLngLat(coordinate)
           .setPopup(driverPopup)
           .addTo(map);
       });
@@ -110,7 +148,7 @@ export function DispatchMap({
       });
 
       const bounds = new mapboxgl.LngLatBounds();
-      driverCoordinates.forEach((coord) => bounds.extend(coord));
+      driverCoordinates.forEach(({ coordinate }) => bounds.extend(coordinate));
       jobCoordinates.forEach((coord) => bounds.extend(coord));
       bounds.extend([-77.045, 38.892]);
       map.fitBounds(bounds, { padding: 70, duration: 0 });
@@ -120,7 +158,7 @@ export function DispatchMap({
       map.remove();
       mapRef.current = null;
     };
-  }, [companyName, themeMode]);
+  }, [companyName, themeMode, drivers]);
 
   return (
     <div className="relative h-[620px] w-full overflow-hidden bg-slate-950">

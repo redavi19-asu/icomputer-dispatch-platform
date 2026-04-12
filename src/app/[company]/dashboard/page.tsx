@@ -60,15 +60,20 @@ export default async function CompanyDashboardPage({ params }: CompanyDashboardP
 
   const headerList = await headers();
   const host = headerList.get("host") ?? "localhost:3000";
+  const isPagesHost = host.includes("github.io");
   const protocol = host.includes("localhost") ? "http" : "https";
   const baseUrl = `${protocol}://${host}`;
 
-  const res = await fetch(`${baseUrl}/api/jobs?company=${companySlug}`, {
-    cache: "no-store",
-  });
+  let companyJobs: ApiJob[] = [];
 
-  const data = await res.json();
-  const companyJobs: ApiJob[] = data.jobs ?? [];
+  if (!isPagesHost) {
+    const res = await fetch(`${baseUrl}/api/jobs?company=${companySlug}`, {
+      cache: "no-store",
+    });
+
+    const data = await res.json();
+    companyJobs = data.jobs ?? [];
+  }
 
   return (
     <main className="min-h-screen bg-slate-950 text-white">

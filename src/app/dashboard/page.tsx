@@ -80,6 +80,9 @@ const withBasePath = (path: string) => {
   return `${base}${normalized}`;
 };
 
+const isPages =
+  typeof window !== "undefined" && window.location.hostname.includes("github.io");
+
 const loadLocalJobs = (): ApiJob[] => {
   if (typeof window === "undefined") return [];
 
@@ -146,8 +149,17 @@ const createLocalJob = (payload: {
 };
 
 const fetchJobsWithFallback = async (companySlug?: string): Promise<ApiJob[]> => {
+  if (isPages) {
+    const localJobs = loadLocalJobs();
+    const scoped = filterByCompany(localJobs, companySlug);
+    return sortJobs(scoped.length > 0 ? scoped : localJobs);
+  }
+
   try {
     const query = companySlug ? `?company=${encodeURIComponent(companySlug)}` : "";
+    if (typeof window !== "undefined" && window.location.hostname.includes("github.io")) {
+      throw new Error("Pages mode");
+    }
     const res = await fetch(withBasePath(`/api/jobs${query}`), {
       cache: "no-store",
     });
@@ -173,7 +185,17 @@ const createJobWithFallback = async (payload: {
   address?: string;
   details?: string;
 }): Promise<ApiJob> => {
+  if (isPages) {
+    const localJob = createLocalJob(payload);
+    const jobs = loadLocalJobs();
+    saveLocalJobs([localJob, ...jobs]);
+    return localJob;
+  }
+
   try {
+    if (typeof window !== "undefined" && window.location.hostname.includes("github.io")) {
+      throw new Error("Pages mode");
+    }
     const res = await fetch(withBasePath("/api/jobs"), {
       method: "POST",
       headers: {
@@ -205,7 +227,55 @@ const patchJobWithFallback = async (payload: {
   verificationToken?: string | null;
   note?: string;
 }): Promise<ApiJob | null> => {
+  if (isPages) {
+    const jobs = loadLocalJobs();
+    const index = jobs.findIndex((job) => job.id === payload.id);
+    if (index < 0) return null;
+
+    const now = new Date().toISOString();
+    const current = jobs[index];
+    const next: ApiJob = {
+      ...current,
+      status: payload.status ?? current.status,
+      driverId: payload.driverId ?? current.driverId ?? null,
+      etaMinutes:
+        payload.etaMinutes !== undefined ? payload.etaMinutes : current.etaMinutes ?? null,
+      updatedAt: now,
+      statusHistory: current.statusHistory ?? [],
+    };
+
+    if (payload.status && payload.status !== current.status) {
+      next.statusHistory = [
+        ...(next.statusHistory ?? []),
+        {
+          type: "status",
+          at: now,
+          label: getDisplayStatusLabel(payload.status),
+          detail: payload.note ?? "Status updated by operations",
+          status: payload.status as JobTimelineEvent["status"],
+        },
+      ];
+    }
+
+    if (payload.verificationAction === "confirm-handoff") {
+      next.handoffVerifiedAt = now;
+    }
+    if (payload.verificationAction === "confirm-pickup") {
+      next.pickupVerifiedAt = now;
+    }
+    if (payload.verificationAction === "confirm-delivery") {
+      next.deliveryVerifiedAt = now;
+    }
+
+    jobs[index] = next;
+    saveLocalJobs(jobs);
+    return next;
+  }
+
   try {
+    if (typeof window !== "undefined" && window.location.hostname.includes("github.io")) {
+      throw new Error("Pages mode");
+    }
     const res = await fetch(withBasePath("/api/jobs"), {
       method: "PATCH",
       headers: {
@@ -267,7 +337,16 @@ const patchJobWithFallback = async (payload: {
 };
 
 const deleteJobWithFallback = async (jobId: string): Promise<void> => {
+  if (isPages) {
+    const jobs = loadLocalJobs();
+    saveLocalJobs(jobs.filter((job) => job.id !== jobId));
+    return;
+  }
+
   try {
+    if (typeof window !== "undefined" && window.location.hostname.includes("github.io")) {
+      throw new Error("Pages mode");
+    }
     const res = await fetch(withBasePath(`/api/jobs?id=${encodeURIComponent(jobId)}`), {
       method: "DELETE",
     });
@@ -282,10 +361,23 @@ const deleteJobWithFallback = async (jobId: string): Promise<void> => {
 };
 
 const clearCompletedJobsWithFallback = async (companySlug?: string): Promise<void> => {
+  if (isPages) {
+    const jobs = loadLocalJobs();
+    const next = jobs.filter((job) => {
+      if (companySlug && (job.companySlug ?? "build-electric") !== companySlug) return true;
+      return !isClearableJob(job);
+    });
+    saveLocalJobs(next);
+    return;
+  }
+
   try {
     const query = companySlug
       ? `?company=${encodeURIComponent(companySlug)}&clearCompleted=1`
       : "?clearCompleted=1";
+    if (typeof window !== "undefined" && window.location.hostname.includes("github.io")) {
+      throw new Error("Pages mode");
+    }
     const res = await fetch(withBasePath(`/api/jobs${query}`), {
       method: "DELETE",
     });
@@ -944,6 +1036,7 @@ export default function DashboardPage() {
                   <DispatchMap
                     companyName={workspaceSettings.companyName || "Dispatch Platform"}
                     themeMode={themeMode}
+                    drivers={companyDrivers}
                   />
                   <div
                     className={`pointer-events-none absolute right-4 top-4 rounded-xl border px-4 py-3 text-sm backdrop-blur ${

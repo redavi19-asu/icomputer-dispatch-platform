@@ -147,6 +147,9 @@ export function BookingRequestForm({
     return `${base}${normalized}`;
   };
 
+  const isPages =
+    typeof window !== "undefined" && window.location.hostname.includes("github.io");
+
   return (
     <>
       <form
@@ -221,21 +224,7 @@ export function BookingRequestForm({
 
             let data: { job?: { id: string } } | null = null;
 
-            try {
-              const res = await fetch(withBasePath("/api/jobs"), {
-                method: "POST",
-                headers: {
-                  "Content-Type": "application/json",
-                },
-                body: JSON.stringify(payload),
-              });
-
-              if (!res.ok) {
-                throw new Error("Failed to submit request");
-              }
-
-              data = await res.json();
-            } catch {
+            if (isPages) {
               const localJob = {
                 id: crypto.randomUUID(),
                 createdAt: new Date().toISOString(),
@@ -264,6 +253,54 @@ export function BookingRequestForm({
               const existing = JSON.parse(localStorage.getItem("dispatch_jobs") ?? "[]");
               localStorage.setItem("dispatch_jobs", JSON.stringify([localJob, ...existing]));
               data = { job: { id: localJob.id } };
+            } else {
+              try {
+              if (typeof window !== "undefined" && window.location.hostname.includes("github.io")) {
+                throw new Error("Pages mode");
+              }
+              const res = await fetch(withBasePath("/api/jobs"), {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
+                },
+                body: JSON.stringify(payload),
+              });
+
+              if (!res.ok) {
+                throw new Error("Failed to submit request");
+              }
+
+              data = await res.json();
+              } catch {
+                const localJob = {
+                  id: crypto.randomUUID(),
+                  createdAt: new Date().toISOString(),
+                  updatedAt: new Date().toISOString(),
+                  status: "Awaiting Dispatch",
+                  companySlug,
+                  name,
+                  phone,
+                  service,
+                  address: requiresServiceAddress
+                    ? primaryAddress
+                    : [primaryAddress, secondaryAddress].filter(Boolean).join(" -> "),
+                  details,
+                  driverId: null,
+                  etaMinutes: null,
+                  statusHistory: [
+                    {
+                      at: new Date().toISOString(),
+                      label: "Request submitted",
+                      status: "Awaiting Dispatch",
+                      detail: "Customer booking created from booking page",
+                    },
+                  ],
+                };
+
+                const existing = JSON.parse(localStorage.getItem("dispatch_jobs") ?? "[]");
+                localStorage.setItem("dispatch_jobs", JSON.stringify([localJob, ...existing]));
+                data = { job: { id: localJob.id } };
+              }
             }
 
             form.reset();

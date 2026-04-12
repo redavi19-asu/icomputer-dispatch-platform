@@ -32,6 +32,7 @@ type TrackJob = {
 };
 
 const WORKSPACE_SETTINGS_UPDATED_EVENT = "dispatch:workspace-settings-updated";
+const LOCAL_JOBS_KEY = "dispatch_jobs";
 
 export default function TrackJobPage() {
   const params = useParams<{ jobId: string }>();
@@ -66,7 +67,29 @@ export default function TrackJobPage() {
     let isMounted = true;
 
     const fetchJob = async () => {
+      const isPages =
+        typeof window !== "undefined" && window.location.hostname.includes("github.io");
+
       try {
+        if (isPages) {
+          const raw = window.localStorage.getItem(LOCAL_JOBS_KEY);
+          const parsed = raw ? JSON.parse(raw) : [];
+          const localJobs = Array.isArray(parsed) ? parsed : [];
+          const localJob = localJobs.find((item: TrackJob) => item.id === jobId) ?? null;
+
+          if (!localJob) {
+            throw new Error("Job not found");
+          }
+
+          if (isMounted) {
+            setJob(localJob);
+            setError(null);
+            setIsLoading(false);
+          }
+
+          return;
+        }
+
         const res = await fetch(`/api/jobs?id=${encodeURIComponent(jobId)}`, {
           cache: "no-store",
         });
