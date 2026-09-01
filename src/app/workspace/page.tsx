@@ -7,8 +7,11 @@ import {
   Building2,
   CarFront,
   CreditCard,
+  Download,
   LayoutDashboard,
+  MonitorDown,
   Settings2,
+  Smartphone,
   Wand2,
 } from "lucide-react";
 
@@ -22,6 +25,24 @@ import {
 const WORKSPACE_SETTINGS_UPDATED_EVENT = "dispatch:workspace-settings-updated";
 
 const workspaceCards = [
+  {
+    key: "driverInstall",
+    title: "Driver App",
+    description: "Install the mobile driver experience on a phone or tablet for missions, navigation, and field status updates.",
+    href: "/driver/install",
+    cta: "Install Driver App",
+    icon: Smartphone,
+    featured: true,
+  },
+  {
+    key: "dispatcherInstall",
+    title: "Dispatcher App",
+    description: "Install the operations dashboard on a desktop or laptop for a dedicated dispatch workspace.",
+    href: "/dashboard/install",
+    cta: "Install Dispatcher",
+    icon: MonitorDown,
+    featured: true,
+  },
   {
     key: "settings",
     title: "Settings",
@@ -118,7 +139,7 @@ export default function WorkspacePage() {
             settings from one workspace hub.
           </p>
           <p className="mt-3 max-w-3xl text-sm text-cyan-200/85">
-            Start with Settings to configure how your company uses DispatchOS.
+            Install the Driver app on field devices and the Dispatcher app on office computers, then manage the rest of the company from here.
           </p>
 
           <div className="mt-6 flex flex-wrap gap-2 text-xs">
@@ -141,42 +162,60 @@ export default function WorkspacePage() {
         </div>
       </section>
 
-      <section className="mx-auto max-w-7xl px-6 py-12 md:py-16">
+      <section className="mx-auto max-w-7xl px-6 pt-10">
+        <div className="flex items-center gap-3 text-cyan-200">
+          <Download className="h-5 w-5" />
+          <h2 className="text-lg font-semibold">App Install Center</h2>
+        </div>
+        <p className="mt-2 max-w-3xl text-sm leading-6 text-white/60">
+          These installers turn the web experience into standalone app windows. Drivers get the mobile interface; dispatchers get the desktop operations interface.
+        </p>
+      </section>
+
+      <section className="mx-auto max-w-7xl px-6 py-8 md:pb-16">
         <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
           {workspaceCards.map((entry) => {
             const isDisabled =
-              (entry.key === "booking" && !cardStates.bookingEnabled) ||
-              (entry.key === "drivers" && !cardStates.driversEnabled);
+              ((entry.key === "drivers" || entry.key === "driverInstall") && !cardStates.driversEnabled) ||
+              (entry.key === "booking" && !cardStates.bookingEnabled);
 
             return (
-            <Card
-              key={entry.title}
-              className="h-full rounded-3xl border border-white/10 bg-white/5 text-white shadow-none"
-            >
-              <CardContent className="flex h-full flex-col p-6">
-                <entry.icon className="h-8 w-8 text-cyan-300" />
-                <h2 className="mt-5 text-2xl font-semibold">{entry.title}</h2>
-                <p className="mt-3 flex-1 text-sm leading-6 text-white/70">
-                  {entry.description}
-                </p>
+              <Card
+                key={entry.title}
+                className={`h-full rounded-3xl text-white shadow-none ${
+                  entry.featured
+                    ? "border border-cyan-400/30 bg-cyan-500/10"
+                    : "border border-white/10 bg-white/5"
+                }`}
+              >
+                <CardContent className="flex h-full flex-col p-6">
+                  <entry.icon className={`h-8 w-8 ${entry.featured ? "text-cyan-200" : "text-cyan-300"}`} />
+                  <h2 className="mt-5 text-2xl font-semibold">{entry.title}</h2>
+                  <p className="mt-3 flex-1 text-sm leading-6 text-white/70">
+                    {entry.description}
+                  </p>
 
-                {isDisabled ? (
-                  <div className="mt-6 inline-flex items-center justify-center gap-2 rounded-xl border border-white/15 bg-white/5 px-4 py-3 text-sm font-semibold text-white/45">
-                    {entry.key === "booking"
-                      ? "Disabled by intake settings"
-                      : "Disabled in workspace settings"}
-                  </div>
-                ) : (
-                  <Link
-                    href={entry.href}
-                    className="mt-6 inline-flex items-center justify-center gap-2 rounded-xl border border-cyan-400/35 bg-cyan-500/15 px-4 py-3 text-sm font-semibold text-cyan-100 transition hover:bg-cyan-500/25"
-                  >
-                    {entry.cta}
-                    <ArrowRight className="h-4 w-4" />
-                  </Link>
-                )}
-              </CardContent>
-            </Card>
+                  {isDisabled ? (
+                    <div className="mt-6 inline-flex items-center justify-center gap-2 rounded-xl border border-white/15 bg-white/5 px-4 py-3 text-sm font-semibold text-white/45">
+                      {entry.key === "booking"
+                        ? "Disabled by intake settings"
+                        : "Disabled in workspace settings"}
+                    </div>
+                  ) : (
+                    <Link
+                      href={entry.href}
+                      className={`mt-6 inline-flex items-center justify-center gap-2 rounded-xl px-4 py-3 text-sm font-semibold transition ${
+                        entry.featured
+                          ? "bg-cyan-400 text-slate-950 hover:bg-cyan-300"
+                          : "border border-cyan-400/35 bg-cyan-500/15 text-cyan-100 hover:bg-cyan-500/25"
+                      }`}
+                    >
+                      {entry.cta}
+                      <ArrowRight className="h-4 w-4" />
+                    </Link>
+                  )}
+                </CardContent>
+              </Card>
             );
           })}
         </div>
