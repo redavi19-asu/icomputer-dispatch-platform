@@ -3,6 +3,7 @@
 import { motion } from "framer-motion";
 import Link from "next/link";
 import { useState } from "react";
+import DispatchPreviewMap from "@/components/marketing/dispatch-preview-map";
 import {
   ArrowRight,
   Building2,
@@ -98,8 +99,8 @@ export default function Home() {
               <div className="mt-5 grid grid-cols-3 gap-3">
                 {[['12','Waiting'],['7','Assigned'],['5','Active']].map(([value,label]) => <div key={label} className="rounded-2xl border border-white/10 bg-white/[0.04] p-4"><p className="text-2xl font-bold">{value}</p><p className="text-xs text-white/45">{label}</p></div>)}
               </div>
-              <div className="mt-4 h-44 rounded-2xl border border-cyan-400/15 bg-[radial-gradient(circle_at_55%_48%,rgba(34,211,238,.23),transparent_10%),linear-gradient(135deg,#111827,#020617)] p-4">
-                <div className="h-full rounded-xl border border-white/5 bg-[linear-gradient(90deg,transparent_49%,rgba(255,255,255,.05)_50%,transparent_51%),linear-gradient(transparent_49%,rgba(255,255,255,.05)_50%,transparent_51%)] bg-[size:42px_42px]" />
+              <div className="mt-4 h-52 overflow-hidden rounded-2xl border border-cyan-400/20 bg-slate-900 p-1 shadow-[0_0_30px_rgba(34,211,238,.08)]">
+                <DispatchPreviewMap />
               </div>
               <div className="mt-4 space-y-2">
                 {['Emergency service request assigned','Driver en route • ETA 14 min','Customer status updated'].map((item, i) => <div key={item} className="flex items-center gap-3 rounded-xl border border-white/8 bg-white/[0.03] px-4 py-3 text-sm text-white/70"><span className={`h-2 w-2 rounded-full ${i === 0 ? 'bg-rose-400' : i === 1 ? 'bg-amber-400' : 'bg-emerald-400'}`} />{item}</div>)}
