@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from "next";
+import ProtectedRoute from "@/components/auth/protected-route";
 
 export const metadata: Metadata = {
   title: "DispatchOS Dispatcher",
@@ -20,5 +21,5 @@ export default function DashboardLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  return children;
+  return <ProtectedRoute requireActiveSubscription>{children}</ProtectedRoute>;
 }
