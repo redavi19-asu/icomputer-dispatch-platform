@@ -1,7 +1,9 @@
 "use client";
 
 import Link from "next/link";
+import { useState } from "react";
 import { Check, ShieldCheck, Smartphone, MonitorUp, ArrowLeft } from "lucide-react";
+import CustomVersionModal from "@/components/marketing/custom-version-modal";
 
 const features = [
   "Dispatcher command dashboard",
@@ -15,18 +17,7 @@ const features = [
 ];
 
 export default function SubscribePage() {
-  const checkoutUrl = process.env.NEXT_PUBLIC_DISPATCHOS_CHECKOUT_URL || "";
-
-  const startCheckout = () => {
-    if (checkoutUrl) {
-      window.location.assign(checkoutUrl);
-      return;
-    }
-
-    window.location.assign(
-      "https://redavi19-asu.github.io/icomuteranythingV3/#contact"
-    );
-  };
+  const [customModalOpen, setCustomModalOpen] = useState(false);
 
   return (
     <main className="min-h-screen bg-slate-950 text-white">
@@ -61,7 +52,7 @@ export default function SubscribePage() {
           </div>
 
           <p className="mt-5 text-white/65">
-            Subscription pricing and billing details are confirmed in the secure checkout before purchase.
+            Subscription access is being prepared for launch. You can explore the platform now and request a custom version if needed.
           </p>
 
           <div className="mt-8 grid gap-3 sm:grid-cols-2">
@@ -74,14 +65,16 @@ export default function SubscribePage() {
           </div>
 
           <button
-            onClick={startCheckout}
-            className="mt-9 w-full rounded-xl bg-cyan-400 px-6 py-4 text-base font-bold text-slate-950 transition hover:bg-cyan-300"
+            type="button"
+            disabled
+            aria-disabled="true"
+            className="mt-9 w-full cursor-not-allowed rounded-xl border border-cyan-300/15 bg-cyan-400/15 px-6 py-4 text-base font-bold text-cyan-100/70"
           >
-            Start Subscription
+            Coming Soon
           </button>
 
           <p className="mt-4 text-center text-xs text-white/45">
-            After successful payment, the customer workspace is provisioned and app access is activated.
+            Subscription checkout and automatic company activation are coming soon.
           </p>
         </div>
 
@@ -107,15 +100,18 @@ export default function SubscribePage() {
             <p className="mt-2 text-sm leading-6 text-white/65">
               I Computer Anything can tailor DispatchOS to a company-specific workflow, branding, or integration stack.
             </p>
-            <a
-              href="https://redavi19-asu.github.io/icomuteranythingV3/"
+            <button
+              type="button"
+              onClick={() => setCustomModalOpen(true)}
               className="mt-5 inline-flex text-sm font-semibold text-cyan-200 hover:text-cyan-100"
             >
-              Contact I Computer Anything →
-            </a>
+              Request a Custom Version →
+            </button>
           </div>
         </div>
       </section>
+
+      <CustomVersionModal open={customModalOpen} onClose={() => setCustomModalOpen(false)} />
     </main>
   );
 }
