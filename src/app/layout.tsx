@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono, Orbitron } from "next/font/google";
 import "./globals.css";
+import { ServiceWorkerRegister } from "@/components/platform/service-worker-register";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -25,22 +26,12 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
-  title: "ICompute Dispatch Platform",
+  title: "DispatchOS",
   description: "Mobile service dispatch software for field service companies.",
-  manifest: "/manifest.webmanifest",
   applicationName: "DispatchOS",
   icons: {
-    icon: [
-      { url: "/driver-app-icon.svg", type: "image/svg+xml" },
-      { url: "/driver-app-icon-maskable.svg", type: "image/svg+xml" },
-    ],
+    icon: [{ url: "/driver-app-icon.svg", type: "image/svg+xml" }],
     shortcut: [{ url: "/driver-app-icon.svg", type: "image/svg+xml" }],
-    apple: [{ url: "/driver-app-icon.svg", type: "image/svg+xml" }],
-  },
-  appleWebApp: {
-    capable: true,
-    title: "DispatchOS Driver",
-    statusBarStyle: "black-translucent",
   },
 };
 
@@ -54,6 +45,7 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} ${orbitron.variable} bg-white text-slate-900 antialiased`}
       >
+        <ServiceWorkerRegister />
         {children}
       </body>
     </html>
