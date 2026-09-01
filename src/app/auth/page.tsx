@@ -42,7 +42,8 @@ export default function AuthPage() {
           });
 
       saveSession(data as DispatchOSSession);
-      window.location.href = mode === "register" ? "/icomputer-dispatch-platform/subscribe" : "/icomputer-dispatch-platform/workspace";
+      const base = process.env.NODE_ENV === "production" ? "/icomputer-dispatch-platform" : "";
+      window.location.href = `${base}${mode === "register" ? "/subscribe" : "/workspace"}`;
     } catch (err) {
       setError(err instanceof Error ? err.message : "Unable to continue.");
     } finally {
