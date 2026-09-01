@@ -81,9 +81,10 @@ export default function Home() {
             <h1 className="mt-4 max-w-4xl text-4xl font-semibold tracking-tight sm:text-5xl md:text-7xl">Run field operations from one command system.</h1>
             <p className="mt-6 max-w-2xl text-base leading-7 text-white/72 sm:text-lg">Booking, dispatch, driver missions, customer updates, company controls, and installable apps—built as one connected platform.</p>
 
-            <div className="mt-9 flex flex-col gap-3 sm:flex-row">
-              <Link href="/subscribe" className="inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-500 px-7 py-4 font-bold text-white transition hover:bg-emerald-400">View Plans & Subscribe <ArrowRight className="h-4 w-4" /></Link>
+            <div className="mt-9 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
+              <Link href="/plans" className="inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-500 px-7 py-4 font-bold text-white transition hover:bg-emerald-400">View Plans <ArrowRight className="h-4 w-4" /></Link>
               <Link href="/demo" className="inline-flex items-center justify-center rounded-xl border border-white/20 bg-white/[0.06] px-7 py-4 font-semibold text-white backdrop-blur transition hover:bg-white/[0.1]">Product Tour</Link>
+              <Link href="/auth?mode=login" className="inline-flex items-center justify-center rounded-xl border border-cyan-300/20 bg-cyan-500/[0.08] px-7 py-4 font-semibold text-cyan-100 transition hover:bg-cyan-500/[0.13]">Log In</Link>
             </div>
 
             <div className="mt-7 inline-flex items-center gap-3 rounded-xl border border-emerald-400/20 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-100">
@@ -144,10 +145,11 @@ export default function Home() {
       <section className="px-6 pb-20 md:pb-28">
         <div className="mx-auto max-w-6xl overflow-hidden rounded-[2rem] border border-emerald-400/20 bg-[radial-gradient(circle_at_20%_20%,rgba(16,185,129,.16),transparent_35%),radial-gradient(circle_at_80%_70%,rgba(190,24,93,.12),transparent_40%),linear-gradient(135deg,#111827,#020617)] p-8 md:p-12">
           <p className="text-xs uppercase tracking-[0.24em] text-emerald-300">Ready when your company is</p>
-          <h2 className="mt-4 max-w-3xl text-3xl font-semibold tracking-tight md:text-5xl">Choose a plan first. Then activate your company workspace.</h2>
-          <p className="mt-5 max-w-2xl text-white/62 leading-7">The public page stops here. Dispatcher controls, driver tools, booking management, company settings, billing, and app installation belong on the customer side.</p>
-          <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-            <Link href="/subscribe" className="inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-500 px-7 py-4 font-bold text-white transition hover:bg-emerald-400">View Plans & Subscribe <ArrowRight className="h-4 w-4" /></Link>
+          <h2 className="mt-4 max-w-3xl text-3xl font-semibold tracking-tight md:text-5xl">Choose a plan first. Then create your company account.</h2>
+          <p className="mt-5 max-w-2xl text-white/62 leading-7">Your account keeps the selected plan, billing status, company workspace, dispatcher tools, driver access, and app installation tied together.</p>
+          <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
+            <Link href="/plans" className="inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-500 px-7 py-4 font-bold text-white transition hover:bg-emerald-400">View Plans <ArrowRight className="h-4 w-4" /></Link>
+            <Link href="/auth?mode=login" className="inline-flex items-center justify-center rounded-xl border border-cyan-300/20 bg-cyan-500/10 px-7 py-4 font-semibold text-cyan-100 transition hover:bg-cyan-500/15">Customer Log In</Link>
             <button type="button" onClick={() => setCustomModalOpen(true)} className="inline-flex items-center justify-center rounded-xl border border-rose-300/20 bg-rose-500/10 px-7 py-4 font-semibold text-rose-100 transition hover:bg-rose-500/15">Need a Custom Version?</button>
           </div>
         </div>
