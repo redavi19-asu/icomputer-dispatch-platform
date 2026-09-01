@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import Link from "next/link";
 import { useState } from "react";
 import DispatchPreviewMap from "@/components/marketing/dispatch-preview-map";
+import CustomVersionModal from "@/components/marketing/custom-version-modal";
 import {
   ArrowRight,
   Building2,
@@ -50,6 +51,7 @@ const toneClasses: Record<string, string> = {
 
 export default function Home() {
   const [globeVideoFailed, setGlobeVideoFailed] = useState(false);
+  const [customModalOpen, setCustomModalOpen] = useState(false);
 
   const withBasePath = (path: string) => {
     const base = process.env.NODE_ENV === "production" ? "/icomputer-dispatch-platform" : "";
@@ -146,12 +148,14 @@ export default function Home() {
           <p className="mt-5 max-w-2xl text-white/62 leading-7">The public page stops here. Dispatcher controls, driver tools, booking management, company settings, billing, and app installation belong on the customer side.</p>
           <div className="mt-8 flex flex-col gap-3 sm:flex-row">
             <Link href="/subscribe" className="inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-500 px-7 py-4 font-bold text-white transition hover:bg-emerald-400">View Plans & Subscribe <ArrowRight className="h-4 w-4" /></Link>
-            <a href="https://redavi19-asu.github.io/icomuteranythingV3/" className="inline-flex items-center justify-center rounded-xl border border-rose-300/20 bg-rose-500/10 px-7 py-4 font-semibold text-rose-100 transition hover:bg-rose-500/15">Need a Custom Version?</a>
+            <button type="button" onClick={() => setCustomModalOpen(true)} className="inline-flex items-center justify-center rounded-xl border border-rose-300/20 bg-rose-500/10 px-7 py-4 font-semibold text-rose-100 transition hover:bg-rose-500/15">Need a Custom Version?</button>
           </div>
         </div>
       </section>
 
       <footer className="border-t border-white/10 bg-black/60"><div className="mx-auto flex max-w-7xl flex-col gap-2 px-6 py-8 text-sm text-white/60 md:flex-row md:items-center md:justify-between"><a href="https://redavi19-asu.github.io/icomuteranythingV3/" className="font-medium text-cyan-200">Built by I Computer Anything</a><p className="text-xs">DispatchOS — field service operations software</p></div></footer>
+
+      <CustomVersionModal open={customModalOpen} onClose={() => setCustomModalOpen(false)} />
     </main>
   );
 }
