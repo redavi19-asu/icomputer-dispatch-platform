@@ -1,0 +1,27 @@
+{
+  "id": "/driver",
+  "name": "DispatchOS Driver",
+  "short_name": "DriverOS",
+  "description": "Installable DispatchOS driver mission app for mobile operations.",
+  "start_url": "/driver",
+  "scope": "/driver",
+  "display": "standalone",
+  "background_color": "#020617",
+  "theme_color": "#020617",
+  "orientation": "portrait",
+  "categories": ["business", "productivity", "navigation"],
+  "icons": [
+    {
+      "src": "/driver-app-icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "/driver-app-icon-maskable.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    }
+  ]
+}
