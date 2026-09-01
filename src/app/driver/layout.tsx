@@ -4,6 +4,12 @@ export const metadata: Metadata = {
   title: "DispatchOS Driver",
   description: "Mobile-first driver mission app for DispatchOS.",
   applicationName: "DispatchOS Driver",
+  manifest: "/driver.webmanifest",
+  appleWebApp: {
+    capable: true,
+    title: "DispatchOS Driver",
+    statusBarStyle: "black-translucent",
+  },
 };
 
 export const viewport: Viewport = {
