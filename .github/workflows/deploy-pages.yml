@@ -41,6 +41,7 @@ jobs:
       - name: Build static export
         env:
           GITHUB_PAGES: true
+          NEXT_PUBLIC_DISPATCHOS_API_URL: https://dispatchos-auth-api.ryanedavis.workers.dev
         run: npm run build:export
 
       - name: Disable Jekyll processing
