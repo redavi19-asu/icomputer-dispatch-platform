@@ -1,4 +1,5 @@
 import authWorker from "./index";
+import { handleDriverInviteAcceptance } from "./invite-accept";
 import { handleOperationsRequest } from "./operations";
 
 interface Env {
@@ -11,8 +12,12 @@ interface Env {
 
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
+    const inviteAcceptanceResponse = await handleDriverInviteAcceptance(request, env);
+    if (inviteAcceptanceResponse) return inviteAcceptanceResponse;
+
     const operationsResponse = await handleOperationsRequest(request, env);
     if (operationsResponse) return operationsResponse;
+
     return authWorker.fetch(request, env);
   },
 };
