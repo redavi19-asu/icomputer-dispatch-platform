@@ -1,3 +1,5 @@
+import { resolveTenantSlug } from "@/lib/platform/tenant-context";
+
 export type JobIntakeSource = "booking" | "dashboard" | "both";
 export type DispatchMode = "Manual" | "Assisted" | "Auto";
 export type DriverAcceptanceMode = "manual" | "auto";
@@ -143,30 +145,37 @@ export const normalizeWorkspaceSettings = (
 };
 
 export const readWorkspaceSettings = (companySlug = "company"): WorkspaceSettingsState => {
+  const resolvedSlug = resolveTenantSlug(companySlug);
+
   if (typeof window === "undefined") {
-    return { ...defaultWorkspaceSettings, companySlug };
+    return { ...defaultWorkspaceSettings, companySlug: resolvedSlug };
   }
 
-  const raw = window.localStorage.getItem(getKey(companySlug));
+  const raw = window.localStorage.getItem(getKey(resolvedSlug));
   if (!raw) {
-    return { ...defaultWorkspaceSettings, companySlug };
+    return { ...defaultWorkspaceSettings, companySlug: resolvedSlug };
   }
 
   try {
-    return normalizeWorkspaceSettings(JSON.parse(raw), companySlug);
+    const normalized = normalizeWorkspaceSettings(JSON.parse(raw), resolvedSlug);
+    return { ...normalized, companySlug: resolvedSlug };
   } catch {
-    return { ...defaultWorkspaceSettings, companySlug };
+    return { ...defaultWorkspaceSettings, companySlug: resolvedSlug };
   }
 };
 
 export const writeWorkspaceSettings = (settings: WorkspaceSettingsState): WorkspaceSettingsState => {
-  const normalized = normalizeWorkspaceSettings(settings, settings.companySlug || "company");
+  const resolvedSlug = resolveTenantSlug(settings.companySlug || "company");
+  const normalized = normalizeWorkspaceSettings(
+    { ...settings, companySlug: resolvedSlug },
+    resolvedSlug
+  );
 
   if (typeof window !== "undefined") {
-    window.localStorage.setItem(getKey(normalized.companySlug), JSON.stringify(normalized));
+    window.localStorage.setItem(getKey(resolvedSlug), JSON.stringify(normalized));
     window.dispatchEvent(
       new CustomEvent(WORKSPACE_SETTINGS_UPDATED_EVENT, {
-        detail: { companySlug: normalized.companySlug },
+        detail: { companySlug: resolvedSlug },
       })
     );
   }
