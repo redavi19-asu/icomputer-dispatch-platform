@@ -8,8 +8,10 @@ import {
   Download,
   Laptop2,
   MonitorSmartphone,
+  Route,
   ShieldCheck,
   Smartphone,
+  WalletCards,
   Wrench,
 } from "lucide-react";
 import { AppShellNav } from "@/components/platform/app-shell-nav";
@@ -85,6 +87,7 @@ export default function DownloadCenterPage() {
             <div className="mt-6 space-y-3 text-sm text-white/65">
               <p className="flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-emerald-300" /> Company identity and preferences already configured</p>
               <p className="flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-emerald-300" /> Licensed for up to {seatLabel(entitlements.maxDispatcherSeats)} dispatcher seat{entitlements.maxDispatcherSeats === 1 ? "" : "s"}</p>
+              <p className="flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-emerald-300" /> Driver mileage totals and completed-job pay calculator included</p>
               <p className="flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-emerald-300" /> Launches as an app-style experience</p>
             </div>
             <Link href="/dashboard/install" className="mt-8 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-cyan-400 px-5 py-4 font-bold text-slate-950 hover:bg-cyan-300"><Download className="h-5 w-5" /> Install Dispatcher <ArrowRight className="h-4 w-4" /></Link>
@@ -97,11 +100,28 @@ export default function DownloadCenterPage() {
             <div className="mt-6 space-y-3 text-sm text-white/65">
               <p className="flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-emerald-300" /> Connected to the same company workspace</p>
               <p className="flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-emerald-300" /> Licensed for up to {seatLabel(entitlements.maxDrivers)} driver accounts</p>
+              <p className="flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-emerald-300" /> Tracks mission mileage used by the company pay calculator</p>
               <p className="flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-emerald-300" /> Driver access is managed from your portal</p>
             </div>
             <Link href="/driver/install" className="mt-8 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-emerald-400 px-5 py-4 font-bold text-slate-950 hover:bg-emerald-300"><Download className="h-5 w-5" /> Install Driver App <ArrowRight className="h-4 w-4" /></Link>
           </article>
         </div>
+
+        <section className="mt-8 rounded-[2rem] border border-fuchsia-400/20 bg-[linear-gradient(145deg,rgba(88,28,135,.18),rgba(2,6,23,.88)_58%,rgba(8,47,73,.28))] p-7 md:p-9">
+          <div className="flex flex-wrap items-start justify-between gap-5">
+            <div className="max-w-3xl">
+              <div className="flex items-center gap-3"><WalletCards className="h-7 w-7 text-fuchsia-300" /><p className="text-xs font-semibold uppercase tracking-[0.2em] text-fuchsia-200">Included with the standard install</p></div>
+              <h2 className="mt-4 text-2xl font-semibold md:text-3xl">Driver Pay + Mileage Calculator</h2>
+              <p className="mt-3 text-sm leading-6 text-white/58">DispatchOS can track driver mission mileage, apply company-defined pay rules, and calculate what each driver earned from completed jobs. The company can review daily miles, completed jobs, and calculated earnings without buying a separate payroll system.</p>
+            </div>
+            <div className="rounded-2xl border border-amber-300/20 bg-amber-500/10 px-4 py-3 text-xs leading-5 text-amber-100/80">Actual payroll processing, bank payouts, automatic ACH, or third-party payroll connections are optional custom integrations.</div>
+          </div>
+          <div className="mt-6 grid gap-4 md:grid-cols-3">
+            <div className="rounded-2xl border border-white/10 bg-black/20 p-5"><Route className="h-5 w-5 text-cyan-300" /><p className="mt-3 font-semibold">Mileage</p><p className="mt-2 text-sm leading-6 text-white/50">Track mission mileage and review driver distance totals.</p></div>
+            <div className="rounded-2xl border border-white/10 bg-black/20 p-5"><WalletCards className="h-5 w-5 text-fuchsia-300" /><p className="mt-3 font-semibold">Pay Rules</p><p className="mt-2 text-sm leading-6 text-white/50">Set job, mileage, or percentage-based driver pay rules.</p></div>
+            <div className="rounded-2xl border border-white/10 bg-black/20 p-5"><CheckCircle2 className="h-5 w-5 text-emerald-300" /><p className="mt-3 font-semibold">Daily Totals</p><p className="mt-2 text-sm leading-6 text-white/50">See completed jobs, miles driven, and calculated earnings by driver.</p></div>
+          </div>
+        </section>
 
         <div className="mt-8 grid gap-6 lg:grid-cols-[1.15fr_.85fr]">
           <section className="rounded-3xl border border-white/10 bg-white/[0.03] p-7 md:p-8">
@@ -115,7 +135,7 @@ export default function DownloadCenterPage() {
         <section id="custom-integration" className="mt-8 rounded-[2rem] border border-violet-400/20 bg-violet-500/[0.05] p-7 md:p-9">
           <Wrench className="h-7 w-7 text-violet-300" />
           <h2 className="mt-5 text-2xl font-semibold">Custom company integration</h2>
-          <p className="mt-3 max-w-3xl text-sm leading-6 text-white/58">Website request forms, customer intake, booking systems, custom branding, special workflow rules, and existing company systems are optional integrations. They are not part of the standard company portal and can be connected separately through I Computer Anything.</p>
+          <p className="mt-3 max-w-3xl text-sm leading-6 text-white/58">Payroll providers, automatic payouts, bank/ACH connections, website request forms, customer intake, booking systems, custom branding, special workflow rules, and existing company systems are optional integrations. They are not part of the standard company portal and can be connected separately through I Computer Anything.</p>
           <button type="button" onClick={() => setCustomModalOpen(true)} className="mt-6 inline-flex items-center gap-2 rounded-xl border border-violet-300/25 bg-violet-500/10 px-5 py-3 text-sm font-semibold text-violet-100 hover:bg-violet-500/15">Contact for Custom Setup <ArrowRight className="h-4 w-4" /></button>
         </section>
       </section>
