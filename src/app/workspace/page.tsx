@@ -122,21 +122,31 @@ export default function WorkspacePage() {
           {portalCards.map((entry) => (
             <Card
               key={entry.title}
-              className={`h-full rounded-3xl text-white shadow-none ${
+              className={`group relative h-full overflow-hidden rounded-3xl text-white shadow-none transition duration-300 hover:-translate-y-1 ${
                 entry.featured
-                  ? "border border-cyan-400/30 bg-cyan-500/10"
-                  : "border border-white/10 bg-white/5"
+                  ? "border border-cyan-300/35 bg-[linear-gradient(145deg,rgba(8,47,73,.96),rgba(6,78,59,.78)_55%,rgba(8,47,73,.92))] shadow-[0_0_45px_rgba(34,211,238,.12)]"
+                  : "border border-white/10 bg-white/5 hover:border-cyan-400/20 hover:bg-white/[0.065]"
               }`}
             >
-              <CardContent className="flex h-full flex-col p-6">
-                <entry.icon className={`h-8 w-8 ${entry.featured ? "text-cyan-200" : "text-cyan-300"}`} />
+              {entry.featured ? (
+                <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_18%_15%,rgba(34,211,238,.28),transparent_32%),radial-gradient(circle_at_88%_82%,rgba(52,211,153,.22),transparent_34%)]" />
+              ) : null}
+              <CardContent className="relative flex h-full flex-col p-6">
+                <div className={`flex h-12 w-12 items-center justify-center rounded-2xl ${entry.featured ? "border border-cyan-200/30 bg-cyan-300/15" : "bg-cyan-500/10"}`}>
+                  <entry.icon className={`h-7 w-7 ${entry.featured ? "text-cyan-100" : "text-cyan-300"}`} />
+                </div>
+                {entry.featured ? (
+                  <span className="mt-5 w-fit rounded-full border border-emerald-300/25 bg-emerald-400/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[.16em] text-emerald-100">
+                    Install your apps
+                  </span>
+                ) : null}
                 <h3 className="mt-5 text-2xl font-semibold">{entry.title}</h3>
                 <p className="mt-3 flex-1 text-sm leading-6 text-white/68">{entry.description}</p>
                 <Link
                   href={entry.href}
                   className={`mt-6 inline-flex items-center justify-center gap-2 rounded-xl px-4 py-3 text-sm font-semibold transition ${
                     entry.featured
-                      ? "bg-cyan-400 text-slate-950 hover:bg-cyan-300"
+                      ? "border border-cyan-200/20 bg-cyan-300 text-slate-950 shadow-[0_8px_28px_rgba(34,211,238,.18)] hover:bg-cyan-200"
                       : "border border-cyan-400/35 bg-cyan-500/15 text-cyan-100 hover:bg-cyan-500/25"
                   }`}
                 >
