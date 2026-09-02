@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import ProtectedRoute from "@/components/auth/protected-route";
+import { DriverAppShell } from "@/components/driver/driver-app-shell";
 
 export const metadata: Metadata = {
   title: "DispatchOS Driver",
@@ -26,5 +27,9 @@ export default function DriverLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  return <ProtectedRoute requireActiveSubscription>{children}</ProtectedRoute>;
+  return (
+    <ProtectedRoute requireActiveSubscription>
+      <DriverAppShell>{children}</DriverAppShell>
+    </ProtectedRoute>
+  );
 }
