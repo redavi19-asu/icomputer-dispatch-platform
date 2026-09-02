@@ -13,6 +13,7 @@ import {
   Wrench,
 } from "lucide-react";
 import { AppShellNav } from "@/components/platform/app-shell-nav";
+import CustomVersionModal from "@/components/marketing/custom-version-modal";
 import { getStoredSession, type DispatchOSSession } from "@/lib/dispatchos-auth";
 import { readWorkspaceSettings, type WorkspaceSettingsState } from "@/lib/platform/workspace-preferences";
 
@@ -21,6 +22,7 @@ const basePath = () => (process.env.NODE_ENV === "production" ? "/icomputer-disp
 export default function DownloadCenterPage() {
   const [session, setSession] = useState<DispatchOSSession | null>(null);
   const [settings, setSettings] = useState<WorkspaceSettingsState | null>(null);
+  const [customModalOpen, setCustomModalOpen] = useState(false);
 
   useEffect(() => {
     const stored = getStoredSession();
@@ -88,9 +90,10 @@ export default function DownloadCenterPage() {
           <Wrench className="h-7 w-7 text-violet-300" />
           <h2 className="mt-5 text-2xl font-semibold">Custom company integration</h2>
           <p className="mt-3 max-w-3xl text-sm leading-6 text-white/58">Website request forms, customer intake, booking systems, custom branding, special workflow rules, and existing company systems are optional integrations. They are not part of the standard company portal and can be connected separately through I Computer Anything.</p>
-          <a href="https://redavi19-asu.github.io/icomuteranythingV3/" className="mt-6 inline-flex items-center gap-2 rounded-xl border border-violet-300/25 bg-violet-500/10 px-5 py-3 text-sm font-semibold text-violet-100 hover:bg-violet-500/15">Contact for Custom Setup <ArrowRight className="h-4 w-4" /></a>
+          <button type="button" onClick={() => setCustomModalOpen(true)} className="mt-6 inline-flex items-center gap-2 rounded-xl border border-violet-300/25 bg-violet-500/10 px-5 py-3 text-sm font-semibold text-violet-100 hover:bg-violet-500/15">Contact for Custom Setup <ArrowRight className="h-4 w-4" /></button>
         </section>
       </section>
+      <CustomVersionModal open={customModalOpen} onClose={() => setCustomModalOpen(false)} />
     </main>
   );
 }
