@@ -1,0 +1,12 @@
+name = "dispatchos-auth-api"
+main = "src/index.ts"
+compatibility_date = "2026-08-01"
+
+[vars]
+ALLOWED_ORIGINS = "https://redavi19-asu.github.io,http://localhost:3000"
+ADMIN_EMAIL = "Ryanedavis@gmail.com"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "dispatchos"
+database_id = "078cf17d-03b2-41fd-a96e-f330630f92a7"
