@@ -2,6 +2,7 @@ interface Env {
   DB: D1Database;
   ALLOWED_ORIGINS: string;
   ADMIN_EMAIL?: string;
+  TURNSTILE_SECRET_KEY?: string;
 }
 
 type RegisterBody = {
@@ -10,15 +11,25 @@ type RegisterBody = {
   email?: string;
   password?: string;
   plan?: string;
+  turnstileToken?: string;
 };
 
 type LoginBody = {
   email?: string;
   password?: string;
+  turnstileToken?: string;
+};
+
+type TurnstileResult = {
+  success: boolean;
+  hostname?: string;
+  action?: string;
+  "error-codes"?: string[];
 };
 
 const encoder = new TextEncoder();
 const SESSION_DAYS = 7;
+const TURNSTILE_VERIFY_URL = "https://challenges.cloudflare.com/turnstile/v0/siteverify";
 
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
@@ -32,7 +43,7 @@ export default {
 
     try {
       if (url.pathname === "/health" && request.method === "GET") {
-        return json({ ok: true, service: "dispatchos-auth" }, 200, cors);
+        return json({ ok: true, service: "dispatchos-auth", turnstile: Boolean(clean(env.TURNSTILE_SECRET_KEY)) }, 200, cors);
       }
 
       if (url.pathname === "/auth/register" && request.method === "POST") {
@@ -61,6 +72,9 @@ export default {
 
 async function register(request: Request, env: Env, cors: HeadersInit) {
   const body = (await request.json()) as RegisterBody;
+  const turnstileError = await turnstileGuard(request, env, body.turnstileToken, cors);
+  if (turnstileError) return turnstileError;
+
   const name = clean(body.name);
   const companyName = clean(body.companyName);
   const email = clean(body.email).toLowerCase();
@@ -103,6 +117,9 @@ async function register(request: Request, env: Env, cors: HeadersInit) {
 
 async function login(request: Request, env: Env, cors: HeadersInit) {
   const body = (await request.json()) as LoginBody;
+  const turnstileError = await turnstileGuard(request, env, body.turnstileToken, cors);
+  if (turnstileError) return turnstileError;
+
   const email = clean(body.email).toLowerCase();
   const password = body.password || "";
 
@@ -121,6 +138,44 @@ async function login(request: Request, env: Env, cors: HeadersInit) {
 
   const session = await createSession(env.DB, user.id);
   return json(await sessionPayload(env.DB, user.id, session.token), 200, cors);
+}
+
+async function turnstileGuard(request: Request, env: Env, token: string | undefined, cors: HeadersInit) {
+  const secret = clean(env.TURNSTILE_SECRET_KEY);
+  if (!secret) return null;
+
+  const responseToken = clean(token);
+  if (!responseToken) {
+    return json({ error: "Please complete the security check." }, 400, cors);
+  }
+
+  try {
+    const verification = await fetch(TURNSTILE_VERIFY_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        secret,
+        response: responseToken,
+        remoteip: request.headers.get("CF-Connecting-IP") || undefined,
+      }),
+    });
+
+    if (!verification.ok) {
+      console.error("Turnstile Siteverify HTTP error", verification.status);
+      return json({ error: "Security verification is temporarily unavailable. Please try again." }, 503, cors);
+    }
+
+    const result = (await verification.json()) as TurnstileResult;
+    if (!result.success) {
+      console.warn("Turnstile verification failed", result["error-codes"] || []);
+      return json({ error: "Security verification failed. Please try again." }, 403, cors);
+    }
+
+    return null;
+  } catch (error) {
+    console.error("Turnstile verification error", error);
+    return json({ error: "Security verification is temporarily unavailable. Please try again." }, 503, cors);
+  }
 }
 
 async function me(request: Request, env: Env, cors: HeadersInit) {
