@@ -41,8 +41,8 @@ const portalCards = [
     icon: CarFront,
   },
   {
-    title: "Driver Pay & Earnings",
-    description: "Set driver pay rules, calculate completed-job earnings and mileage, review daily totals, and prepare manual or automatic payouts.",
+    title: "Driver Pay + Mileage Calculator",
+    description: "Set driver pay rules, calculate completed-job earnings from tracked mileage, and review daily driver totals. Payroll and automatic payout connections are optional integrations.",
     href: "/workspace/driver-pay",
     cta: "Open Driver Pay",
     icon: WalletCards,
@@ -64,7 +64,7 @@ const portalCards = [
   },
   {
     title: "Custom Integration",
-    description: "Need your website, forms, intake flow, branding, or company systems connected to DispatchOS? See what can be connected before requesting a quote.",
+    description: "Need payroll, payouts, your website, forms, intake flow, branding, or company systems connected to DispatchOS? See what can be connected before requesting a quote.",
     cta: "View Integration Options",
     icon: LifeBuoy,
     customIntegration: true,
@@ -110,7 +110,7 @@ export default function WorkspacePage() {
             {settings.companyName} workspace
           </h1>
           <p className="mt-5 max-w-3xl text-base leading-7 text-white/70 md:text-lg">
-            Manage the company account here. Configure preferences, manage drivers, review driver earnings, review billing, and install DispatchOS on the devices your team actually uses.
+            Manage the company account here. Configure preferences, manage drivers, review driver mileage and calculated earnings, review billing, and install DispatchOS on the devices your team actually uses.
           </p>
           <p className="mt-4 max-w-3xl text-sm leading-6 text-cyan-100/70">
             Daily dispatch work happens inside the installed Dispatcher app. Drivers work from the installed Driver app. This portal is for company administration.
