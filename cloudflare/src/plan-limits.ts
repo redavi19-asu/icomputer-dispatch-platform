@@ -79,6 +79,18 @@ export async function ensureDriverSeatAvailable(
   return { ok: used < limits.maxDrivers, limits, used };
 }
 
+export async function ensureDispatcherSeatAvailable(
+  db: D1Database,
+  companyId: string
+): Promise<{ ok: true; limits: DispatchPlanLimits; used: number } | { ok: false; limits: DispatchPlanLimits; used: number }> {
+  const [limits, used] = await Promise.all([
+    companyPlanLimits(db, companyId),
+    companyDispatcherSeatCount(db, companyId),
+  ]);
+  if (limits.maxDispatcherSeats === null) return { ok: true, limits, used };
+  return { ok: used < limits.maxDispatcherSeats, limits, used };
+}
+
 export async function handlePlanLimitRequest(
   request: Request,
   env: PlanEnv
@@ -87,14 +99,55 @@ export async function handlePlanLimitRequest(
   const isUsage = url.pathname === "/api/plan-usage";
   const isDriverCreate = url.pathname === "/api/drivers" && request.method === "POST";
   const isInviteCreate = url.pathname === "/api/driver-invites" && request.method === "POST";
+  const isAdminPlanChange =
+    request.method === "PATCH" && /^\/admin\/companies\/[^/]+$/.test(url.pathname);
 
-  if (!isUsage && !isDriverCreate && !isInviteCreate) return null;
+  if (!isUsage && !isDriverCreate && !isInviteCreate && !isAdminPlanChange) return null;
 
   const cors = corsHeaders(request.headers.get("Origin") || "", env.ALLOWED_ORIGINS || "");
   if (request.method === "OPTIONS") return new Response(null, { status: 204, headers: cors });
 
   const account = await resolvePlanAccount(request, env.DB);
   if (!account) return json({ error: "Unauthorized." }, 401, cors);
+
+  if (isAdminPlanChange) {
+    // The normal admin handler still owns authentication/errors. This guard only
+    // blocks a plan change that would leave the company over its paid limits.
+    if (account.userRole !== "admin") return null;
+
+    const body = (await request.json().catch(() => ({}))) as Record<string, unknown>;
+    const requestedPlan = typeof body.plan === "string" ? body.plan.trim().toLowerCase() : "";
+    if (!requestedPlan || !PLAN_LIMITS[requestedPlan]) return null;
+
+    const targetCompanyId = decodeURIComponent(url.pathname.slice("/admin/companies/".length));
+    if (!targetCompanyId) return null;
+
+    const targetLimits = limitsForPlan(requestedPlan);
+    const [drivers, dispatcherSeats] = await Promise.all([
+      companyDriverCount(env.DB, targetCompanyId),
+      companyDispatcherSeatCount(env.DB, targetCompanyId),
+    ]);
+
+    const driverOverflow =
+      targetLimits.maxDrivers !== null && drivers > targetLimits.maxDrivers;
+    const dispatcherOverflow =
+      targetLimits.maxDispatcherSeats !== null && dispatcherSeats > targetLimits.maxDispatcherSeats;
+
+    if (driverOverflow || dispatcherOverflow) {
+      return json({
+        error: `This company cannot switch to ${planLabel(targetLimits.plan)} until its usage is within the plan limits.`,
+        code: "PLAN_DOWNGRADE_USAGE_EXCEEDS_LIMIT",
+        requestedPlan: targetLimits.plan,
+        usage: { drivers, dispatcherSeats },
+        limits: {
+          drivers: targetLimits.maxDrivers,
+          dispatcherSeats: targetLimits.maxDispatcherSeats,
+        },
+      }, 409, cors);
+    }
+
+    return null;
+  }
 
   const limits = limitsForPlan(account.plan);
 
