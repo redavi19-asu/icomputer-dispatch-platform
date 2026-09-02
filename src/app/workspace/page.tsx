@@ -1,223 +1,150 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import {
   ArrowRight,
   Building2,
   CarFront,
   CreditCard,
   Download,
-  LayoutDashboard,
-  MonitorDown,
+  LifeBuoy,
   Settings2,
-  Smartphone,
-  Wand2,
 } from "lucide-react";
 
 import { Card, CardContent } from "@/components/ui/card";
 import { AppShellNav } from "@/components/platform/app-shell-nav";
+import { getStoredSession, type DispatchOSSession } from "@/lib/dispatchos-auth";
 import {
   readWorkspaceSettings,
   type WorkspaceSettingsState,
 } from "@/lib/platform/workspace-preferences";
 
-const WORKSPACE_SETTINGS_UPDATED_EVENT = "dispatch:workspace-settings-updated";
+const basePath = () => (process.env.NODE_ENV === "production" ? "/icomputer-dispatch-platform" : "");
 
-const workspaceCards = [
+const portalCards = [
   {
-    key: "driverInstall",
-    title: "Driver App",
-    description: "Install the mobile driver experience on a phone or tablet for missions, navigation, and field status updates.",
-    href: "/driver/install",
-    cta: "Install Driver App",
-    icon: Smartphone,
-    featured: true,
-  },
-  {
-    key: "dispatcherInstall",
-    title: "Dispatcher App",
-    description: "Install the operations dashboard on a desktop or laptop for a dedicated dispatch workspace.",
-    href: "/dashboard/install",
-    cta: "Install Dispatcher",
-    icon: MonitorDown,
-    featured: true,
-  },
-  {
-    key: "settings",
-    title: "Settings",
-    description: "Configure company-level preferences for intake, dispatching, and driver app usage.",
+    title: "Company Settings",
+    description: "Update company identity, dispatch preferences, driver workflow, verification, and operating rules.",
     href: "/workspace/settings",
-    cta: "Open Settings",
+    cta: "Open Company Settings",
     icon: Settings2,
   },
   {
-    key: "billing",
-    title: "Billing",
-    description: "Review subscription plan details, payment status, and invoice activity.",
-    href: "/billing",
-    cta: "Open Billing",
-    icon: CreditCard,
-  },
-  {
-    key: "drivers",
     title: "Driver Management",
-    description: "Manage driver roster, invitation state, and account access readiness.",
+    description: "Add drivers, manage access, review invite status, and prepare your field team for the Driver app.",
     href: "/workspace/drivers",
     cta: "Manage Drivers",
     icon: CarFront,
   },
   {
-    key: "booking",
-    title: "Booking Page",
-    description: "Customer-facing booking flow for request intake and dispatch handoff.",
-    href: "/build-electric/booking",
-    cta: "Open Booking",
-    icon: Wand2,
+    title: "Billing",
+    description: "Review your DispatchOS subscription, billing status, plan information, and future invoice activity.",
+    href: "/billing",
+    cta: "Open Billing",
+    icon: CreditCard,
   },
   {
-    key: "dispatch",
-    title: "Dispatch Dashboard",
-    description: "Operate live jobs, assignment flow, queue management, and map visibility.",
-    href: "/dashboard",
-    cta: "Open Dashboard",
-    icon: LayoutDashboard,
+    title: "Downloads",
+    description: "Install the Dispatcher app on office devices and the Driver app on authorized field devices.",
+    href: "/download",
+    cta: "Open Download Center",
+    icon: Download,
+    featured: true,
   },
   {
-    key: "workspace",
-    title: "Workspace",
-    description: "Workspace overview and launch point for company operations.",
-    href: "/workspace",
-    cta: "Open Workspace",
-    icon: Building2,
+    title: "Custom Integration",
+    description: "Need your website, forms, intake flow, branding, or company systems connected to DispatchOS? Custom setup is handled separately.",
+    href: "/download#custom-integration",
+    cta: "View Integration Options",
+    icon: LifeBuoy,
   },
 ];
 
 export default function WorkspacePage() {
-  const [settings, setSettings] = useState<WorkspaceSettingsState>(() =>
-    readWorkspaceSettings("build-electric")
-  );
+  const [session, setSession] = useState<DispatchOSSession | null>(null);
+  const [settings, setSettings] = useState<WorkspaceSettingsState | null>(null);
 
   useEffect(() => {
-    const syncSettings = () => {
-      setSettings(readWorkspaceSettings("build-electric"));
-    };
+    const stored = getStoredSession();
+    if (!stored) {
+      window.location.href = `${basePath()}/auth?mode=login`;
+      return;
+    }
 
-    syncSettings();
-    window.addEventListener("storage", syncSettings);
-    window.addEventListener(WORKSPACE_SETTINGS_UPDATED_EVENT, syncSettings as EventListener);
+    const current = readWorkspaceSettings(stored.company.slug);
+    if (!current.setupComplete) {
+      window.location.href = `${basePath()}/workspace/setup`;
+      return;
+    }
 
-    return () => {
-      window.removeEventListener("storage", syncSettings);
-      window.removeEventListener(WORKSPACE_SETTINGS_UPDATED_EVENT, syncSettings as EventListener);
-    };
+    setSession(stored);
+    setSettings(current);
   }, []);
 
-  const cardStates = useMemo(() => {
-    const bookingEnabled =
-      settings.bookingPageEnabled && settings.jobIntakeSource !== "dashboard";
-    const driversEnabled = settings.driverAppEnabled;
-
-    return {
-      bookingEnabled,
-      driversEnabled,
-    };
-  }, [settings.bookingPageEnabled, settings.driverAppEnabled, settings.jobIntakeSource]);
+  if (!session || !settings) return <main className="min-h-screen bg-slate-950" />;
 
   return (
     <main className="min-h-screen bg-slate-950 text-white">
       <AppShellNav />
+
       <section className="relative overflow-hidden border-b border-white/10">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_15%_20%,rgba(34,211,238,0.2),transparent_30%),radial-gradient(circle_at_80%_60%,rgba(14,165,233,0.16),transparent_36%)]" />
         <div className="relative mx-auto max-w-7xl px-6 py-16 md:py-24">
-          <p className="text-xs uppercase tracking-[0.25em] text-cyan-300">Company Workspace</p>
+          <div className="flex items-center gap-2 text-xs uppercase tracking-[0.25em] text-cyan-300">
+            <Building2 className="h-4 w-4" /> Company Account Portal
+          </div>
           <h1 className="mt-4 max-w-4xl text-4xl font-semibold tracking-tight md:text-6xl">
-            {settings.companyName} control center
+            {settings.companyName} workspace
           </h1>
           <p className="mt-5 max-w-3xl text-base leading-7 text-white/70 md:text-lg">
-            Centralize dispatch operations, booking access, driver management, billing, and platform
-            settings from one workspace hub.
+            Manage the company account here. Configure preferences, manage drivers, review billing, and install DispatchOS on the devices your team actually uses.
           </p>
-          <p className="mt-3 max-w-3xl text-sm text-cyan-200/85">
-            Install the Driver app on field devices and the Dispatcher app on office computers, then manage the rest of the company from here.
+          <p className="mt-4 max-w-3xl text-sm leading-6 text-cyan-100/70">
+            Daily dispatch work happens inside the installed Dispatcher app. Drivers work from the installed Driver app. This portal is for company administration.
           </p>
 
-          <div className="mt-6 flex flex-wrap gap-2 text-xs">
-            <span className="rounded-full border border-cyan-400/30 bg-cyan-500/10 px-3 py-1 text-cyan-200">
-              Dispatch Mode: {settings.dispatchMode}
-            </span>
-            <span className="rounded-full border border-cyan-400/30 bg-cyan-500/10 px-3 py-1 text-cyan-200">
-              Driver Acceptance: {settings.driverAcceptanceMode}
-            </span>
-            <span className="rounded-full border border-white/20 bg-white/10 px-3 py-1 text-white/75">
-              Intake: {settings.jobIntakeSource}
-            </span>
+          <div className="mt-7 flex flex-wrap gap-2 text-xs">
+            <span className="rounded-full border border-cyan-400/30 bg-cyan-500/10 px-3 py-1 text-cyan-200">Plan: {session.subscription?.plan || "Not assigned"}</span>
+            <span className="rounded-full border border-white/20 bg-white/10 px-3 py-1 text-white/75">Dispatch: {settings.dispatchMode}</span>
+            {settings.industry ? <span className="rounded-full border border-white/20 bg-white/10 px-3 py-1 text-white/75">{settings.industry}</span> : null}
           </div>
-
-          {settings.jobIntakeSource === "booking" ? (
-            <p className="mt-4 max-w-2xl rounded-xl border border-emerald-400/30 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-200">
-              Booking-first intake is enabled. Dashboard manual intake actions are reduced.
-            </p>
-          ) : null}
         </div>
       </section>
 
-      <section className="mx-auto max-w-7xl px-6 pt-10">
-        <div className="flex items-center gap-3 text-cyan-200">
-          <Download className="h-5 w-5" />
-          <h2 className="text-lg font-semibold">App Install Center</h2>
+      <section className="mx-auto max-w-7xl px-6 py-10 md:py-14">
+        <div className="mb-7">
+          <p className="text-xs uppercase tracking-[.2em] text-cyan-300">Account controls</p>
+          <h2 className="mt-2 text-2xl font-semibold md:text-3xl">Everything you need before your team starts working</h2>
         </div>
-        <p className="mt-2 max-w-3xl text-sm leading-6 text-white/60">
-          These installers turn the web experience into standalone app windows. Drivers get the mobile interface; dispatchers get the desktop operations interface.
-        </p>
-      </section>
 
-      <section className="mx-auto max-w-7xl px-6 py-8 md:pb-16">
         <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
-          {workspaceCards.map((entry) => {
-            const isDisabled =
-              ((entry.key === "drivers" || entry.key === "driverInstall") && !cardStates.driversEnabled) ||
-              (entry.key === "booking" && !cardStates.bookingEnabled);
-
-            return (
-              <Card
-                key={entry.title}
-                className={`h-full rounded-3xl text-white shadow-none ${
-                  entry.featured
-                    ? "border border-cyan-400/30 bg-cyan-500/10"
-                    : "border border-white/10 bg-white/5"
-                }`}
-              >
-                <CardContent className="flex h-full flex-col p-6">
-                  <entry.icon className={`h-8 w-8 ${entry.featured ? "text-cyan-200" : "text-cyan-300"}`} />
-                  <h2 className="mt-5 text-2xl font-semibold">{entry.title}</h2>
-                  <p className="mt-3 flex-1 text-sm leading-6 text-white/70">
-                    {entry.description}
-                  </p>
-
-                  {isDisabled ? (
-                    <div className="mt-6 inline-flex items-center justify-center gap-2 rounded-xl border border-white/15 bg-white/5 px-4 py-3 text-sm font-semibold text-white/45">
-                      {entry.key === "booking"
-                        ? "Disabled by intake settings"
-                        : "Disabled in workspace settings"}
-                    </div>
-                  ) : (
-                    <Link
-                      href={entry.href}
-                      className={`mt-6 inline-flex items-center justify-center gap-2 rounded-xl px-4 py-3 text-sm font-semibold transition ${
-                        entry.featured
-                          ? "bg-cyan-400 text-slate-950 hover:bg-cyan-300"
-                          : "border border-cyan-400/35 bg-cyan-500/15 text-cyan-100 hover:bg-cyan-500/25"
-                      }`}
-                    >
-                      {entry.cta}
-                      <ArrowRight className="h-4 w-4" />
-                    </Link>
-                  )}
-                </CardContent>
-              </Card>
-            );
-          })}
+          {portalCards.map((entry) => (
+            <Card
+              key={entry.title}
+              className={`h-full rounded-3xl text-white shadow-none ${
+                entry.featured
+                  ? "border border-cyan-400/30 bg-cyan-500/10"
+                  : "border border-white/10 bg-white/5"
+              }`}
+            >
+              <CardContent className="flex h-full flex-col p-6">
+                <entry.icon className={`h-8 w-8 ${entry.featured ? "text-cyan-200" : "text-cyan-300"}`} />
+                <h3 className="mt-5 text-2xl font-semibold">{entry.title}</h3>
+                <p className="mt-3 flex-1 text-sm leading-6 text-white/68">{entry.description}</p>
+                <Link
+                  href={entry.href}
+                  className={`mt-6 inline-flex items-center justify-center gap-2 rounded-xl px-4 py-3 text-sm font-semibold transition ${
+                    entry.featured
+                      ? "bg-cyan-400 text-slate-950 hover:bg-cyan-300"
+                      : "border border-cyan-400/35 bg-cyan-500/15 text-cyan-100 hover:bg-cyan-500/25"
+                  }`}
+                >
+                  {entry.cta} <ArrowRight className="h-4 w-4" />
+                </Link>
+              </CardContent>
+            </Card>
+          ))}
         </div>
       </section>
     </main>
