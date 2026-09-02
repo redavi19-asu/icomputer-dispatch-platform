@@ -1,6 +1,7 @@
 import authWorker from "./index";
 import { handleDriverInviteAcceptance } from "./invite-accept";
 import { handleDriverInviteSeatLimit } from "./invite-seat-limit";
+import { handleDriverPayRequest } from "./driver-pay";
 import { handleOperationsRequest } from "./operations";
 import { handlePlanLimitRequest } from "./plan-limits";
 
@@ -22,6 +23,9 @@ export default {
 
     const planLimitResponse = await handlePlanLimitRequest(request.clone(), env);
     if (planLimitResponse) return planLimitResponse;
+
+    const driverPayResponse = await handleDriverPayRequest(request.clone(), env);
+    if (driverPayResponse) return driverPayResponse;
 
     const operationsResponse = await handleOperationsRequest(request, env);
     if (operationsResponse) return operationsResponse;
