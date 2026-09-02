@@ -69,8 +69,10 @@ export function DriverPayCloudSync() {
         });
 
         for (const earning of localEarnings) {
+          let canonicalEarningId = earning.id;
+
           try {
-            await authRequest("/api/driver-pay/earnings", {
+            const created = await authRequest("/api/driver-pay/earnings", {
               method: "POST",
               body: JSON.stringify({
                 jobId: earning.jobId,
@@ -79,21 +81,25 @@ export function DriverPayCloudSync() {
                 customerCharge: earning.customerCharge ?? null,
               }),
             });
+            if (created?.earning?.id) canonicalEarningId = String(created.earning.id);
           } catch {
-            // The backend may already have the completed-job earning or the job may only exist in demo mode.
+            // The job may only exist in static/demo mode; keep the local ledger intact.
           }
 
           try {
-            await authRequest(`/api/driver-pay/earnings/${encodeURIComponent(earning.id)}`, {
-              method: "PATCH",
-              body: JSON.stringify({
-                status: earning.status,
-                adjustment: earning.adjustment,
-                note: earning.note,
-              }),
-            });
+            await authRequest(
+              `/api/driver-pay/earnings/${encodeURIComponent(canonicalEarningId)}`,
+              {
+                method: "PATCH",
+                body: JSON.stringify({
+                  status: earning.status,
+                  adjustment: earning.adjustment,
+                  note: earning.note,
+                }),
+              }
+            );
           } catch {
-            // A local-only earning has a different ID until the backend creates its canonical record.
+            // Backend unavailable or this is a local-only demo earning.
           }
         }
 
