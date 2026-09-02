@@ -67,6 +67,7 @@ export default {
           publicRegistration: clean(env.PUBLIC_REGISTRATION_ENABLED).toLowerCase() === "true",
           adminConsole: true,
           companyAnalytics: true,
+          companyRemoval: true,
         }, 200, cors);
       }
 
@@ -107,6 +108,11 @@ export default {
       if (url.pathname.startsWith("/admin/companies/") && request.method === "PATCH") {
         const companyId = decodeURIComponent(url.pathname.slice("/admin/companies/".length));
         return await adminUpdateCompany(request, env, cors, companyId);
+      }
+
+      if (url.pathname.startsWith("/admin/companies/") && request.method === "DELETE") {
+        const companyId = decodeURIComponent(url.pathname.slice("/admin/companies/".length));
+        return await adminRemoveCompany(request, env, cors, companyId);
       }
 
       return json({ error: "Not found." }, 404, cors);
@@ -459,6 +465,61 @@ async function adminUpdateCompany(request: Request, env: Env, cors: HeadersInit,
   return json({ ok: true, companyId, ...(plan ? { plan } : {}), ...(status ? { status } : {}) }, 200, cors);
 }
 
+async function adminRemoveCompany(request: Request, env: Env, cors: HeadersInit, companyId: string) {
+  const adminId = await authenticatedAdminUserId(request, env.DB);
+  if (!adminId) return json({ error: "Administrator access required." }, 403, cors);
+  if (!companyId) return json({ error: "Company id is required." }, 400, cors);
+
+  const company = await env.DB.prepare("SELECT id, name FROM companies WHERE id = ?")
+    .bind(companyId)
+    .first<{ id: string; name: string }>();
+  if (!company) return json({ error: "Company not found." }, 404, cors);
+
+  const protectedCompany = await env.DB.prepare(`
+    SELECT 1 AS found
+    FROM memberships m
+    JOIN users u ON u.id = m.user_id
+    WHERE m.company_id = ? AND u.role = 'admin'
+    LIMIT 1
+  `).bind(companyId).first();
+
+  if (protectedCompany) {
+    return json({ error: "The platform administrator company cannot be removed." }, 400, cors);
+  }
+
+  const members = await env.DB.prepare("SELECT user_id FROM memberships WHERE company_id = ?")
+    .bind(companyId)
+    .all<{ user_id: string }>();
+  const memberIds = (members.results || []).map((row) => row.user_id);
+
+  await env.DB.prepare(`
+    DELETE FROM sessions
+    WHERE user_id IN (SELECT user_id FROM memberships WHERE company_id = ?)
+  `).bind(companyId).run();
+
+  const tenantTables = ["jobs", "driver_invites", "company_settings", "drivers", "customers"];
+  for (const table of tenantTables) {
+    if (await tableExists(env.DB, table)) {
+      await env.DB.prepare(`DELETE FROM ${table} WHERE company_id = ?`).bind(companyId).run();
+    }
+  }
+
+  await env.DB.prepare("DELETE FROM subscriptions WHERE company_id = ?").bind(companyId).run();
+  await env.DB.prepare("DELETE FROM memberships WHERE company_id = ?").bind(companyId).run();
+  await env.DB.prepare("DELETE FROM companies WHERE id = ?").bind(companyId).run();
+
+  for (const userId of memberIds) {
+    await env.DB.prepare(`
+      DELETE FROM users
+      WHERE id = ?
+        AND role <> 'admin'
+        AND NOT EXISTS (SELECT 1 FROM memberships WHERE user_id = ?)
+    `).bind(userId, userId).run();
+  }
+
+  return json({ ok: true, companyId, removed: company.name }, 200, cors);
+}
+
 async function turnstileGuard(request: Request, env: Env, token: string | undefined, cors: HeadersInit) {
   const secret = clean(env.TURNSTILE_SECRET_KEY);
   if (!secret) return null;
@@ -656,7 +717,7 @@ function corsHeaders(origin: string, allowedOrigins: string) {
   const allowed = allowedOrigins.split(",").map((item) => item.trim()).filter(Boolean);
   const headers: Record<string, string> = {
     "Access-Control-Allow-Headers": "Content-Type, Authorization",
-    "Access-Control-Allow-Methods": "GET, POST, PATCH, OPTIONS",
+    "Access-Control-Allow-Methods": "GET, POST, PATCH, DELETE, OPTIONS",
     "Vary": "Origin",
   };
   if (origin && allowed.includes(origin)) headers["Access-Control-Allow-Origin"] = origin;
