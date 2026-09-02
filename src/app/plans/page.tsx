@@ -11,18 +11,20 @@ const plans = [
     name: "DispatchOS Basic",
     price: "$49.99",
     cadence: "/month",
-    description: "Core dispatch tools for small service companies that need one clean operating flow.",
+    description: "A complete dispatch system for small teams that need the core workflow without enterprise-sized capacity.",
     icon: Zap,
     accent: "cyan",
     features: [
-      "Company-branded booking page",
-      "Dispatcher dashboard",
-      "Manual job assignment",
+      "Up to 10 drivers / field users",
+      "1 dispatcher / admin seat",
+      "Dispatcher app",
       "Driver mobile app",
-      "Job status updates",
-      "Customer status / tracking page",
-      "Driver and dispatcher app installation",
-      "Core company settings",
+      "Manual job assignment",
+      "Job and field status updates",
+      "Company settings and preferences",
+      "Driver management",
+      "App installation on supported devices",
+      "Standard operations view",
     ],
   },
   {
@@ -30,19 +32,21 @@ const plans = [
     name: "DispatchOS Business",
     price: "$149",
     cadence: "/month",
-    description: "The full operating platform for growing teams that want more automation and control.",
+    description: "More team capacity, more dispatcher access, and deeper operating tools for growing businesses.",
     icon: Crown,
     accent: "emerald",
     featured: true,
     features: [
       "Everything in Basic",
+      "Up to 30 drivers / field users",
+      "Up to 5 dispatcher / admin seats",
       "Assisted and Auto Dispatch",
       "Advanced driver management",
-      "Customer notifications",
+      "Advanced reporting and analytics",
       "Expanded company controls",
-      "Branded company experience",
-      "Reporting and operations tools",
+      "Operations and performance tools",
       "Priority support",
+      "Business-scale team access",
     ],
   },
 ];
@@ -67,7 +71,7 @@ export default function PlansPage() {
             <p className="text-xs uppercase tracking-[0.26em] text-cyan-300">DispatchOS Plans</p>
             <h1 className="mt-4 text-4xl font-semibold tracking-tight md:text-6xl">Pick the operating level your company needs.</h1>
             <p className="mt-5 text-base leading-7 text-white/62 md:text-lg">
-              Start with the complete core workflow, or move up to automation, expanded controls, and deeper operations tools.
+              Both plans include the Dispatcher and Driver apps. Upgrade when your team needs more drivers, more dispatcher seats, automation, and deeper reporting.
             </p>
           </div>
         </div>
@@ -125,12 +129,12 @@ export default function PlansPage() {
               <div className="flex items-center gap-3">
                 <Sparkles className="h-8 w-8 text-violet-300" />
                 <div>
-                  <p className="text-xs uppercase tracking-[0.2em] text-violet-300">Custom DispatchOS</p>
-                  <h2 className="mt-1 text-2xl font-semibold">Need your own workflow?</h2>
+                  <p className="text-xs uppercase tracking-[0.2em] text-violet-300">Custom DispatchOS Integration</p>
+                  <h2 className="mt-1 text-2xl font-semibold">Need DispatchOS connected to your business?</h2>
                 </div>
               </div>
               <p className="mt-4 max-w-3xl text-sm leading-6 text-white/60">
-                Custom branding, industry-specific workflows, special integrations, API connections, or a company-specific build can be scoped separately.
+                Website intake, booking pages, company-specific workflows, branding, API connections, existing business systems, and custom configuration are separate professional services from I Computer Anything. Custom integration is not included in Basic or Business and is quoted based on the work required.
               </p>
             </div>
             <button
@@ -145,7 +149,7 @@ export default function PlansPage() {
 
         <div className="mt-10 flex items-start gap-3 rounded-2xl border border-emerald-400/15 bg-emerald-500/[0.05] p-5 text-sm text-emerald-100/80">
           <ShieldCheck className="mt-0.5 h-5 w-5 shrink-0 text-emerald-300" />
-          Your company account is created before payment so your selected plan, company workspace, billing status, and future team access stay tied to one secure account.
+          Your subscription controls your company capacity and platform access. Custom website, booking, and system integration is always scoped and quoted separately.
         </div>
       </section>
 
