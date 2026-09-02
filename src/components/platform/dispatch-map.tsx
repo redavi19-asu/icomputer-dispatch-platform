@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import mapboxgl from "mapbox-gl";
+import type { Map as LeafletMap } from "leaflet";
 import type { Driver } from "@/lib/platform/types";
 
 type DispatchMapProps = {
@@ -13,18 +13,18 @@ type DispatchMapProps = {
 const zoneToCoordinate = (zone: string | undefined, index: number): [number, number] => {
   const normalized = (zone ?? "").toLowerCase();
 
-  if (normalized.includes("north")) return [-77.0588, 38.9049];
-  if (normalized.includes("central")) return [-77.0441, 38.8965];
-  if (normalized.includes("south")) return [-77.0317, 38.888];
-  if (normalized.includes("east")) return [-77.0215, 38.8938];
-  if (normalized.includes("west")) return [-77.066, 38.8929];
+  if (normalized.includes("north")) return [38.9049, -77.0588];
+  if (normalized.includes("central")) return [38.8965, -77.0441];
+  if (normalized.includes("south")) return [38.888, -77.0317];
+  if (normalized.includes("east")) return [38.8938, -77.0215];
+  if (normalized.includes("west")) return [38.8929, -77.066];
 
   const fallbackOffsets: Array<[number, number]> = [
-    [-77.0588, 38.9049],
-    [-77.0441, 38.8965],
-    [-77.0317, 38.888],
-    [-77.0224, 38.901],
-    [-77.0522, 38.8858],
+    [38.9049, -77.0588],
+    [38.8965, -77.0441],
+    [38.888, -77.0317],
+    [38.901, -77.0224],
+    [38.8858, -77.0522],
   ];
 
   return fallbackOffsets[index % fallbackOffsets.length];
@@ -36,145 +36,143 @@ export function DispatchMap({
   drivers = [],
 }: DispatchMapProps) {
   const mapContainerRef = useRef<HTMLDivElement | null>(null);
-  const mapRef = useRef<mapboxgl.Map | null>(null);
-  const hasPublicMapboxToken = Boolean(
-    process.env.NEXT_PUBLIC_MAPBOX_TOKEN?.trim().startsWith("pk.")
-  );
+  const mapRef = useRef<LeafletMap | null>(null);
 
   useEffect(() => {
-    // Mapbox GL JS runs in the browser and must use a publishable token (pk.*).
-    // Never pass secret tokens (sk.*) through NEXT_PUBLIC_ variables.
-    const token = process.env.NEXT_PUBLIC_MAPBOX_TOKEN?.trim();
+    if (!mapContainerRef.current || mapRef.current) return;
 
-    if (token?.startsWith("sk.")) {
-      if (process.env.NODE_ENV !== "production") {
-        console.error(
-          "Invalid Mapbox token exposure: NEXT_PUBLIC_MAPBOX_TOKEN must be a publishable pk.* token, not sk.*."
-        );
-      }
-      return;
-    }
+    let cancelled = false;
+    let resizeTimerOne: ReturnType<typeof setTimeout> | undefined;
+    let resizeTimerTwo: ReturnType<typeof setTimeout> | undefined;
 
-    const hasValidPublicToken = Boolean(token?.startsWith("pk."));
+    const setupMap = async () => {
+      const L = await import("leaflet");
+      if (cancelled || !mapContainerRef.current || mapRef.current) return;
 
-    if (!hasValidPublicToken) {
-      if (process.env.NODE_ENV !== "production") {
-        console.warn(
-          "Mapbox map disabled: set NEXT_PUBLIC_MAPBOX_TOKEN to a valid publishable pk.* token."
-        );
-      }
-      return;
-    }
+      const map = L.map(mapContainerRef.current, {
+        center: [38.892, -77.045],
+        zoom: 11.8,
+        zoomControl: true,
+        attributionControl: true,
+      });
 
-    if (!mapContainerRef.current || mapRef.current) {
-      return;
-    }
+      mapRef.current = map;
 
-    mapboxgl.accessToken = token;
+      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+        maxZoom: 19,
+        attribution: "&copy; OpenStreetMap contributors",
+      }).addTo(map);
 
-    const map = new mapboxgl.Map({
-      container: mapContainerRef.current,
-      style:
-        themeMode === "light"
-          ? "mapbox://styles/mapbox/light-v11"
-          : "mapbox://styles/mapbox/dark-v11",
-      center: [-77.045, 38.892],
-      zoom: 11.8,
-      attributionControl: false,
-    });
+      const driverCoordinates =
+        drivers.length > 0
+          ? drivers.map((driver, index) => ({
+              driver,
+              coordinate: zoneToCoordinate(driver.zone, index),
+            }))
+          : [
+              {
+                driver: { name: "Driver 1", status: "available", zone: "North Zone" } as Driver,
+                coordinate: [38.9049, -77.0588] as [number, number],
+              },
+              {
+                driver: { name: "Driver 2", status: "en-route", zone: "Central Zone" } as Driver,
+                coordinate: [38.8965, -77.0441] as [number, number],
+              },
+              {
+                driver: { name: "Driver 3", status: "busy", zone: "South Zone" } as Driver,
+                coordinate: [38.888, -77.0317] as [number, number],
+              },
+            ];
 
-    mapRef.current = map;
-    map.addControl(new mapboxgl.NavigationControl(), "top-right");
+      const jobCoordinates: [number, number][] = [
+        [38.9003, -77.0522],
+        [38.8923, -77.036],
+      ];
 
-    const driverCoordinates =
-      drivers.length > 0
-        ? drivers.map((driver, index) => ({
-            driver,
-            coordinate: zoneToCoordinate(driver.zone, index),
-          }))
-        : [
-            {
-              driver: { name: "Driver 1", status: "available", zone: "North Zone" } as Driver,
-              coordinate: [-77.0588, 38.9049] as [number, number],
-            },
-            {
-              driver: { name: "Driver 2", status: "en-route", zone: "Central Zone" } as Driver,
-              coordinate: [-77.0441, 38.8965] as [number, number],
-            },
-            {
-              driver: { name: "Driver 3", status: "busy", zone: "South Zone" } as Driver,
-              coordinate: [-77.0317, 38.888] as [number, number],
-            },
-          ];
+      L.circleMarker([38.892, -77.045], {
+        radius: 9,
+        color: "#0891b2",
+        fillColor: "#06b6d4",
+        fillOpacity: 1,
+        weight: 2,
+      })
+        .bindPopup(`<strong>Dispatch Center</strong><br/><span>${companyName} operations</span>`)
+        .addTo(map);
 
-    const jobCoordinates: [number, number][] = [
-      [-77.0522, 38.9003],
-      [-77.036, 38.8923],
-    ];
-
-    const dispatchCenter = new mapboxgl.Popup({ offset: 18 }).setHTML(`
-      <div style="color:#0f172a;font-weight:600;">Dispatch Center</div>
-      <div style="color:#475569;font-size:12px;">${companyName} operations</div>
-    `);
-
-    new mapboxgl.Marker({ color: "#06b6d4", scale: 1.1 })
-      .setLngLat([-77.045, 38.892])
-      .setPopup(dispatchCenter)
-      .addTo(map);
-
-    map.on("load", () => {
       driverCoordinates.forEach(({ driver, coordinate }) => {
-        const driverPopup = new mapboxgl.Popup({ offset: 18 }).setHTML(`
-          <div style="color:#0f172a;font-weight:600;">${driver.name}</div>
-          <div style="color:#475569;font-size:12px;">${driver.status} • ${driver.zone ?? "Service zone"}</div>
-        `);
-
-        new mapboxgl.Marker({ color: "#22d3ee", scale: 1.05 })
-          .setLngLat(coordinate)
-          .setPopup(driverPopup)
+        L.circleMarker(coordinate, {
+          radius: 8,
+          color: "#0891b2",
+          fillColor: "#22d3ee",
+          fillOpacity: 1,
+          weight: 2,
+        })
+          .bindPopup(
+            `<strong>${driver.name}</strong><br/><span>${driver.status} • ${driver.zone ?? "Service zone"}</span>`
+          )
           .addTo(map);
       });
 
-      jobCoordinates.forEach((coord, index) => {
-        const jobPopup = new mapboxgl.Popup({ offset: 18 }).setHTML(`
-          <div style="color:#0f172a;font-weight:600;">Open Job ${index + 1}</div>
-          <div style="color:#475569;font-size:12px;">Awaiting dispatch • ${companyName}</div>
-        `);
-
-        new mapboxgl.Marker({ color: "#f59e0b", scale: 1.1 })
-          .setLngLat(coord)
-          .setPopup(jobPopup)
+      jobCoordinates.forEach((coordinate, index) => {
+        L.circleMarker(coordinate, {
+          radius: 8,
+          color: "#d97706",
+          fillColor: "#f59e0b",
+          fillOpacity: 1,
+          weight: 2,
+        })
+          .bindPopup(
+            `<strong>Open Job ${index + 1}</strong><br/><span>Awaiting dispatch • ${companyName}</span>`
+          )
           .addTo(map);
       });
 
-      const bounds = new mapboxgl.LngLatBounds();
-      driverCoordinates.forEach(({ coordinate }) => bounds.extend(coordinate));
-      jobCoordinates.forEach((coord) => bounds.extend(coord));
-      bounds.extend([-77.045, 38.892]);
-      map.fitBounds(bounds, { padding: 70, duration: 0 });
-    });
+      const bounds = L.latLngBounds([
+        [38.892, -77.045],
+        ...driverCoordinates.map(({ coordinate }) => coordinate),
+        ...jobCoordinates,
+      ]);
+
+      map.fitBounds(bounds, {
+        padding: [42, 42],
+        maxZoom: 13,
+        animate: false,
+      });
+
+      const resizeMap = () => map.invalidateSize({ animate: false });
+      resizeTimerOne = setTimeout(resizeMap, 120);
+      resizeTimerTwo = setTimeout(resizeMap, 500);
+      window.addEventListener("resize", resizeMap);
+      window.addEventListener("orientationchange", resizeMap);
+
+      map.once("unload", () => {
+        window.removeEventListener("resize", resizeMap);
+        window.removeEventListener("orientationchange", resizeMap);
+      });
+    };
+
+    void setupMap();
 
     return () => {
-      map.remove();
-      mapRef.current = null;
+      cancelled = true;
+      if (resizeTimerOne) clearTimeout(resizeTimerOne);
+      if (resizeTimerTwo) clearTimeout(resizeTimerTwo);
+      if (mapRef.current) {
+        mapRef.current.remove();
+        mapRef.current = null;
+      }
     };
-  }, [companyName, themeMode, drivers]);
+  }, [companyName, drivers]);
 
   return (
-    <div className="relative h-[620px] w-full overflow-hidden bg-slate-950">
-      {hasPublicMapboxToken ? (
-        <div ref={mapContainerRef} className="h-full w-full" />
-      ) : (
-        <iframe
-          title={`${companyName} dispatch map fallback`}
-          className="h-full w-full border-0"
-          loading="lazy"
-          referrerPolicy="no-referrer-when-downgrade"
-          src="https://www.openstreetmap.org/export/embed.html?bbox=-77.12%2C38.84%2C-76.97%2C38.95&layer=mapnik"
-        />
-      )}
-      <div className="pointer-events-none absolute left-4 top-4 rounded-xl border border-white/10 bg-slate-900/80 px-4 py-3 text-sm text-white/80 backdrop-blur">
-        Live dispatch map
+    <div
+      className={`relative h-[460px] w-full overflow-hidden md:h-[620px] ${
+        themeMode === "light" ? "bg-slate-100" : "bg-slate-950"
+      }`}
+    >
+      <div ref={mapContainerRef} className="h-full w-full" />
+      <div className="pointer-events-none absolute left-4 top-4 z-[500] rounded-xl border border-white/10 bg-slate-900/80 px-4 py-3 text-sm text-white/80 backdrop-blur">
+        Live dispatch map · OpenStreetMap
       </div>
     </div>
   );
