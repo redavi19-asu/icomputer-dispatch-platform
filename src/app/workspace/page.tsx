@@ -14,6 +14,8 @@ import {
 
 import { Card, CardContent } from "@/components/ui/card";
 import { AppShellNav } from "@/components/platform/app-shell-nav";
+import CustomVersionModal from "@/components/marketing/custom-version-modal";
+import IntegrationOptionsModal from "@/components/marketing/integration-options-modal";
 import { getStoredSession, type DispatchOSSession } from "@/lib/dispatchos-auth";
 import {
   readWorkspaceSettings,
@@ -54,16 +56,18 @@ const portalCards = [
   },
   {
     title: "Custom Integration",
-    description: "Need your website, forms, intake flow, branding, or company systems connected to DispatchOS? Custom setup is handled separately.",
-    href: "/download#custom-integration",
+    description: "Need your website, forms, intake flow, branding, or company systems connected to DispatchOS? See what can be connected before requesting a quote.",
     cta: "View Integration Options",
     icon: LifeBuoy,
+    customIntegration: true,
   },
 ];
 
 export default function WorkspacePage() {
   const [session, setSession] = useState<DispatchOSSession | null>(null);
   const [settings, setSettings] = useState<WorkspaceSettingsState | null>(null);
+  const [optionsOpen, setOptionsOpen] = useState(false);
+  const [customModalOpen, setCustomModalOpen] = useState(false);
 
   useEffect(() => {
     const stored = getStoredSession();
@@ -142,21 +146,41 @@ export default function WorkspacePage() {
                 ) : null}
                 <h3 className="mt-5 text-2xl font-semibold">{entry.title}</h3>
                 <p className="mt-3 flex-1 text-sm leading-6 text-white/68">{entry.description}</p>
-                <Link
-                  href={entry.href}
-                  className={`mt-6 inline-flex items-center justify-center gap-2 rounded-xl px-4 py-3 text-sm font-semibold transition ${
-                    entry.featured
-                      ? "border border-cyan-200/20 bg-cyan-300 text-slate-950 shadow-[0_8px_28px_rgba(34,211,238,.18)] hover:bg-cyan-200"
-                      : "border border-cyan-400/35 bg-cyan-500/15 text-cyan-100 hover:bg-cyan-500/25"
-                  }`}
-                >
-                  {entry.cta} <ArrowRight className="h-4 w-4" />
-                </Link>
+                {entry.customIntegration ? (
+                  <button
+                    type="button"
+                    onClick={() => setOptionsOpen(true)}
+                    className="mt-6 inline-flex items-center justify-center gap-2 rounded-xl border border-violet-400/35 bg-violet-500/15 px-4 py-3 text-sm font-semibold text-violet-100 transition hover:bg-violet-500/25"
+                  >
+                    {entry.cta} <ArrowRight className="h-4 w-4" />
+                  </button>
+                ) : (
+                  <Link
+                    href={entry.href || "/workspace"}
+                    className={`mt-6 inline-flex items-center justify-center gap-2 rounded-xl px-4 py-3 text-sm font-semibold transition ${
+                      entry.featured
+                        ? "border border-cyan-200/20 bg-cyan-300 text-slate-950 shadow-[0_8px_28px_rgba(34,211,238,.18)] hover:bg-cyan-200"
+                        : "border border-cyan-400/35 bg-cyan-500/15 text-cyan-100 hover:bg-cyan-500/25"
+                    }`}
+                  >
+                    {entry.cta} <ArrowRight className="h-4 w-4" />
+                  </Link>
+                )}
               </CardContent>
             </Card>
           ))}
         </div>
       </section>
+
+      <IntegrationOptionsModal
+        open={optionsOpen}
+        onClose={() => setOptionsOpen(false)}
+        onRequest={() => {
+          setOptionsOpen(false);
+          setCustomModalOpen(true);
+        }}
+      />
+      <CustomVersionModal open={customModalOpen} onClose={() => setCustomModalOpen(false)} />
     </main>
   );
 }
