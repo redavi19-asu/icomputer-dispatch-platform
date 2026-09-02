@@ -11,7 +11,7 @@ const plans = [
     name: "DispatchOS Basic",
     price: "$49.99",
     cadence: "/month",
-    description: "A complete dispatch system for small teams that need the core workflow without enterprise-sized capacity.",
+    description: "A complete business-to-driver-to-customer logistics system for small teams that need the core workflow without enterprise-sized capacity.",
     icon: Zap,
     accent: "cyan",
     features: [
@@ -32,7 +32,7 @@ const plans = [
     name: "DispatchOS Business",
     price: "$149",
     cadence: "/month",
-    description: "More team capacity, more dispatcher access, and deeper operating tools for growing businesses.",
+    description: "More team capacity, more dispatcher access, and deeper operating tools for growing businesses connecting drivers and customers at scale.",
     icon: Crown,
     accent: "emerald",
     featured: true,
@@ -68,10 +68,11 @@ export default function PlansPage() {
           </div>
 
           <div className="mx-auto mt-14 max-w-3xl text-center">
-            <p className="text-xs uppercase tracking-[0.26em] text-cyan-300">DispatchOS Plans</p>
+            <p className="text-xs uppercase tracking-[0.26em] text-cyan-300">DispatchOS</p>
+            <p className="mt-3 text-xs font-semibold uppercase tracking-[0.22em] text-emerald-300 sm:text-sm">Business • Driver • Customer Logistics Software</p>
             <h1 className="mt-4 text-4xl font-semibold tracking-tight md:text-6xl">Pick the operating level your company needs.</h1>
             <p className="mt-5 text-base leading-7 text-white/62 md:text-lg">
-              Both plans include the Dispatcher and Driver apps. Upgrade when your team needs more drivers, more dispatcher seats, automation, and deeper reporting.
+              Both plans connect your business operations with the Dispatcher and Driver apps. Upgrade when your team needs more drivers, more dispatcher seats, automation, and deeper reporting.
             </p>
           </div>
         </div>
