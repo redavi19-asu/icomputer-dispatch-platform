@@ -2,14 +2,22 @@
 
 import { FormEvent, useCallback, useEffect, useMemo, useState } from "react";
 import {
+  Activity,
   Ban,
+  BarChart3,
   Building2,
   CheckCircle2,
+  ChevronDown,
+  ChevronUp,
+  Clock3,
   CreditCard,
   Gift,
   Plus,
   RefreshCw,
   ShieldCheck,
+  Smartphone,
+  Truck,
+  UserCog,
   Users,
 } from "lucide-react";
 import { authRequest, getStoredSession } from "@/lib/dispatchos-auth";
@@ -25,6 +33,36 @@ type CompanyRow = {
   owner_name: string | null;
   owner_email: string | null;
   protected_admin_company: number;
+  owner_count?: number;
+  admin_count?: number;
+  dispatcher_count?: number;
+  driver_member_count?: number;
+};
+
+type CompanyAnalytics = {
+  companyId: string;
+  operationalDataReady: boolean;
+  drivers: {
+    total: number;
+    active: number;
+    offline: number;
+  };
+  jobs: {
+    total: number;
+    active: number;
+    completed: number;
+    canceled: number;
+    today: number;
+    thisMonth: number;
+    completionRate: number;
+  };
+  settings: {
+    dispatchMode: string | null;
+    driverAcceptanceMode: string | null;
+    bookingEnabled: boolean | null;
+    driverAppEnabled: boolean | null;
+    customerUpdatesEnabled: boolean | null;
+  };
 };
 
 const basePath = () => (process.env.NODE_ENV === "production" ? "/icomputer-dispatch-platform" : "");
@@ -42,6 +80,9 @@ export default function AdminPage() {
   const [plan, setPlan] = useState("basic");
   const [accessStatus, setAccessStatus] = useState("comped");
   const [creating, setCreating] = useState(false);
+  const [expandedCompanyId, setExpandedCompanyId] = useState("");
+  const [analyticsLoadingId, setAnalyticsLoadingId] = useState("");
+  const [analyticsByCompany, setAnalyticsByCompany] = useState<Record<string, CompanyAnalytics>>({});
 
   const loadCompanies = useCallback(async () => {
     setLoading(true);
@@ -93,6 +134,30 @@ export default function AdminPage() {
     }
   }
 
+  async function toggleAnalytics(companyId: string) {
+    if (expandedCompanyId === companyId) {
+      setExpandedCompanyId("");
+      return;
+    }
+
+    setExpandedCompanyId(companyId);
+    if (analyticsByCompany[companyId]) return;
+
+    setAnalyticsLoadingId(companyId);
+    setError("");
+    try {
+      const data = await authRequest(`/admin/companies/${encodeURIComponent(companyId)}/analytics`);
+      setAnalyticsByCompany((current) => ({
+        ...current,
+        [companyId]: data.analytics as CompanyAnalytics,
+      }));
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Unable to load company analytics.");
+    } finally {
+      setAnalyticsLoadingId("");
+    }
+  }
+
   async function createCompany(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setCreating(true);
@@ -135,7 +200,7 @@ export default function AdminPage() {
               </div>
               <h1 className="mt-4 text-4xl font-semibold tracking-tight md:text-6xl">DispatchOS Command Center</h1>
               <p className="mt-4 max-w-3xl text-white/60">
-                Platform-level control over company access, plans, complimentary accounts, and onboarding. This console is not available to company users.
+                Platform-level control over company access, plans, complimentary accounts, onboarding, and company-level usage analytics.
               </p>
             </div>
             <div className="flex flex-wrap gap-3">
@@ -205,7 +270,7 @@ export default function AdminPage() {
           <div className="flex items-center justify-between border-b border-white/10 px-6 py-5">
             <div>
               <h2 className="text-xl font-semibold">Company control</h2>
-              <p className="mt-1 text-sm text-white/45">Suspend access, restore companies, comp service, or change plans.</p>
+              <p className="mt-1 text-sm text-white/45">Access controls plus company-level operational analytics without exposing sensitive personal data.</p>
             </div>
             <Users className="h-5 w-5 text-white/35" />
           </div>
@@ -219,6 +284,8 @@ export default function AdminPage() {
               {companies.map((company) => {
                 const protectedCompany = Boolean(company.protected_admin_company);
                 const disabled = savingId === company.id;
+                const expanded = expandedCompanyId === company.id;
+                const analytics = analyticsByCompany[company.id];
                 return (
                   <div key={company.id} className="p-6">
                     <div className="flex flex-col gap-5 xl:flex-row xl:items-center xl:justify-between">
@@ -232,12 +299,17 @@ export default function AdminPage() {
                         <div className="mt-3 flex flex-wrap gap-4 text-xs text-white/38">
                           <span>Plan: {company.plan || "none"}</span>
                           <span>Members: {company.member_count || 0}</span>
-                          <span>Slug: {company.slug}</span>
+                          <span>Admins: {company.admin_count || 0}</span>
+                          <span>Dispatchers: {company.dispatcher_count || 0}</span>
+                          <span>Driver users: {company.driver_member_count || 0}</span>
                           <span>Created: {new Date(company.created_at).toLocaleDateString()}</span>
                         </div>
                       </div>
 
                       <div className="flex flex-wrap gap-2">
+                        <button onClick={() => void toggleAnalytics(company.id)} className="inline-flex items-center gap-2 rounded-lg border border-violet-400/25 bg-violet-500/10 px-3 py-2 text-xs font-semibold text-violet-200">
+                          <BarChart3 className="h-4 w-4" /> Analytics {expanded ? <ChevronUp className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}
+                        </button>
                         <button disabled={disabled} onClick={() => void updateCompany(company.id, { status: "comped" })} className="inline-flex items-center gap-2 rounded-lg border border-emerald-400/25 bg-emerald-500/10 px-3 py-2 text-xs font-semibold text-emerald-200 disabled:opacity-40">
                           <Gift className="h-4 w-4" /> Comp
                         </button>
@@ -252,6 +324,66 @@ export default function AdminPage() {
                         </button>
                       </div>
                     </div>
+
+                    {expanded && (
+                      <div className="mt-6 rounded-2xl border border-white/10 bg-black/20 p-5">
+                        {analyticsLoadingId === company.id ? (
+                          <div className="flex items-center gap-2 text-sm text-white/50"><RefreshCw className="h-4 w-4 animate-spin" /> Loading company analytics...</div>
+                        ) : analytics ? (
+                          <>
+                            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-6">
+                              {[
+                                ["Drivers", analytics.drivers.total, Truck],
+                                ["Active drivers", analytics.drivers.active, Activity],
+                                ["Jobs today", analytics.jobs.today, Clock3],
+                                ["Jobs this month", analytics.jobs.thisMonth, BarChart3],
+                                ["Active jobs", analytics.jobs.active, Smartphone],
+                                ["Completion", `${analytics.jobs.completionRate}%`, CheckCircle2],
+                              ].map(([label, value, Icon]) => {
+                                const MetricIcon = Icon as typeof Truck;
+                                return (
+                                  <div key={String(label)} className="rounded-xl border border-white/10 bg-white/[0.035] p-4">
+                                    <MetricIcon className="h-4 w-4 text-cyan-300" />
+                                    <p className="mt-3 text-xl font-semibold">{String(value)}</p>
+                                    <p className="mt-1 text-[11px] text-white/40">{String(label)}</p>
+                                  </div>
+                                );
+                              })}
+                            </div>
+
+                            <div className="mt-4 grid gap-4 lg:grid-cols-2">
+                              <div className="rounded-xl border border-white/10 bg-white/[0.025] p-4">
+                                <div className="flex items-center gap-2 text-sm font-semibold"><UserCog className="h-4 w-4 text-violet-300" /> Team footprint</div>
+                                <div className="mt-3 grid grid-cols-2 gap-2 text-xs text-white/55">
+                                  <span>Company admins: {company.admin_count || 0}</span>
+                                  <span>Owners: {company.owner_count || 0}</span>
+                                  <span>Dispatchers: {company.dispatcher_count || 0}</span>
+                                  <span>Driver accounts: {company.driver_member_count || 0}</span>
+                                </div>
+                              </div>
+                              <div className="rounded-xl border border-white/10 bg-white/[0.025] p-4">
+                                <div className="flex items-center gap-2 text-sm font-semibold"><Activity className="h-4 w-4 text-emerald-300" /> Feature usage</div>
+                                <div className="mt-3 grid grid-cols-2 gap-2 text-xs text-white/55">
+                                  <span>Dispatch mode: {analytics.settings.dispatchMode || "Not configured"}</span>
+                                  <span>Driver acceptance: {analytics.settings.driverAcceptanceMode || "Not configured"}</span>
+                                  <span>Booking page: {analytics.settings.bookingEnabled === null ? "Not connected" : analytics.settings.bookingEnabled ? "On" : "Off"}</span>
+                                  <span>Driver app: {analytics.settings.driverAppEnabled === null ? "Not connected" : analytics.settings.driverAppEnabled ? "On" : "Off"}</span>
+                                  <span>Customer updates: {analytics.settings.customerUpdatesEnabled === null ? "Not connected" : analytics.settings.customerUpdatesEnabled ? "On" : "Off"}</span>
+                                </div>
+                              </div>
+                            </div>
+
+                            {!analytics.operationalDataReady && (
+                              <p className="mt-4 rounded-xl border border-amber-400/20 bg-amber-500/10 px-4 py-3 text-xs text-amber-100/80">
+                                Team/account analytics are live. Driver and job metrics will populate automatically as the production operational tables come online for this company.
+                              </p>
+                            )}
+                          </>
+                        ) : (
+                          <p className="text-sm text-white/45">Analytics are not available yet.</p>
+                        )}
+                      </div>
+                    )}
                   </div>
                 );
               })}
