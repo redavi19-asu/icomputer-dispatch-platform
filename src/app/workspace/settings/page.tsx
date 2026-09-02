@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { ArrowLeft, Save, Wrench } from "lucide-react";
 import { AppShellNav } from "@/components/platform/app-shell-nav";
+import CustomVersionModal from "@/components/marketing/custom-version-modal";
 import { getStoredSession } from "@/lib/dispatchos-auth";
 import {
   readWorkspaceSettings,
@@ -16,6 +17,7 @@ const basePath = () => (process.env.NODE_ENV === "production" ? "/icomputer-disp
 export default function WorkspaceSettingsPage() {
   const [settings, setSettings] = useState<WorkspaceSettingsState | null>(null);
   const [saved, setSaved] = useState(false);
+  const [customModalOpen, setCustomModalOpen] = useState(false);
 
   useEffect(() => {
     const session = getStoredSession();
@@ -93,7 +95,7 @@ export default function WorkspaceSettingsPage() {
           <section className="rounded-3xl border border-violet-400/20 bg-violet-500/[0.05] p-6 md:p-8">
             <div className="flex items-center gap-3"><Wrench className="h-6 w-6 text-violet-300" /><h2 className="text-xl font-semibold">Website booking and customer intake</h2></div>
             <p className="mt-3 max-w-3xl text-sm leading-6 text-white/58">Booking is no longer a standard portal feature. If you want your website, request form, booking system, or another business system feeding jobs into DispatchOS, that is configured as a custom integration.</p>
-            <a href="https://redavi19-asu.github.io/icomuteranythingV3/" className="mt-5 inline-flex text-sm font-semibold text-violet-200 hover:text-violet-100">Contact I Computer Anything for integration →</a>
+            <button type="button" onClick={() => setCustomModalOpen(true)} className="mt-5 inline-flex text-sm font-semibold text-violet-200 hover:text-violet-100">Contact I Computer Anything for integration →</button>
           </section>
 
           <div className="flex flex-wrap items-center gap-3">
@@ -102,6 +104,7 @@ export default function WorkspaceSettingsPage() {
           </div>
         </div>
       </section>
+      <CustomVersionModal open={customModalOpen} onClose={() => setCustomModalOpen(false)} />
     </main>
   );
 }
