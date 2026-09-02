@@ -3,6 +3,7 @@ import Link from "next/link";
 import { CircleDollarSign } from "lucide-react";
 import ProtectedRoute from "@/components/auth/protected-route";
 import { DriverAppShell } from "@/components/driver/driver-app-shell";
+import { DriverPayRecorder } from "@/components/driver/driver-pay-recorder";
 
 export const metadata: Metadata = {
   title: "DispatchOS Driver",
@@ -32,6 +33,7 @@ export default function DriverLayout({
   return (
     <ProtectedRoute requireActiveSubscription>
       <DriverAppShell>
+        <DriverPayRecorder />
         {children}
         <Link
           href="/driver/earnings"
