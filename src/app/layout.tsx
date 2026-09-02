@@ -3,7 +3,7 @@ import { Geist, Geist_Mono, Orbitron } from "next/font/google";
 import "./globals.css";
 import { ServiceWorkerRegister } from "@/components/platform/service-worker-register";
 import { TenantStorageIsolation } from "@/components/platform/tenant-storage-isolation";
-import { TenantOperationsSync } from "@/components/platform/tenant-operations-sync";
+import { TenantOperationsSyncV2 } from "@/components/platform/tenant-operations-sync-v2";
 import { LegalConsent } from "@/components/platform/legal-consent";
 
 const geistSans = Geist({
@@ -49,7 +49,7 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} ${orbitron.variable} bg-white text-slate-900 antialiased`}
       >
         <TenantStorageIsolation />
-        <TenantOperationsSync />
+        <TenantOperationsSyncV2 />
         <ServiceWorkerRegister />
         {children}
         <LegalConsent />
