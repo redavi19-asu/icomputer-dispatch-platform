@@ -88,12 +88,13 @@ async function register(request: Request, env: Env, cors: HeadersInit) {
   const slug = await uniqueCompanySlug(env.DB, companyName);
   const adminEmail = clean(env.ADMIN_EMAIL).toLowerCase();
   const role = adminEmail && email === adminEmail ? "admin" : "owner";
+  const subscriptionStatus = role === "admin" ? "active" : "pending";
 
   await env.DB.batch([
     env.DB.prepare("INSERT INTO users (id, name, email, password_hash, password_salt, role) VALUES (?, ?, ?, ?, ?, ?)").bind(userId, name, email, passwordHash, salt, role),
     env.DB.prepare("INSERT INTO companies (id, name, slug) VALUES (?, ?, ?)").bind(companyId, companyName, slug),
     env.DB.prepare("INSERT INTO memberships (id, user_id, company_id, role) VALUES (?, ?, ?, ?)").bind(membershipId, userId, companyId, "owner"),
-    env.DB.prepare("INSERT INTO subscriptions (id, company_id, plan, status) VALUES (?, ?, ?, 'pending')").bind(subscriptionId, companyId, plan),
+    env.DB.prepare("INSERT INTO subscriptions (id, company_id, plan, status) VALUES (?, ?, ?, ?)").bind(subscriptionId, companyId, plan, subscriptionStatus),
   ]);
 
   const session = await createSession(env.DB, userId);
