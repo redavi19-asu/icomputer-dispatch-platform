@@ -3,6 +3,7 @@ interface Env {
   ALLOWED_ORIGINS: string;
   ADMIN_EMAIL?: string;
   TURNSTILE_SECRET_KEY?: string;
+  PUBLIC_REGISTRATION_ENABLED?: string;
 }
 
 type RegisterBody = {
@@ -20,6 +21,20 @@ type LoginBody = {
   turnstileToken?: string;
 };
 
+type AdminCreateCompanyBody = {
+  companyName?: string;
+  ownerName?: string;
+  ownerEmail?: string;
+  temporaryPassword?: string;
+  plan?: string;
+  accessStatus?: string;
+};
+
+type AdminUpdateCompanyBody = {
+  plan?: string;
+  status?: string;
+};
+
 type TurnstileResult = {
   success: boolean;
   hostname?: string;
@@ -30,6 +45,8 @@ type TurnstileResult = {
 const encoder = new TextEncoder();
 const SESSION_DAYS = 7;
 const TURNSTILE_VERIFY_URL = "https://challenges.cloudflare.com/turnstile/v0/siteverify";
+const VALID_PLANS = new Set(["basic", "business", "custom"]);
+const VALID_ACCESS_STATUSES = new Set(["pending", "active", "comped", "suspended", "canceled"]);
 
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
@@ -43,10 +60,19 @@ export default {
 
     try {
       if (url.pathname === "/health" && request.method === "GET") {
-        return json({ ok: true, service: "dispatchos-auth", turnstile: Boolean(clean(env.TURNSTILE_SECRET_KEY)) }, 200, cors);
+        return json({
+          ok: true,
+          service: "dispatchos-auth",
+          turnstile: Boolean(clean(env.TURNSTILE_SECRET_KEY)),
+          publicRegistration: clean(env.PUBLIC_REGISTRATION_ENABLED).toLowerCase() === "true",
+          adminConsole: true,
+        }, 200, cors);
       }
 
       if (url.pathname === "/auth/register" && request.method === "POST") {
+        if (clean(env.PUBLIC_REGISTRATION_ENABLED).toLowerCase() !== "true") {
+          return json({ error: "Public company onboarding is not open yet." }, 403, cors);
+        }
         return await register(request, env, cors);
       }
 
@@ -60,6 +86,19 @@ export default {
 
       if (url.pathname === "/auth/logout" && request.method === "POST") {
         return await logout(request, env, cors);
+      }
+
+      if (url.pathname === "/admin/companies" && request.method === "GET") {
+        return await adminListCompanies(request, env, cors);
+      }
+
+      if (url.pathname === "/admin/companies" && request.method === "POST") {
+        return await adminCreateCompany(request, env, cors);
+      }
+
+      if (url.pathname.startsWith("/admin/companies/") && request.method === "PATCH") {
+        const companyId = decodeURIComponent(url.pathname.slice("/admin/companies/".length));
+        return await adminUpdateCompany(request, env, cors, companyId);
       }
 
       return json({ error: "Not found." }, 404, cors);
@@ -124,8 +163,8 @@ async function login(request: Request, env: Env, cors: HeadersInit) {
   const password = body.password || "";
 
   const user = await env.DB.prepare(
-    "SELECT id, password_hash, password_salt FROM users WHERE email = ?"
-  ).bind(email).first<{ id: string; password_hash: string; password_salt: string }>();
+    "SELECT id, password_hash, password_salt, role FROM users WHERE email = ?"
+  ).bind(email).first<{ id: string; password_hash: string; password_salt: string; role: string }>();
 
   if (!user) {
     return json({ error: "Email or password is incorrect." }, 401, cors);
@@ -136,8 +175,160 @@ async function login(request: Request, env: Env, cors: HeadersInit) {
     return json({ error: "Email or password is incorrect." }, 401, cors);
   }
 
+  if (user.role !== "admin") {
+    const access = await env.DB.prepare(`
+      SELECT s.status
+      FROM memberships m
+      LEFT JOIN subscriptions s ON s.company_id = m.company_id
+      WHERE m.user_id = ?
+      ORDER BY m.created_at ASC
+      LIMIT 1
+    `).bind(user.id).first<{ status: string | null }>();
+
+    if (access?.status === "suspended" || access?.status === "canceled") {
+      return json({ error: "This company workspace is currently disabled. Contact DispatchOS support." }, 403, cors);
+    }
+  }
+
   const session = await createSession(env.DB, user.id);
   return json(await sessionPayload(env.DB, user.id, session.token), 200, cors);
+}
+
+async function adminListCompanies(request: Request, env: Env, cors: HeadersInit) {
+  const adminId = await authenticatedAdminUserId(request, env.DB);
+  if (!adminId) return json({ error: "Administrator access required." }, 403, cors);
+
+  const result = await env.DB.prepare(`
+    SELECT
+      c.id,
+      c.name,
+      c.slug,
+      c.created_at,
+      s.plan,
+      s.status,
+      (SELECT COUNT(*) FROM memberships mc WHERE mc.company_id = c.id) AS member_count,
+      (SELECT u.name
+         FROM memberships mo
+         JOIN users u ON u.id = mo.user_id
+        WHERE mo.company_id = c.id
+        ORDER BY CASE WHEN mo.role = 'owner' THEN 0 ELSE 1 END, mo.created_at ASC
+        LIMIT 1) AS owner_name,
+      (SELECT u.email
+         FROM memberships mo
+         JOIN users u ON u.id = mo.user_id
+        WHERE mo.company_id = c.id
+        ORDER BY CASE WHEN mo.role = 'owner' THEN 0 ELSE 1 END, mo.created_at ASC
+        LIMIT 1) AS owner_email,
+      EXISTS(
+        SELECT 1
+        FROM memberships ma
+        JOIN users ua ON ua.id = ma.user_id
+        WHERE ma.company_id = c.id AND ua.role = 'admin'
+      ) AS protected_admin_company
+    FROM companies c
+    LEFT JOIN subscriptions s ON s.company_id = c.id
+    ORDER BY datetime(c.created_at) DESC
+  `).all();
+
+  return json({ ok: true, companies: result.results || [] }, 200, cors);
+}
+
+async function adminCreateCompany(request: Request, env: Env, cors: HeadersInit) {
+  const adminId = await authenticatedAdminUserId(request, env.DB);
+  if (!adminId) return json({ error: "Administrator access required." }, 403, cors);
+
+  const body = (await request.json()) as AdminCreateCompanyBody;
+  const companyName = clean(body.companyName);
+  const ownerName = clean(body.ownerName);
+  const ownerEmail = clean(body.ownerEmail).toLowerCase();
+  const temporaryPassword = body.temporaryPassword || "";
+  const plan = VALID_PLANS.has(clean(body.plan)) ? clean(body.plan) : "basic";
+  const accessStatus = body.accessStatus === "active" ? "active" : "comped";
+
+  if (!companyName || !ownerName || !ownerEmail || !ownerEmail.includes("@")) {
+    return json({ error: "Company name, owner name, and owner email are required." }, 400, cors);
+  }
+  if (temporaryPassword.length < 10) {
+    return json({ error: "Temporary password must be at least 10 characters." }, 400, cors);
+  }
+
+  const existing = await env.DB.prepare("SELECT id FROM users WHERE email = ?").bind(ownerEmail).first();
+  if (existing) return json({ error: "That owner email already has a DispatchOS account." }, 409, cors);
+
+  const userId = crypto.randomUUID();
+  const companyId = crypto.randomUUID();
+  const salt = randomHex(16);
+  const passwordHash = await hashPassword(temporaryPassword, salt);
+  const slug = await uniqueCompanySlug(env.DB, companyName);
+
+  await env.DB.batch([
+    env.DB.prepare("INSERT INTO users (id, name, email, password_hash, password_salt, role) VALUES (?, ?, ?, ?, ?, 'owner')")
+      .bind(userId, ownerName, ownerEmail, passwordHash, salt),
+    env.DB.prepare("INSERT INTO companies (id, name, slug) VALUES (?, ?, ?)").bind(companyId, companyName, slug),
+    env.DB.prepare("INSERT INTO memberships (id, user_id, company_id, role) VALUES (?, ?, ?, 'owner')")
+      .bind(crypto.randomUUID(), userId, companyId),
+    env.DB.prepare("INSERT INTO subscriptions (id, company_id, plan, status) VALUES (?, ?, ?, ?)")
+      .bind(crypto.randomUUID(), companyId, plan, accessStatus),
+  ]);
+
+  return json({
+    ok: true,
+    company: { id: companyId, name: companyName, slug, plan, status: accessStatus },
+    owner: { id: userId, name: ownerName, email: ownerEmail },
+  }, 201, cors);
+}
+
+async function adminUpdateCompany(request: Request, env: Env, cors: HeadersInit, companyId: string) {
+  const adminId = await authenticatedAdminUserId(request, env.DB);
+  if (!adminId) return json({ error: "Administrator access required." }, 403, cors);
+  if (!companyId) return json({ error: "Company id is required." }, 400, cors);
+
+  const body = (await request.json()) as AdminUpdateCompanyBody;
+  const plan = clean(body.plan);
+  const status = clean(body.status);
+
+  if (plan && !VALID_PLANS.has(plan)) return json({ error: "Invalid plan." }, 400, cors);
+  if (status && !VALID_ACCESS_STATUSES.has(status)) return json({ error: "Invalid account status." }, 400, cors);
+  if (!plan && !status) return json({ error: "Provide a plan or status change." }, 400, cors);
+
+  const company = await env.DB.prepare("SELECT id FROM companies WHERE id = ?").bind(companyId).first();
+  if (!company) return json({ error: "Company not found." }, 404, cors);
+
+  if (status === "suspended" || status === "canceled") {
+    const protectedCompany = await env.DB.prepare(`
+      SELECT 1 AS found
+      FROM memberships m
+      JOIN users u ON u.id = m.user_id
+      WHERE m.company_id = ? AND u.role = 'admin'
+      LIMIT 1
+    `).bind(companyId).first();
+    if (protectedCompany) {
+      return json({ error: "The platform administrator company cannot be suspended." }, 400, cors);
+    }
+  }
+
+  const statements: D1PreparedStatement[] = [];
+  if (plan) {
+    statements.push(env.DB.prepare("UPDATE subscriptions SET plan = ?, updated_at = CURRENT_TIMESTAMP WHERE company_id = ?").bind(plan, companyId));
+  }
+  if (status) {
+    statements.push(env.DB.prepare("UPDATE subscriptions SET status = ?, updated_at = CURRENT_TIMESTAMP WHERE company_id = ?").bind(status, companyId));
+  }
+  if (statements.length) await env.DB.batch(statements);
+
+  if (status === "suspended" || status === "canceled") {
+    await env.DB.prepare(`
+      DELETE FROM sessions
+      WHERE user_id IN (
+        SELECT m.user_id
+        FROM memberships m
+        JOIN users u ON u.id = m.user_id
+        WHERE m.company_id = ? AND u.role <> 'admin'
+      )
+    `).bind(companyId).run();
+  }
+
+  return json({ ok: true, companyId, ...(plan ? { plan } : {}), ...(status ? { status } : {}) }, 200, cors);
 }
 
 async function turnstileGuard(request: Request, env: Env, token: string | undefined, cors: HeadersInit) {
@@ -201,6 +392,13 @@ async function authenticatedUserId(request: Request, db: D1Database) {
     "SELECT user_id FROM sessions WHERE token_hash = ? AND expires_at > datetime('now')"
   ).bind(tokenHash).first<{ user_id: string }>();
   return row?.user_id || null;
+}
+
+async function authenticatedAdminUserId(request: Request, db: D1Database) {
+  const userId = await authenticatedUserId(request, db);
+  if (!userId) return null;
+  const user = await db.prepare("SELECT role FROM users WHERE id = ?").bind(userId).first<{ role: string }>();
+  return user?.role === "admin" ? userId : null;
 }
 
 async function sessionPayload(db: D1Database, userId: string, token?: string) {
@@ -323,7 +521,7 @@ function corsHeaders(origin: string, allowedOrigins: string) {
   const allowed = allowedOrigins.split(",").map((item) => item.trim()).filter(Boolean);
   const headers: Record<string, string> = {
     "Access-Control-Allow-Headers": "Content-Type, Authorization",
-    "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+    "Access-Control-Allow-Methods": "GET, POST, PATCH, OPTIONS",
     "Vary": "Origin",
   };
   if (origin && allowed.includes(origin)) headers["Access-Control-Allow-Origin"] = origin;
