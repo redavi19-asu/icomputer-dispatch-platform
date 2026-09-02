@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono, Orbitron } from "next/font/google";
 import "./globals.css";
 import { ServiceWorkerRegister } from "@/components/platform/service-worker-register";
+import { TenantStorageIsolation } from "@/components/platform/tenant-storage-isolation";
 import { LegalConsent } from "@/components/platform/legal-consent";
 
 const geistSans = Geist({
@@ -46,6 +47,7 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} ${orbitron.variable} bg-white text-slate-900 antialiased`}
       >
+        <TenantStorageIsolation />
         <ServiceWorkerRegister />
         {children}
         <LegalConsent />
