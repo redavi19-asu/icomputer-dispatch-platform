@@ -16,6 +16,7 @@ import {
   ShieldCheck,
   Smartphone,
   Users,
+  WalletCards,
   Wand2,
   Zap,
 } from "lucide-react";
@@ -30,6 +31,7 @@ const workflowStages = [
 const modules = [
   { icon: LayoutDashboard, title: "Dispatcher App", text: "Installable command center for owners and dispatch staff.", className: "border-cyan-400/20 bg-cyan-500/[0.06]", iconClass: "text-cyan-300" },
   { icon: Smartphone, title: "Driver App", text: "Mobile-first mission workflow for drivers and field teams.", className: "border-emerald-400/20 bg-emerald-500/[0.06]", iconClass: "text-emerald-300" },
+  { icon: WalletCards, title: "Driver Pay + Mileage Calculator", text: "Track mission mileage and calculate completed-job driver pay from company-defined rates. Payroll and payout connections are optional integrations.", className: "border-fuchsia-400/20 bg-fuchsia-500/[0.06]", iconClass: "text-fuchsia-300" },
   { icon: Wand2, title: "Booking Page", text: "Optional custom build that connects your website or intake flow directly into DispatchOS.", className: "border-amber-400/20 bg-amber-500/[0.06]", iconClass: "text-amber-300", custom: true },
   { icon: Users, title: "Team Management", text: "Invite and organize drivers and field staff from one workspace.", className: "border-violet-400/20 bg-violet-500/[0.06]", iconClass: "text-violet-300" },
   { icon: CreditCard, title: "Billing", text: "Subscription and account billing controls.", className: "border-rose-400/20 bg-rose-500/[0.06]", iconClass: "text-rose-300" },
@@ -129,7 +131,7 @@ export default function Home() {
       <section className="border-y border-white/10 bg-white/[0.025]">
         <div className="mx-auto grid max-w-7xl gap-10 px-6 py-16 md:py-24 lg:grid-cols-[.9fr_1.1fr] lg:items-center">
           <div><p className="text-xs uppercase tracking-[0.24em] text-rose-300">Built for teams that move</p><h2 className="mt-3 text-3xl font-semibold tracking-tight md:text-5xl">Your company decides what a “job” means.</h2><p className="mt-5 text-white/62 leading-7">DispatchOS is the logistics middle layer connecting your business, the drivers or people you send into the field, and the customer waiting on the work. Use it for service calls, deliveries, inspections, mobile crews, outreach, events, route work, or another operation that needs assignments, location awareness, and status updates.</p>
-            <div className="mt-7 space-y-3">{["Set up your company preferences and operating workflow","Add drivers, technicians, staff, or field teams as your operation grows","Install the Dispatcher app for office operations and the Driver app for field work","Request a custom integration when you want DispatchOS connected to your website, forms, or existing systems"].map(item => <div key={item} className="flex items-start gap-3 text-sm text-white/75"><CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-emerald-400" />{item}</div>)}</div>
+            <div className="mt-7 space-y-3">{["Set up your company preferences and operating workflow","Add drivers, technicians, staff, or field teams as your operation grows","Install the Dispatcher app for office operations and the Driver app for field work","Track driver mileage and calculate completed-job pay from company-defined rates","Request a custom integration when you want DispatchOS connected to payroll, payouts, your website, forms, or existing systems"].map(item => <div key={item} className="flex items-start gap-3 text-sm text-white/75"><CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-emerald-400" />{item}</div>)}</div>
           </div>
           <div className="grid gap-4 sm:grid-cols-3">
             {businessTypes.map(({title,examples,icon:Icon}) => <div key={title} className="rounded-3xl border border-white/10 bg-slate-900/70 p-6"><Icon className="h-8 w-8 text-amber-300"/><h3 className="mt-5 text-lg font-semibold">{title}</h3><p className="mt-3 text-sm leading-6 text-white/55">{examples}</p></div>)}
@@ -138,7 +140,7 @@ export default function Home() {
       </section>
 
       <section className="mx-auto max-w-7xl px-6 py-16 md:py-24">
-        <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between"><div className="max-w-3xl"><p className="text-xs uppercase tracking-[0.24em] text-cyan-300">Included after activation</p><h2 className="mt-3 text-3xl font-semibold tracking-tight md:text-5xl">Your company operating kit</h2></div><p className="max-w-md text-sm leading-6 text-white/50">The standard subscription gives your company the account portal, team controls, and downloadable Dispatcher and Driver apps. Website and intake integrations are separate custom services.</p></div>
+        <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between"><div className="max-w-3xl"><p className="text-xs uppercase tracking-[0.24em] text-cyan-300">Included after activation</p><h2 className="mt-3 text-3xl font-semibold tracking-tight md:text-5xl">Your company operating kit</h2></div><p className="max-w-md text-sm leading-6 text-white/50">The standard subscription gives your company the account portal, team controls, downloadable Dispatcher and Driver apps, plus driver mileage tracking and the completed-job pay calculator. Payroll, automatic payouts, website, and intake integrations are separate custom services.</p></div>
         <div className="mt-10 grid gap-5 md:grid-cols-2 xl:grid-cols-3">
           {modules.map(({icon: Icon,title,text,className,iconClass,custom}) => <div key={title} className={`rounded-3xl border p-6 ${className}`}><Icon className={`h-8 w-8 ${iconClass}`}/><h3 className="mt-5 text-xl font-semibold">{title}</h3><p className="mt-3 text-sm leading-6 text-white/60">{text}</p><div className="mt-6 border-t border-white/8 pt-4 text-xs uppercase tracking-[.18em] text-white/30">{custom ? "Custom build" : "Customer access"}</div>{custom ? <button type="button" onClick={() => setCustomModalOpen(true)} className="mt-4 inline-flex items-center gap-2 text-sm font-semibold text-amber-200 hover:text-amber-100">Need Custom Company Integration? <ArrowRight className="h-4 w-4" /></button> : null}</div>)}
         </div>
@@ -148,7 +150,7 @@ export default function Home() {
         <div className="mx-auto max-w-6xl overflow-hidden rounded-[2rem] border border-emerald-400/20 bg-[radial-gradient(circle_at_20%_20%,rgba(16,185,129,.16),transparent_35%),radial-gradient(circle_at_80%_70%,rgba(190,24,93,.12),transparent_40%),linear-gradient(135deg,#111827,#020617)] p-8 md:p-12">
           <p className="text-xs uppercase tracking-[0.24em] text-emerald-300">Ready when your company is</p>
           <h2 className="mt-4 max-w-3xl text-3xl font-semibold tracking-tight md:text-5xl">Activate. Set up your company. Connect your drivers. Serve your customers.</h2>
-          <p className="mt-5 max-w-3xl text-white/62 leading-7">Your subscription connects your company workspace, Dispatcher app, Driver app, team management, billing, and account access. If you want DispatchOS wired into your existing website, forms, booking process, internal systems, or industry-specific workflow, I Computer Anything handles that as a custom integration.</p>
+          <p className="mt-5 max-w-3xl text-white/62 leading-7">Your subscription connects your company workspace, Dispatcher app, Driver app, team management, driver mileage tracking, completed-job pay calculator, billing, and account access. If you want DispatchOS wired into payroll, automatic driver payouts, your existing website, forms, booking process, internal systems, or an industry-specific workflow, I Computer Anything handles that as a custom integration.</p>
           <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
             <Link href="/plans" className="inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-500 px-7 py-4 font-bold text-white transition hover:bg-emerald-400">View Plans <ArrowRight className="h-4 w-4" /></Link>
             <Link href="/auth?mode=login" className="inline-flex items-center justify-center rounded-xl border border-cyan-300/20 bg-cyan-500/10 px-7 py-4 font-semibold text-cyan-100 transition hover:bg-cyan-500/15">Customer Log In</Link>
