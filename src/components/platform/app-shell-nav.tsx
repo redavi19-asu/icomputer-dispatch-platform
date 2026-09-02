@@ -3,7 +3,9 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
+import { Crown, ShieldCheck } from "lucide-react";
 
+import { getStoredSession } from "@/lib/dispatchos-auth";
 import {
   readWorkspaceSettings,
   type WorkspaceSettingsState,
@@ -30,10 +32,12 @@ export function AppShellNav() {
   const [settings, setSettings] = useState<WorkspaceSettingsState>(() =>
     readWorkspaceSettings("build-electric")
   );
+  const [isPlatformAdmin, setIsPlatformAdmin] = useState(false);
 
   useEffect(() => {
     const sync = () => {
       setSettings(readWorkspaceSettings("build-electric"));
+      setIsPlatformAdmin(getStoredSession()?.user.role === "admin");
     };
 
     sync();
@@ -60,6 +64,18 @@ export function AppShellNav() {
   return (
     <div className="border-b border-white/10 bg-slate-950/90 backdrop-blur">
       <div className="mx-auto flex max-w-7xl flex-wrap items-center gap-2 px-6 py-3">
+        {isPlatformAdmin && (
+          <Link
+            href="/admin"
+            className="mr-1 inline-flex items-center gap-2 rounded-lg border border-amber-300/35 bg-gradient-to-r from-amber-500/20 to-cyan-500/15 px-3 py-2 text-sm font-semibold text-amber-100 shadow-[0_0_22px_rgba(251,191,36,.10)] transition hover:border-amber-300/55 hover:bg-amber-500/25"
+            title="Return to the DispatchOS Platform Administrator Command Center"
+          >
+            <Crown className="h-4 w-4 text-amber-300" />
+            Platform Admin
+            <ShieldCheck className="h-3.5 w-3.5 text-cyan-300" />
+          </Link>
+        )}
+
         {navItems.map((item) => {
           const disabled =
             item.key === "booking"
