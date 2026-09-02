@@ -1,3 +1,5 @@
+import { getStoredSession } from "@/lib/dispatchos-auth";
+import { getPlanEntitlements } from "@/lib/platform/plan-entitlements";
 import { getDriversByCompany } from "@/lib/platform/selectors";
 import { resolveTenantSlug } from "@/lib/platform/tenant-context";
 import type { Driver, DriverStatus } from "@/lib/platform/types";
@@ -29,8 +31,12 @@ export type WorkspaceDriver = {
 
 const DRIVERS_KEY_PREFIX = "dispatch.workspace.drivers.";
 export const WORKSPACE_DRIVERS_UPDATED_EVENT = "dispatch:workspace-drivers-updated";
+export const WORKSPACE_DRIVER_LIMIT_EVENT = "dispatch:workspace-driver-limit";
 
 const getKey = (companySlug: string) => `${DRIVERS_KEY_PREFIX}${companySlug}`;
+
+const currentDriverLimit = () =>
+  getPlanEntitlements(getStoredSession()?.subscription?.plan).maxDrivers;
 
 const toLiveWorkStatus = (status: DriverStatus): DriverLiveWorkStatus => {
   if (status === "offline") return "offline";
@@ -125,6 +131,32 @@ export const normalizeWorkspaceDrivers = (value: unknown): WorkspaceDriver[] => 
     });
 };
 
+const limitDriversForCurrentPlan = (
+  resolvedSlug: string,
+  proposed: WorkspaceDriver[]
+): WorkspaceDriver[] => {
+  if (typeof window === "undefined") return proposed;
+
+  const limit = currentDriverLimit();
+  if (limit === null || proposed.length <= limit) return proposed;
+
+  const raw = window.localStorage.getItem(getKey(resolvedSlug));
+  let current: WorkspaceDriver[] = [];
+  try {
+    current = raw ? normalizeWorkspaceDrivers(JSON.parse(raw)) : [];
+  } catch {
+    current = [];
+  }
+
+  const allowed = current.length >= limit ? current.slice(0, limit) : proposed.slice(0, limit);
+  window.dispatchEvent(
+    new CustomEvent(WORKSPACE_DRIVER_LIMIT_EVENT, {
+      detail: { companySlug: resolvedSlug, limit },
+    })
+  );
+  return allowed;
+};
+
 export const readWorkspaceDrivers = (
   companyId: string,
   companySlug = "build-electric"
@@ -144,7 +176,8 @@ export const readWorkspaceDrivers = (
   try {
     const parsed = JSON.parse(raw);
     const normalized = normalizeWorkspaceDrivers(parsed);
-    return normalized.length > 0 ? normalized : fallback;
+    const limited = limitDriversForCurrentPlan(resolvedSlug, normalized);
+    return limited.length > 0 ? limited : fallback;
   } catch {
     return fallback;
   }
@@ -156,9 +189,10 @@ export const writeWorkspaceDrivers = (
 ): WorkspaceDriver[] => {
   const resolvedSlug = resolveTenantSlug(companySlug);
   const normalized = normalizeWorkspaceDrivers(drivers);
+  const limited = limitDriversForCurrentPlan(resolvedSlug, normalized);
 
   if (typeof window !== "undefined") {
-    window.localStorage.setItem(getKey(resolvedSlug), JSON.stringify(normalized));
+    window.localStorage.setItem(getKey(resolvedSlug), JSON.stringify(limited));
     window.dispatchEvent(
       new CustomEvent(WORKSPACE_DRIVERS_UPDATED_EVENT, {
         detail: { companySlug: resolvedSlug },
@@ -166,7 +200,7 @@ export const writeWorkspaceDrivers = (
     );
   }
 
-  return normalized;
+  return limited;
 };
 
 export const toPlatformDrivers = (
