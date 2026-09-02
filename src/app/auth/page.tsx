@@ -41,9 +41,15 @@ export default function AuthPage() {
             body: JSON.stringify({ email, password }),
           });
 
-      saveSession(data as DispatchOSSession);
+      const session = data as DispatchOSSession;
+      saveSession(session);
       const base = process.env.NODE_ENV === "production" ? "/icomputer-dispatch-platform" : "";
-      window.location.href = `${base}${mode === "register" ? "/subscribe" : "/workspace"}`;
+      const destination = session.user.role === "admin"
+        ? "/workspace"
+        : mode === "register"
+          ? "/subscribe"
+          : "/workspace";
+      window.location.href = `${base}${destination}`;
     } catch (err) {
       setError(err instanceof Error ? err.message : "Unable to continue.");
     } finally {
