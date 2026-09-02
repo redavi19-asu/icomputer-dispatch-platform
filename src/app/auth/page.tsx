@@ -3,7 +3,7 @@
 import Link from "next/link";
 import Script from "next/script";
 import { FormEvent, useEffect, useRef, useState } from "react";
-import { ArrowLeft, Building2, LockKeyhole, LogIn, ShieldCheck, UserPlus } from "lucide-react";
+import { ArrowLeft, Building2, LockKeyhole, LogIn, ShieldCheck, Sparkles, UserPlus } from "lucide-react";
 import { authRequest, saveSession, type DispatchOSSession } from "@/lib/dispatchos-auth";
 
 type Mode = "login" | "register";
@@ -29,6 +29,7 @@ declare global {
 }
 
 export default function AuthPage() {
+  const registrationClosed = true;
   const [mode, setMode] = useState<Mode>("login");
   const [plan, setPlan] = useState("basic");
   const [name, setName] = useState("");
@@ -48,7 +49,8 @@ export default function AuthPage() {
     const params = new URLSearchParams(window.location.search);
     const requestedMode = params.get("mode");
     const requestedPlan = params.get("plan");
-    if (requestedMode === "register" || requestedMode === "login") setMode(requestedMode);
+    if (!registrationClosed && requestedMode === "register") setMode("register");
+    if (requestedMode === "login") setMode("login");
     if (requestedPlan === "business" || requestedPlan === "basic") setPlan(requestedPlan);
   }, []);
 
@@ -79,6 +81,7 @@ export default function AuthPage() {
   }
 
   function changeMode(nextMode: Mode) {
+    if (registrationClosed && nextMode === "register") return;
     setMode(nextMode);
     setError("");
     if (turnstileEnabled) resetTurnstile();
@@ -87,6 +90,12 @@ export default function AuthPage() {
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setError("");
+
+    if (registrationClosed && mode === "register") {
+      setMode("login");
+      setError("Public account creation is not open yet.");
+      return;
+    }
 
     if (turnstileEnabled && !turnstileToken) {
       setError("Please complete the security check before continuing.");
@@ -140,11 +149,9 @@ export default function AuthPage() {
           </Link>
           <div className="mt-10 max-w-3xl">
             <p className="text-xs uppercase tracking-[0.26em] text-cyan-300">DispatchOS Account</p>
-            <h1 className="mt-4 text-4xl font-semibold tracking-tight md:text-6xl">
-              {mode === "register" ? "Create your company account." : "Welcome back to DispatchOS."}
-            </h1>
+            <h1 className="mt-4 text-4xl font-semibold tracking-tight md:text-6xl">Welcome back to DispatchOS.</h1>
             <p className="mt-5 text-base leading-7 text-white/62 md:text-lg">
-              Your login connects your company, selected plan, billing status, workspace, and team access.
+              Existing access remains available while we finish the final production systems for public launch.
             </p>
           </div>
         </div>
@@ -155,22 +162,34 @@ export default function AuthPage() {
           <Building2 className="h-9 w-9 text-emerald-300" />
           <h2 className="mt-6 text-2xl font-semibold">One account. One company workspace.</h2>
           <p className="mt-4 text-sm leading-6 text-white/58">
-            Company owners create the first account. Drivers and dispatch staff can be invited into that company later without creating separate company subscriptions.
+            DispatchOS is being prepared for public onboarding. Existing authorized users can still sign in while new company registration stays closed until launch.
           </p>
           <div className="mt-7 rounded-2xl border border-cyan-400/15 bg-cyan-500/[0.05] p-5">
             <p className="text-xs uppercase tracking-[0.18em] text-cyan-300">Selected plan</p>
             <p className="mt-2 text-xl font-semibold">{plan === "business" ? "DispatchOS Business — $149/mo" : "DispatchOS Basic — $49.99/mo"}</p>
-            <p className="mt-2 text-xs leading-5 text-white/45">Payment activation is the next step after account creation.</p>
+            <p className="mt-2 text-xs leading-5 text-white/45">Plan activation will open with public onboarding.</p>
           </div>
         </aside>
 
         <div className="rounded-[2rem] border border-white/10 bg-slate-950/80 p-7 shadow-2xl md:p-9">
+          <div className="mb-7 rounded-2xl border border-emerald-400/20 bg-emerald-500/[0.07] p-5">
+            <div className="flex items-start gap-3">
+              <Sparkles className="mt-0.5 h-5 w-5 shrink-0 text-emerald-300" />
+              <div>
+                <p className="font-semibold text-emerald-100">We’re almost ready to put DispatchOS to work.</p>
+                <p className="mt-2 text-sm leading-6 text-white/58">
+                  Final production systems are being locked in now. Public account creation will open when the platform is ready for real companies, real drivers, and real dispatch operations — not before.
+                </p>
+              </div>
+            </div>
+          </div>
+
           <div className="grid grid-cols-2 rounded-xl border border-white/10 bg-black/25 p-1">
             <button type="button" onClick={() => changeMode("login")} className={`rounded-lg px-4 py-3 text-sm font-semibold ${mode === "login" ? "bg-cyan-400 text-slate-950" : "text-white/55"}`}>
               Log In
             </button>
-            <button type="button" onClick={() => changeMode("register")} className={`rounded-lg px-4 py-3 text-sm font-semibold ${mode === "register" ? "bg-emerald-500 text-white" : "text-white/55"}`}>
-              Create Account
+            <button type="button" disabled className="cursor-not-allowed rounded-lg px-4 py-3 text-sm font-semibold text-white/30">
+              Access Opening Soon
             </button>
           </div>
 
@@ -195,7 +214,7 @@ export default function AuthPage() {
 
             <label className="block">
               <span className="text-sm text-white/70">Password</span>
-              <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} required minLength={10} autoComplete={mode === "register" ? "new-password" : "current-password"} className="mt-2 w-full rounded-xl border border-white/10 bg-black/25 px-4 py-3 outline-none focus:border-cyan-300/50" placeholder="10+ characters" />
+              <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} required minLength={10} autoComplete="current-password" className="mt-2 w-full rounded-xl border border-white/10 bg-black/25 px-4 py-3 outline-none focus:border-cyan-300/50" placeholder="10+ characters" />
             </label>
 
             {turnstileEnabled && (
@@ -210,9 +229,9 @@ export default function AuthPage() {
 
             {error && <div className="rounded-xl border border-rose-400/20 bg-rose-500/10 px-4 py-3 text-sm text-rose-200">{error}</div>}
 
-            <button disabled={loading || (turnstileEnabled && !turnstileToken)} className={`inline-flex w-full items-center justify-center gap-2 rounded-xl px-6 py-4 font-bold transition disabled:cursor-wait disabled:opacity-60 ${mode === "register" ? "bg-emerald-500 hover:bg-emerald-400" : "bg-cyan-400 text-slate-950 hover:bg-cyan-300"}`}>
-              {mode === "register" ? <UserPlus className="h-5 w-5" /> : <LogIn className="h-5 w-5" />}
-              {loading ? "Connecting..." : mode === "register" ? "Create Company Account" : "Log In"}
+            <button disabled={loading || (turnstileEnabled && !turnstileToken)} className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-cyan-400 px-6 py-4 font-bold text-slate-950 transition hover:bg-cyan-300 disabled:cursor-wait disabled:opacity-60">
+              <LogIn className="h-5 w-5" />
+              {loading ? "Connecting..." : "Log In"}
             </button>
           </form>
 
