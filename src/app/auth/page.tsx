@@ -119,7 +119,7 @@ export default function AuthPage() {
       saveSession(session);
       const base = process.env.NODE_ENV === "production" ? "/icomputer-dispatch-platform" : "";
       const destination = session.user.role === "admin"
-        ? "/workspace"
+        ? "/admin"
         : mode === "register"
           ? "/subscribe"
           : "/workspace";
