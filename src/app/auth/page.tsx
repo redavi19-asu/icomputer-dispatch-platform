@@ -1,11 +1,32 @@
 "use client";
 
 import Link from "next/link";
-import { FormEvent, useEffect, useState } from "react";
-import { ArrowLeft, Building2, LockKeyhole, LogIn, UserPlus } from "lucide-react";
+import Script from "next/script";
+import { FormEvent, useEffect, useRef, useState } from "react";
+import { ArrowLeft, Building2, LockKeyhole, LogIn, ShieldCheck, UserPlus } from "lucide-react";
 import { authRequest, saveSession, type DispatchOSSession } from "@/lib/dispatchos-auth";
 
 type Mode = "login" | "register";
+
+type TurnstileApi = {
+  render: (
+    container: HTMLElement,
+    options: {
+      sitekey: string;
+      theme?: "light" | "dark" | "auto";
+      callback?: (token: string) => void;
+      "expired-callback"?: () => void;
+      "error-callback"?: () => void;
+    }
+  ) => string;
+  reset: (widgetId?: string) => void;
+};
+
+declare global {
+  interface Window {
+    turnstile?: TurnstileApi;
+  }
+}
 
 export default function AuthPage() {
   const [mode, setMode] = useState<Mode>("login");
@@ -16,6 +37,12 @@ export default function AuthPage() {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [turnstileToken, setTurnstileToken] = useState("");
+  const [turnstileReady, setTurnstileReady] = useState(false);
+  const turnstileContainerRef = useRef<HTMLDivElement | null>(null);
+  const turnstileWidgetIdRef = useRef<string | null>(null);
+  const turnstileSiteKey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY || "";
+  const turnstileEnabled = Boolean(turnstileSiteKey);
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -25,20 +52,58 @@ export default function AuthPage() {
     if (requestedPlan === "business" || requestedPlan === "basic") setPlan(requestedPlan);
   }, []);
 
+  useEffect(() => {
+    if (!turnstileEnabled || !turnstileReady || !window.turnstile || !turnstileContainerRef.current) return;
+    if (turnstileWidgetIdRef.current) return;
+
+    turnstileWidgetIdRef.current = window.turnstile.render(turnstileContainerRef.current, {
+      sitekey: turnstileSiteKey,
+      theme: "dark",
+      callback: (token) => {
+        setTurnstileToken(token);
+        setError("");
+      },
+      "expired-callback": () => setTurnstileToken(""),
+      "error-callback": () => {
+        setTurnstileToken("");
+        setError("Security check could not load. Please try again.");
+      },
+    });
+  }, [turnstileEnabled, turnstileReady, turnstileSiteKey]);
+
+  function resetTurnstile() {
+    setTurnstileToken("");
+    if (turnstileWidgetIdRef.current && window.turnstile) {
+      window.turnstile.reset(turnstileWidgetIdRef.current);
+    }
+  }
+
+  function changeMode(nextMode: Mode) {
+    setMode(nextMode);
+    setError("");
+    if (turnstileEnabled) resetTurnstile();
+  }
+
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setError("");
+
+    if (turnstileEnabled && !turnstileToken) {
+      setError("Please complete the security check before continuing.");
+      return;
+    }
+
     setLoading(true);
 
     try {
       const data = mode === "register"
         ? await authRequest("/auth/register", {
             method: "POST",
-            body: JSON.stringify({ name, companyName, email, password, plan }),
+            body: JSON.stringify({ name, companyName, email, password, plan, turnstileToken }),
           })
         : await authRequest("/auth/login", {
             method: "POST",
-            body: JSON.stringify({ email, password }),
+            body: JSON.stringify({ email, password, turnstileToken }),
           });
 
       const session = data as DispatchOSSession;
@@ -52,6 +117,7 @@ export default function AuthPage() {
       window.location.href = `${base}${destination}`;
     } catch (err) {
       setError(err instanceof Error ? err.message : "Unable to continue.");
+      if (turnstileEnabled) resetTurnstile();
     } finally {
       setLoading(false);
     }
@@ -59,6 +125,14 @@ export default function AuthPage() {
 
   return (
     <main className="min-h-screen bg-[#05070b] text-white">
+      {turnstileEnabled && (
+        <Script
+          src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit"
+          strategy="afterInteractive"
+          onLoad={() => setTurnstileReady(true)}
+        />
+      )}
+
       <section className="border-b border-white/10 bg-[radial-gradient(circle_at_30%_0%,rgba(34,211,238,.16),transparent_38%),radial-gradient(circle_at_75%_10%,rgba(16,185,129,.11),transparent_28%)]">
         <div className="mx-auto max-w-6xl px-6 py-12 md:py-16">
           <Link href="/plans" className="inline-flex items-center gap-2 text-sm text-cyan-200 hover:text-cyan-100">
@@ -92,10 +166,10 @@ export default function AuthPage() {
 
         <div className="rounded-[2rem] border border-white/10 bg-slate-950/80 p-7 shadow-2xl md:p-9">
           <div className="grid grid-cols-2 rounded-xl border border-white/10 bg-black/25 p-1">
-            <button type="button" onClick={() => { setMode("login"); setError(""); }} className={`rounded-lg px-4 py-3 text-sm font-semibold ${mode === "login" ? "bg-cyan-400 text-slate-950" : "text-white/55"}`}>
+            <button type="button" onClick={() => changeMode("login")} className={`rounded-lg px-4 py-3 text-sm font-semibold ${mode === "login" ? "bg-cyan-400 text-slate-950" : "text-white/55"}`}>
               Log In
             </button>
-            <button type="button" onClick={() => { setMode("register"); setError(""); }} className={`rounded-lg px-4 py-3 text-sm font-semibold ${mode === "register" ? "bg-emerald-500 text-white" : "text-white/55"}`}>
+            <button type="button" onClick={() => changeMode("register")} className={`rounded-lg px-4 py-3 text-sm font-semibold ${mode === "register" ? "bg-emerald-500 text-white" : "text-white/55"}`}>
               Create Account
             </button>
           </div>
@@ -124,9 +198,19 @@ export default function AuthPage() {
               <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} required minLength={10} autoComplete={mode === "register" ? "new-password" : "current-password"} className="mt-2 w-full rounded-xl border border-white/10 bg-black/25 px-4 py-3 outline-none focus:border-cyan-300/50" placeholder="10+ characters" />
             </label>
 
+            {turnstileEnabled && (
+              <div className="rounded-xl border border-white/10 bg-black/20 p-4">
+                <div className="mb-3 flex items-center gap-2 text-xs text-white/55">
+                  <ShieldCheck className="h-4 w-4 text-emerald-300" />
+                  Security verification
+                </div>
+                <div ref={turnstileContainerRef} className="min-h-[65px]" />
+              </div>
+            )}
+
             {error && <div className="rounded-xl border border-rose-400/20 bg-rose-500/10 px-4 py-3 text-sm text-rose-200">{error}</div>}
 
-            <button disabled={loading} className={`inline-flex w-full items-center justify-center gap-2 rounded-xl px-6 py-4 font-bold transition disabled:cursor-wait disabled:opacity-60 ${mode === "register" ? "bg-emerald-500 hover:bg-emerald-400" : "bg-cyan-400 text-slate-950 hover:bg-cyan-300"}`}>
+            <button disabled={loading || (turnstileEnabled && !turnstileToken)} className={`inline-flex w-full items-center justify-center gap-2 rounded-xl px-6 py-4 font-bold transition disabled:cursor-wait disabled:opacity-60 ${mode === "register" ? "bg-emerald-500 hover:bg-emerald-400" : "bg-cyan-400 text-slate-950 hover:bg-cyan-300"}`}>
               {mode === "register" ? <UserPlus className="h-5 w-5" /> : <LogIn className="h-5 w-5" />}
               {loading ? "Connecting..." : mode === "register" ? "Create Company Account" : "Log In"}
             </button>
