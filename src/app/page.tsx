@@ -92,21 +92,21 @@ export default function Home() {
             </div>
           </div>
 
-          <div className="relative hidden lg:block">
+          <div className="relative mt-2 block lg:mt-0">
             <div className="absolute -inset-10 rounded-full bg-cyan-500/10 blur-3xl" />
-            <div className="relative rounded-[2rem] border border-white/15 bg-slate-950/80 p-5 shadow-2xl backdrop-blur-xl">
-              <div className="flex items-center justify-between border-b border-white/10 pb-4">
+            <div className="relative rounded-[2rem] border border-white/15 bg-slate-950/80 p-4 shadow-2xl backdrop-blur-xl sm:p-5">
+              <div className="flex items-center justify-between gap-3 border-b border-white/10 pb-4">
                 <div><p className="text-xs uppercase tracking-[.2em] text-white/40">Live Operations</p><p className="mt-1 text-lg font-semibold">Dispatch Command</p></div>
-                <span className="rounded-full bg-emerald-500/15 px-3 py-1 text-xs text-emerald-300">System Online</span>
+                <span className="shrink-0 rounded-full bg-emerald-500/15 px-3 py-1 text-[11px] text-emerald-300 sm:text-xs">System Online</span>
               </div>
-              <div className="mt-5 grid grid-cols-3 gap-3">
-                {[['12','Waiting'],['7','Assigned'],['5','Active']].map(([value,label]) => <div key={label} className="rounded-2xl border border-white/10 bg-white/[0.04] p-4"><p className="text-2xl font-bold">{value}</p><p className="text-xs text-white/45">{label}</p></div>)}
+              <div className="mt-5 grid grid-cols-3 gap-2 sm:gap-3">
+                {[['12','Waiting'],['7','Assigned'],['5','Active']].map(([value,label]) => <div key={label} className="rounded-2xl border border-white/10 bg-white/[0.04] p-3 sm:p-4"><p className="text-xl font-bold sm:text-2xl">{value}</p><p className="text-[10px] text-white/45 sm:text-xs">{label}</p></div>)}
               </div>
-              <div className="mt-4 h-52 overflow-hidden rounded-2xl border border-cyan-400/20 bg-slate-900 p-1 shadow-[0_0_30px_rgba(34,211,238,.08)]">
+              <div className="mt-4 h-56 overflow-hidden rounded-2xl border border-cyan-400/20 bg-slate-900 p-1 shadow-[0_0_30px_rgba(34,211,238,.08)] sm:h-60 lg:h-52">
                 <DispatchPreviewMap />
               </div>
               <div className="mt-4 space-y-2">
-                {['Emergency service request assigned','Driver en route • ETA 14 min','Customer status updated'].map((item, i) => <div key={item} className="flex items-center gap-3 rounded-xl border border-white/8 bg-white/[0.03] px-4 py-3 text-sm text-white/70"><span className={`h-2 w-2 rounded-full ${i === 0 ? 'bg-rose-400' : i === 1 ? 'bg-amber-400' : 'bg-emerald-400'}`} />{item}</div>)}
+                {['Emergency service request assigned','Driver en route • ETA 14 min','Customer status updated'].map((item, i) => <div key={item} className="flex items-center gap-3 rounded-xl border border-white/8 bg-white/[0.03] px-3 py-3 text-xs text-white/70 sm:px-4 sm:text-sm"><span className={`h-2 w-2 shrink-0 rounded-full ${i === 0 ? 'bg-rose-400' : i === 1 ? 'bg-amber-400' : 'bg-emerald-400'}`} />{item}</div>)}
               </div>
             </div>
           </div>
