@@ -16,7 +16,10 @@ type ProtectedRouteProps = {
   requireActiveSubscription?: boolean;
 };
 
-const OPERATING_STATUSES = new Set(["active", "trialing", "grace_period"]);
+// comped is reserved for platform-admin granted access such as demos,
+// complimentary accounts, and manually managed trials before Stripe owns
+// the paid subscription lifecycle.
+const OPERATING_STATUSES = new Set(["active", "trialing", "grace_period", "comped"]);
 const BILLING_RECOVERY_STATUSES = new Set([
   "past_due",
   "unpaid",
