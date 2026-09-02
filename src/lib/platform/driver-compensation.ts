@@ -126,9 +126,9 @@ export const getDriverPayProfile = (
   settings: CompanyDriverPaySettings,
   driverId: string
 ): DriverPayProfile => ({
-  driverId,
   ...settings.defaultProfile,
   ...(settings.driverProfiles[driverId] ?? {}),
+  driverId,
 });
 
 export const calculateDriverPay = ({
