@@ -20,7 +20,7 @@ export default {
     const inviteAcceptanceResponse = await handleDriverInviteAcceptance(request, env);
     if (inviteAcceptanceResponse) return inviteAcceptanceResponse;
 
-    const planLimitResponse = await handlePlanLimitRequest(request, env);
+    const planLimitResponse = await handlePlanLimitRequest(request.clone(), env);
     if (planLimitResponse) return planLimitResponse;
 
     const operationsResponse = await handleOperationsRequest(request, env);
