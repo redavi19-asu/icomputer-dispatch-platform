@@ -27,8 +27,8 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
-  title: "DispatchOS",
-  description: "Mobile service dispatch software for field service companies.",
+  title: "DispatchOS | Business • Driver • Customer Logistics Software",
+  description: "DispatchOS connects businesses, drivers and field teams, and customers in one logistics workflow from request and assignment through completion.",
   applicationName: "DispatchOS",
   icons: {
     icon: [{ url: "/driver-app-icon.svg", type: "image/svg+xml" }],
