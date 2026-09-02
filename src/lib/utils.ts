@@ -1,4 +1,5 @@
 import clsx, { type ClassValue } from "clsx";
+import { resolveTenantSlug } from "@/lib/platform/tenant-context";
 
 export function cn(...inputs: ClassValue[]) {
   return clsx(inputs);
@@ -9,8 +10,12 @@ export type BroadcastAlert = {
   timestamp: number;
 };
 
-const BROADCAST_ALERT_KEY = "dispatch_broadcast_alert";
+const BROADCAST_ALERT_KEY_PREFIX = "dispatch_broadcast_alert";
 export const BROADCAST_ALERT_UPDATED_EVENT = "dispatch:broadcast-alert-updated";
+
+function broadcastAlertKey() {
+  return `${BROADCAST_ALERT_KEY_PREFIX}:${resolveTenantSlug()}`;
+}
 
 function notifyBroadcastAlertUpdated() {
   if (typeof window === "undefined") return;
@@ -20,7 +25,7 @@ function notifyBroadcastAlertUpdated() {
 export function getBroadcastAlerts(): BroadcastAlert[] {
   if (typeof window === "undefined") return [];
 
-  const raw = localStorage.getItem(BROADCAST_ALERT_KEY);
+  const raw = localStorage.getItem(broadcastAlertKey());
   if (!raw) return [];
 
   try {
@@ -54,7 +59,7 @@ export function addBroadcastAlert(alert: BroadcastAlert) {
 
   const current = getBroadcastAlerts();
   localStorage.setItem(
-    BROADCAST_ALERT_KEY,
+    broadcastAlertKey(),
     JSON.stringify([...current, alert])
   );
   notifyBroadcastAlertUpdated();
@@ -63,13 +68,13 @@ export function addBroadcastAlert(alert: BroadcastAlert) {
 export function persistBroadcastAlerts(alerts: BroadcastAlert[]) {
   if (typeof window === "undefined") return;
 
-  localStorage.setItem(BROADCAST_ALERT_KEY, JSON.stringify(alerts));
+  localStorage.setItem(broadcastAlertKey(), JSON.stringify(alerts));
   notifyBroadcastAlertUpdated();
 }
 
 export function clearBroadcastAlert() {
   if (typeof window === "undefined") return;
 
-  localStorage.removeItem(BROADCAST_ALERT_KEY);
+  localStorage.removeItem(broadcastAlertKey());
   notifyBroadcastAlertUpdated();
 }
