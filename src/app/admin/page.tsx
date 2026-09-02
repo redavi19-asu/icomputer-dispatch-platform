@@ -226,28 +226,27 @@ export default function AdminPage() {
   return (
     <main className="min-h-screen bg-[#05070b] text-white">
       <section className="border-b border-white/10 bg-[radial-gradient(circle_at_20%_0%,rgba(34,211,238,.15),transparent_34%),radial-gradient(circle_at_80%_0%,rgba(16,185,129,.12),transparent_30%)]">
-        <div className="mx-auto max-w-7xl px-6 py-12 md:py-16">
-          <div className="flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
-            <div>
-              <div className="flex items-center gap-2 text-xs uppercase tracking-[0.24em] text-cyan-300">
-                <ShieldCheck className="h-4 w-4" /> Platform Administrator
-              </div>
-              <h1 className="mt-4 text-4xl font-semibold tracking-tight md:text-6xl">DispatchOS Command Center</h1>
-              <p className="mt-4 max-w-3xl text-white/60">
-                Platform-level control over company access, plans, complimentary accounts, onboarding, and company-level usage analytics.
-              </p>
+        <div className="mx-auto max-w-7xl px-6 py-8 md:py-12">
+          <div className="flex flex-wrap items-center justify-end gap-3 border-b border-white/10 pb-6">
+            <button onClick={openMyCompanyPlatform} className="inline-flex items-center gap-2 rounded-xl border border-cyan-400/30 bg-cyan-500/10 px-4 py-3 text-sm font-semibold text-cyan-100 hover:bg-cyan-500/15">
+              <LayoutDashboard className="h-4 w-4" /> My Company Platform
+            </button>
+            <button onClick={() => void loadCompanies()} className="inline-flex items-center gap-2 rounded-xl border border-white/15 bg-white/5 px-4 py-3 text-sm font-semibold hover:bg-white/10">
+              <RefreshCw className="h-4 w-4" /> Refresh
+            </button>
+            <button onClick={() => setShowCreate((value) => !value)} className="inline-flex items-center gap-2 rounded-xl bg-cyan-400 px-4 py-3 text-sm font-bold text-slate-950 hover:bg-cyan-300">
+              <Plus className="h-4 w-4" /> Onboard Company
+            </button>
+          </div>
+
+          <div className="pt-8 md:pt-10">
+            <div className="flex items-center gap-2 text-xs uppercase tracking-[0.24em] text-cyan-300">
+              <ShieldCheck className="h-4 w-4" /> Platform Administrator
             </div>
-            <div className="flex flex-wrap gap-3">
-              <button onClick={openMyCompanyPlatform} className="inline-flex items-center gap-2 rounded-xl border border-cyan-400/30 bg-cyan-500/10 px-4 py-3 text-sm font-semibold text-cyan-100 hover:bg-cyan-500/15">
-                <LayoutDashboard className="h-4 w-4" /> My Company Platform
-              </button>
-              <button onClick={() => void loadCompanies()} className="inline-flex items-center gap-2 rounded-xl border border-white/15 bg-white/5 px-4 py-3 text-sm font-semibold hover:bg-white/10">
-                <RefreshCw className="h-4 w-4" /> Refresh
-              </button>
-              <button onClick={() => setShowCreate((value) => !value)} className="inline-flex items-center gap-2 rounded-xl bg-cyan-400 px-4 py-3 text-sm font-bold text-slate-950 hover:bg-cyan-300">
-                <Plus className="h-4 w-4" /> Onboard Company
-              </button>
-            </div>
+            <h1 className="mt-4 text-4xl font-semibold tracking-tight md:text-6xl">DispatchOS Command Center</h1>
+            <p className="mt-4 max-w-3xl text-white/60">
+              Platform-level control over company access, plans, complimentary accounts, onboarding, and company-level usage analytics.
+            </p>
           </div>
         </div>
       </section>
