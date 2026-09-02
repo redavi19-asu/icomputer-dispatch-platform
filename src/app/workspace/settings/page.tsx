@@ -56,7 +56,7 @@ export default function WorkspaceSettingsPage() {
             <h1 className="mt-2 text-3xl font-semibold tracking-tight md:text-4xl">Company and operating preferences</h1>
             <p className="mt-3 max-w-2xl text-sm text-white/70">These settings define how your company appears and how the Dispatcher and Driver experiences behave.</p>
           </div>
-          <Link href="/workspace" className="inline-flex items-center gap-2 rounded-lg border border-white/15 bg-white/5 px-3 py-2 text-sm text-white/85 hover:bg-white/10"><ArrowLeft className="h-4 w-4" /> Back to Portal</Link>
+          <Link href="/workspace" className="inline-flex items-center gap-2 rounded-lg border border-white/15 bg-white/5 px-3 py-2 text-sm text-white/85 hover:bg-white/10"><ArrowLeft className="h-4 w-4" /> Back to Workspace</Link>
         </div>
 
         <div className="space-y-6">
