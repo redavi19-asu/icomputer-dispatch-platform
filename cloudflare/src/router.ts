@@ -1,5 +1,6 @@
 import authWorker from "./index";
 import { handleDriverInviteAcceptance } from "./invite-accept";
+import { handleDriverInviteSeatLimit } from "./invite-seat-limit";
 import { handleOperationsRequest } from "./operations";
 import { handlePlanLimitRequest } from "./plan-limits";
 
@@ -13,6 +14,9 @@ interface Env {
 
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
+    const inviteSeatLimitResponse = await handleDriverInviteSeatLimit(request.clone(), env);
+    if (inviteSeatLimitResponse) return inviteSeatLimitResponse;
+
     const inviteAcceptanceResponse = await handleDriverInviteAcceptance(request, env);
     if (inviteAcceptanceResponse) return inviteAcceptanceResponse;
 
