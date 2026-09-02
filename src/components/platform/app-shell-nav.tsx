@@ -10,6 +10,7 @@ const navItems = [
   { label: "Workspace", href: "/workspace" },
   { label: "Company Settings", href: "/workspace/settings" },
   { label: "Drivers", href: "/workspace/drivers" },
+  { label: "Invite Driver", href: "/workspace/driver-invite" },
   { label: "Billing", href: "/billing" },
   { label: "Downloads", href: "/download" },
 ] as const;
