@@ -1,3 +1,5 @@
+import { resolveTenantSlug } from "@/lib/platform/tenant-context";
+
 export type DriverAcceptanceMode = "manual" | "auto";
 
 const storageKeyForCompany = (companySlug: string) =>
@@ -8,7 +10,8 @@ export function getStoredDriverAcceptanceMode(
 ): DriverAcceptanceMode | null {
   if (typeof window === "undefined" || !companySlug) return null;
 
-  const raw = window.localStorage.getItem(storageKeyForCompany(companySlug));
+  const resolvedSlug = resolveTenantSlug(companySlug);
+  const raw = window.localStorage.getItem(storageKeyForCompany(resolvedSlug));
   if (raw === "manual" || raw === "auto") return raw;
 
   return null;
@@ -19,7 +22,8 @@ export function setStoredDriverAcceptanceMode(
   mode: DriverAcceptanceMode
 ) {
   if (typeof window === "undefined") return;
-  window.localStorage.setItem(storageKeyForCompany(companySlug), mode);
+  const resolvedSlug = resolveTenantSlug(companySlug);
+  window.localStorage.setItem(storageKeyForCompany(resolvedSlug), mode);
 }
 
 export function resolveDriverAcceptanceMode(
