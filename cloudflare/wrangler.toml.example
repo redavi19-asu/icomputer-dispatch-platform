@@ -1,5 +1,5 @@
 name = "dispatchos-auth-api"
-main = "src/index.ts"
+main = "src/router.ts"
 compatibility_date = "2026-08-01"
 
 [vars]
