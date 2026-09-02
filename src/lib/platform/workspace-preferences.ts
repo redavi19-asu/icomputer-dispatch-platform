@@ -8,6 +8,8 @@ export type OperationalMode =
 export type JobStructureMode = "One-stop job" | "Two-stop job" | "Multi-stop route";
 
 export type WorkspaceSettingsState = {
+  setupComplete: boolean;
+  industry: string;
   bookingPageEnabled: boolean;
   driverAppEnabled: boolean;
   customerUpdatesEnabled: boolean;
@@ -35,7 +37,9 @@ const SETTINGS_KEY_PREFIX = "dispatch.workspace.settings.";
 const WORKSPACE_SETTINGS_UPDATED_EVENT = "dispatch:workspace-settings-updated";
 
 export const defaultWorkspaceSettings: WorkspaceSettingsState = {
-  bookingPageEnabled: true,
+  setupComplete: false,
+  industry: "",
+  bookingPageEnabled: false,
   driverAppEnabled: true,
   customerUpdatesEnabled: true,
   operationalMode: "Direct Service",
@@ -51,44 +55,30 @@ export const defaultWorkspaceSettings: WorkspaceSettingsState = {
   jobStructureMode: "One-stop job",
   baseRequiredBeforeFinalStop: false,
   returnToBaseAfterCompletion: false,
-  jobIntakeSource: "both",
+  jobIntakeSource: "dashboard",
   dispatchMode: "Manual",
   driverAcceptanceMode: "auto",
-  companyName: "Build & Electric",
-  companySlug: "build-electric",
+  companyName: "",
+  companySlug: "company",
 };
 
-const isObject = (value: unknown): value is Record<string, unknown> => {
-  return typeof value === "object" && value !== null;
-};
+const isObject = (value: unknown): value is Record<string, unknown> =>
+  typeof value === "object" && value !== null;
 
-const isJobIntakeSource = (value: unknown): value is JobIntakeSource => {
-  return value === "booking" || value === "dashboard" || value === "both";
-};
+const isJobIntakeSource = (value: unknown): value is JobIntakeSource =>
+  value === "booking" || value === "dashboard" || value === "both";
 
-const isDispatchMode = (value: unknown): value is DispatchMode => {
-  return value === "Manual" || value === "Assisted" || value === "Auto";
-};
+const isDispatchMode = (value: unknown): value is DispatchMode =>
+  value === "Manual" || value === "Assisted" || value === "Auto";
 
-const isDriverAcceptanceMode = (value: unknown): value is DriverAcceptanceMode => {
-  return value === "manual" || value === "auto";
-};
+const isDriverAcceptanceMode = (value: unknown): value is DriverAcceptanceMode =>
+  value === "manual" || value === "auto";
 
-const isOperationalMode = (value: unknown): value is OperationalMode => {
-  return (
-    value === "Direct Service" ||
-    value === "Pickup Then Deliver" ||
-    value === "Chain of Custody"
-  );
-};
+const isOperationalMode = (value: unknown): value is OperationalMode =>
+  value === "Direct Service" || value === "Pickup Then Deliver" || value === "Chain of Custody";
 
-const isJobStructureMode = (value: unknown): value is JobStructureMode => {
-  return (
-    value === "One-stop job" ||
-    value === "Two-stop job" ||
-    value === "Multi-stop route"
-  );
-};
+const isJobStructureMode = (value: unknown): value is JobStructureMode =>
+  value === "One-stop job" || value === "Two-stop job" || value === "Multi-stop route";
 
 const getKey = (companySlug: string) => `${SETTINGS_KEY_PREFIX}${companySlug}`;
 
@@ -106,86 +96,53 @@ export const normalizeWorkspaceSettings = (
       : companySlugFallback;
 
   return {
+    setupComplete: typeof value.setupComplete === "boolean" ? value.setupComplete : false,
+    industry: typeof value.industry === "string" ? value.industry : "",
     bookingPageEnabled:
-      typeof value.bookingPageEnabled === "boolean"
-        ? value.bookingPageEnabled
-        : defaultWorkspaceSettings.bookingPageEnabled,
+      typeof value.bookingPageEnabled === "boolean" ? value.bookingPageEnabled : false,
     driverAppEnabled:
-      typeof value.driverAppEnabled === "boolean"
-        ? value.driverAppEnabled
-        : defaultWorkspaceSettings.driverAppEnabled,
+      typeof value.driverAppEnabled === "boolean" ? value.driverAppEnabled : true,
     customerUpdatesEnabled:
-      typeof value.customerUpdatesEnabled === "boolean"
-        ? value.customerUpdatesEnabled
-        : defaultWorkspaceSettings.customerUpdatesEnabled,
+      typeof value.customerUpdatesEnabled === "boolean" ? value.customerUpdatesEnabled : true,
     operationalMode: isOperationalMode(value.operationalMode)
       ? value.operationalMode
       : defaultWorkspaceSettings.operationalMode,
     customerTrackingEnabled:
-      typeof value.customerTrackingEnabled === "boolean"
-        ? value.customerTrackingEnabled
-        : defaultWorkspaceSettings.customerTrackingEnabled,
+      typeof value.customerTrackingEnabled === "boolean" ? value.customerTrackingEnabled : true,
     pickupVerificationEnabled:
-      typeof value.pickupVerificationEnabled === "boolean"
-        ? value.pickupVerificationEnabled
-        : defaultWorkspaceSettings.pickupVerificationEnabled,
+      typeof value.pickupVerificationEnabled === "boolean" ? value.pickupVerificationEnabled : false,
     deliveryVerificationEnabled:
-      typeof value.deliveryVerificationEnabled === "boolean"
-        ? value.deliveryVerificationEnabled
-        : defaultWorkspaceSettings.deliveryVerificationEnabled,
+      typeof value.deliveryVerificationEnabled === "boolean" ? value.deliveryVerificationEnabled : true,
     proofOfDeliveryEnabled:
-      typeof value.proofOfDeliveryEnabled === "boolean"
-        ? value.proofOfDeliveryEnabled
-        : defaultWorkspaceSettings.proofOfDeliveryEnabled,
+      typeof value.proofOfDeliveryEnabled === "boolean" ? value.proofOfDeliveryEnabled : true,
     qrHandoffEnabled:
-      typeof value.qrHandoffEnabled === "boolean"
-        ? value.qrHandoffEnabled
-        : defaultWorkspaceSettings.qrHandoffEnabled,
+      typeof value.qrHandoffEnabled === "boolean" ? value.qrHandoffEnabled : true,
     photoProofEnabled:
-      typeof value.photoProofEnabled === "boolean"
-        ? value.photoProofEnabled
-        : defaultWorkspaceSettings.photoProofEnabled,
+      typeof value.photoProofEnabled === "boolean" ? value.photoProofEnabled : false,
     signatureConfirmationEnabled:
-      typeof value.signatureConfirmationEnabled === "boolean"
-        ? value.signatureConfirmationEnabled
-        : defaultWorkspaceSettings.signatureConfirmationEnabled,
+      typeof value.signatureConfirmationEnabled === "boolean" ? value.signatureConfirmationEnabled : false,
     dispatcherCanConfirmHandoff:
-      typeof value.dispatcherCanConfirmHandoff === "boolean"
-        ? value.dispatcherCanConfirmHandoff
-        : defaultWorkspaceSettings.dispatcherCanConfirmHandoff,
+      typeof value.dispatcherCanConfirmHandoff === "boolean" ? value.dispatcherCanConfirmHandoff : true,
     driverMustConfirmHandoff:
-      typeof value.driverMustConfirmHandoff === "boolean"
-        ? value.driverMustConfirmHandoff
-        : defaultWorkspaceSettings.driverMustConfirmHandoff,
+      typeof value.driverMustConfirmHandoff === "boolean" ? value.driverMustConfirmHandoff : false,
     jobStructureMode: isJobStructureMode(value.jobStructureMode)
       ? value.jobStructureMode
       : defaultWorkspaceSettings.jobStructureMode,
     baseRequiredBeforeFinalStop:
-      typeof value.baseRequiredBeforeFinalStop === "boolean"
-        ? value.baseRequiredBeforeFinalStop
-        : defaultWorkspaceSettings.baseRequiredBeforeFinalStop,
+      typeof value.baseRequiredBeforeFinalStop === "boolean" ? value.baseRequiredBeforeFinalStop : false,
     returnToBaseAfterCompletion:
-      typeof value.returnToBaseAfterCompletion === "boolean"
-        ? value.returnToBaseAfterCompletion
-        : defaultWorkspaceSettings.returnToBaseAfterCompletion,
-    jobIntakeSource: isJobIntakeSource(value.jobIntakeSource)
-      ? value.jobIntakeSource
-      : defaultWorkspaceSettings.jobIntakeSource,
-    dispatchMode: isDispatchMode(value.dispatchMode)
-      ? value.dispatchMode
-      : defaultWorkspaceSettings.dispatchMode,
+      typeof value.returnToBaseAfterCompletion === "boolean" ? value.returnToBaseAfterCompletion : false,
+    jobIntakeSource: isJobIntakeSource(value.jobIntakeSource) ? value.jobIntakeSource : "dashboard",
+    dispatchMode: isDispatchMode(value.dispatchMode) ? value.dispatchMode : "Manual",
     driverAcceptanceMode: isDriverAcceptanceMode(value.driverAcceptanceMode)
       ? value.driverAcceptanceMode
-      : defaultWorkspaceSettings.driverAcceptanceMode,
-    companyName:
-      typeof value.companyName === "string" && value.companyName.trim().length > 0
-        ? value.companyName.trim()
-        : defaultWorkspaceSettings.companyName,
+      : "auto",
+    companyName: typeof value.companyName === "string" ? value.companyName.trim() : "",
     companySlug,
   };
 };
 
-export const readWorkspaceSettings = (companySlug = "build-electric"): WorkspaceSettingsState => {
+export const readWorkspaceSettings = (companySlug = "company"): WorkspaceSettingsState => {
   if (typeof window === "undefined") {
     return { ...defaultWorkspaceSettings, companySlug };
   }
@@ -196,15 +153,14 @@ export const readWorkspaceSettings = (companySlug = "build-electric"): Workspace
   }
 
   try {
-    const parsed = JSON.parse(raw);
-    return normalizeWorkspaceSettings(parsed, companySlug);
+    return normalizeWorkspaceSettings(JSON.parse(raw), companySlug);
   } catch {
     return { ...defaultWorkspaceSettings, companySlug };
   }
 };
 
 export const writeWorkspaceSettings = (settings: WorkspaceSettingsState): WorkspaceSettingsState => {
-  const normalized = normalizeWorkspaceSettings(settings, settings.companySlug || "build-electric");
+  const normalized = normalizeWorkspaceSettings(settings, settings.companySlug || "company");
 
   if (typeof window !== "undefined") {
     window.localStorage.setItem(getKey(normalized.companySlug), JSON.stringify(normalized));
