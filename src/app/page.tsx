@@ -78,8 +78,9 @@ export default function Home() {
           <div>
             <a href="https://redavi19-asu.github.io/icomuteranythingV3/" className="inline-flex rounded-full border border-cyan-300/25 bg-black/35 px-4 py-2 text-xs font-medium tracking-wide text-cyan-100 backdrop-blur">Built by I Computer Anything</a>
             <p className="mt-8 text-xs uppercase tracking-[0.28em] text-cyan-300">DispatchOS</p>
-            <h1 className="mt-4 max-w-4xl text-4xl font-semibold tracking-tight sm:text-5xl md:text-7xl">Run field operations from one command system.</h1>
-            <p className="mt-6 max-w-2xl text-base leading-7 text-white/72 sm:text-lg">Dispatch jobs, drivers, technicians, mobile crews, outreach teams, and field assignments from one connected platform with an office dashboard and mobile field app.</p>
+            <p className="mt-3 text-xs font-semibold uppercase tracking-[0.22em] text-emerald-300 sm:text-sm">Business • Driver • Customer Logistics Software</p>
+            <h1 className="mt-4 max-w-4xl text-4xl font-semibold tracking-tight sm:text-5xl md:text-7xl">Run the whole job from one command system.</h1>
+            <p className="mt-6 max-w-2xl text-base leading-7 text-white/72 sm:text-lg">DispatchOS connects the business, the driver or field team, and the customer in one operating flow — from request and assignment through field progress, updates, and completion.</p>
 
             <div className="mt-9 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
               <Link href="/plans" className="inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-500 px-7 py-4 font-bold text-white transition hover:bg-emerald-400">View Plans <ArrowRight className="h-4 w-4" /></Link>
@@ -88,7 +89,7 @@ export default function Home() {
             </div>
 
             <div className="mt-7 inline-flex items-center gap-3 rounded-xl border border-emerald-400/20 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-100">
-              <ShieldCheck className="h-5 w-5" /> One company workspace. One dispatcher system. One connected field team.
+              <ShieldCheck className="h-5 w-5" /> Business workspace. Driver workflow. Customer connection. One system.
             </div>
           </div>
 
@@ -114,7 +115,7 @@ export default function Home() {
       </section>
 
       <section className="mx-auto max-w-7xl px-6 py-16 md:py-24">
-        <div className="max-w-3xl"><p className="text-xs uppercase tracking-[0.24em] text-emerald-300">One operating flow</p><h2 className="mt-3 text-3xl font-semibold tracking-tight md:text-5xl">From assignment to completed field work</h2><p className="mt-4 text-white/60">The standard platform handles dispatch and field execution. Customer-facing intake can be connected as a custom integration when your operation needs it.</p></div>
+        <div className="max-w-3xl"><p className="text-xs uppercase tracking-[0.24em] text-emerald-300">Business • Driver • Customer</p><h2 className="mt-3 text-3xl font-semibold tracking-tight md:text-5xl">One operating flow from request to completion</h2><p className="mt-4 text-white/60">The business receives and manages the work, the driver or field team executes it, and the customer stays connected to the job as it moves forward.</p></div>
         <div className="mt-10 grid gap-5 md:grid-cols-2 xl:grid-cols-4">
           {workflowStages.map((stage, index) => (
             <motion.article key={stage.title} initial={{ opacity: 0, y: 18 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, amount: 0.25 }} transition={{ duration: 0.35, delay: index * 0.05 }} className={`rounded-3xl border p-6 ${toneClasses[stage.tone]}`}>
@@ -127,7 +128,7 @@ export default function Home() {
 
       <section className="border-y border-white/10 bg-white/[0.025]">
         <div className="mx-auto grid max-w-7xl gap-10 px-6 py-16 md:py-24 lg:grid-cols-[.9fr_1.1fr] lg:items-center">
-          <div><p className="text-xs uppercase tracking-[0.24em] text-rose-300">Built for teams that move</p><h2 className="mt-3 text-3xl font-semibold tracking-tight md:text-5xl">Your company decides what a “job” means.</h2><p className="mt-5 text-white/62 leading-7">DispatchOS is the command layer between your office and the people you send into the field. Use it for service calls, deliveries, inspections, mobile crews, outreach, events, route work, or another operation that needs assignments, location awareness, and status updates.</p>
+          <div><p className="text-xs uppercase tracking-[0.24em] text-rose-300">Built for teams that move</p><h2 className="mt-3 text-3xl font-semibold tracking-tight md:text-5xl">Your company decides what a “job” means.</h2><p className="mt-5 text-white/62 leading-7">DispatchOS is the logistics middle layer connecting your business, the drivers or people you send into the field, and the customer waiting on the work. Use it for service calls, deliveries, inspections, mobile crews, outreach, events, route work, or another operation that needs assignments, location awareness, and status updates.</p>
             <div className="mt-7 space-y-3">{["Set up your company preferences and operating workflow","Add drivers, technicians, staff, or field teams as your operation grows","Install the Dispatcher app for office operations and the Driver app for field work","Request a custom integration when you want DispatchOS connected to your website, forms, or existing systems"].map(item => <div key={item} className="flex items-start gap-3 text-sm text-white/75"><CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-emerald-400" />{item}</div>)}</div>
           </div>
           <div className="grid gap-4 sm:grid-cols-3">
@@ -146,7 +147,7 @@ export default function Home() {
       <section className="px-6 pb-20 md:pb-28">
         <div className="mx-auto max-w-6xl overflow-hidden rounded-[2rem] border border-emerald-400/20 bg-[radial-gradient(circle_at_20%_20%,rgba(16,185,129,.16),transparent_35%),radial-gradient(circle_at_80%_70%,rgba(190,24,93,.12),transparent_40%),linear-gradient(135deg,#111827,#020617)] p-8 md:p-12">
           <p className="text-xs uppercase tracking-[0.24em] text-emerald-300">Ready when your company is</p>
-          <h2 className="mt-4 max-w-3xl text-3xl font-semibold tracking-tight md:text-5xl">Activate. Set up your company. Install. Start dispatching.</h2>
+          <h2 className="mt-4 max-w-3xl text-3xl font-semibold tracking-tight md:text-5xl">Activate. Set up your company. Connect your drivers. Serve your customers.</h2>
           <p className="mt-5 max-w-3xl text-white/62 leading-7">Your subscription connects your company workspace, Dispatcher app, Driver app, team management, billing, and account access. If you want DispatchOS wired into your existing website, forms, booking process, internal systems, or industry-specific workflow, I Computer Anything handles that as a custom integration.</p>
           <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
             <Link href="/plans" className="inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-500 px-7 py-4 font-bold text-white transition hover:bg-emerald-400">View Plans <ArrowRight className="h-4 w-4" /></Link>
@@ -156,7 +157,7 @@ export default function Home() {
         </div>
       </section>
 
-      <footer className="border-t border-white/10 bg-black/60"><div className="mx-auto flex max-w-7xl flex-col gap-2 px-6 py-8 text-sm text-white/60 md:flex-row md:items-center md:justify-between"><a href="https://redavi19-asu.github.io/icomuteranythingV3/" className="font-medium text-cyan-200">Built by I Computer Anything</a><p className="text-xs">DispatchOS — field operations and workforce dispatch software</p></div></footer>
+      <footer className="border-t border-white/10 bg-black/60"><div className="mx-auto flex max-w-7xl flex-col gap-2 px-6 py-8 text-sm text-white/60 md:flex-row md:items-center md:justify-between"><a href="https://redavi19-asu.github.io/icomuteranythingV3/" className="font-medium text-cyan-200">Built by I Computer Anything</a><p className="text-xs">DispatchOS — Business • Driver • Customer Logistics Software</p></div></footer>
 
       <CustomVersionModal open={customModalOpen} onClose={() => setCustomModalOpen(false)} />
     </main>
