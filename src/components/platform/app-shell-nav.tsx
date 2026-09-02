@@ -7,7 +7,7 @@ import { Crown } from "lucide-react";
 import { getStoredSession } from "@/lib/dispatchos-auth";
 
 const navItems = [
-  { label: "Overview", href: "/workspace" },
+  { label: "Workspace", href: "/workspace" },
   { label: "Company Settings", href: "/workspace/settings" },
   { label: "Drivers", href: "/workspace/drivers" },
   { label: "Billing", href: "/billing" },
