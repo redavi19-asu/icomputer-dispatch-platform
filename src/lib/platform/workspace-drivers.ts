@@ -1,4 +1,5 @@
 import { getDriversByCompany } from "@/lib/platform/selectors";
+import { resolveTenantSlug } from "@/lib/platform/tenant-context";
 import type { Driver, DriverStatus } from "@/lib/platform/types";
 
 export type DriverAccountStatus = "enabled" | "disabled";
@@ -128,13 +129,14 @@ export const readWorkspaceDrivers = (
   companyId: string,
   companySlug = "build-electric"
 ): WorkspaceDriver[] => {
+  const resolvedSlug = resolveTenantSlug(companySlug);
   const fallback = seedWorkspaceDrivers(companyId);
 
   if (typeof window === "undefined") {
     return fallback;
   }
 
-  const raw = window.localStorage.getItem(getKey(companySlug));
+  const raw = window.localStorage.getItem(getKey(resolvedSlug));
   if (!raw) {
     return fallback;
   }
@@ -152,13 +154,14 @@ export const writeWorkspaceDrivers = (
   companySlug: string,
   drivers: WorkspaceDriver[]
 ): WorkspaceDriver[] => {
+  const resolvedSlug = resolveTenantSlug(companySlug);
   const normalized = normalizeWorkspaceDrivers(drivers);
 
   if (typeof window !== "undefined") {
-    window.localStorage.setItem(getKey(companySlug), JSON.stringify(normalized));
+    window.localStorage.setItem(getKey(resolvedSlug), JSON.stringify(normalized));
     window.dispatchEvent(
       new CustomEvent(WORKSPACE_DRIVERS_UPDATED_EVENT, {
-        detail: { companySlug },
+        detail: { companySlug: resolvedSlug },
       })
     );
   }
