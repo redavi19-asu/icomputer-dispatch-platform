@@ -4,6 +4,7 @@ import "./globals.css";
 import { ServiceWorkerRegister } from "@/components/platform/service-worker-register";
 import { TenantStorageIsolation } from "@/components/platform/tenant-storage-isolation";
 import { TenantOperationsSyncV2 } from "@/components/platform/tenant-operations-sync-v2";
+import { SecureDriverInviteGuard } from "@/components/platform/secure-driver-invite-guard";
 import { LegalConsent } from "@/components/platform/legal-consent";
 
 const geistSans = Geist({
@@ -50,6 +51,7 @@ export default function RootLayout({
       >
         <TenantStorageIsolation />
         <TenantOperationsSyncV2 />
+        <SecureDriverInviteGuard />
         <ServiceWorkerRegister />
         {children}
         <LegalConsent />
