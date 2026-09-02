@@ -10,6 +10,7 @@ import {
   Download,
   LifeBuoy,
   Settings2,
+  WalletCards,
 } from "lucide-react";
 
 import { Card, CardContent } from "@/components/ui/card";
@@ -38,6 +39,13 @@ const portalCards = [
     href: "/workspace/drivers",
     cta: "Manage Drivers",
     icon: CarFront,
+  },
+  {
+    title: "Driver Pay & Earnings",
+    description: "Set driver pay rules, calculate completed-job earnings and mileage, review daily totals, and prepare manual or automatic payouts.",
+    href: "/workspace/driver-pay",
+    cta: "Open Driver Pay",
+    icon: WalletCards,
   },
   {
     title: "Billing",
@@ -102,7 +110,7 @@ export default function WorkspacePage() {
             {settings.companyName} workspace
           </h1>
           <p className="mt-5 max-w-3xl text-base leading-7 text-white/70 md:text-lg">
-            Manage the company account here. Configure preferences, manage drivers, review billing, and install DispatchOS on the devices your team actually uses.
+            Manage the company account here. Configure preferences, manage drivers, review driver earnings, review billing, and install DispatchOS on the devices your team actually uses.
           </p>
           <p className="mt-4 max-w-3xl text-sm leading-6 text-cyan-100/70">
             Daily dispatch work happens inside the installed Dispatcher app. Drivers work from the installed Driver app. This portal is for company administration.
