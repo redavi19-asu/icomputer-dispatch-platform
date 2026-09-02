@@ -52,7 +52,7 @@ export default {
   async fetch(request: Request, env: Env): Promise<Response> {
     const url = new URL(request.url);
     const origin = request.headers.get("Origin") || "";
-    const cors = corsHeaders(origin, env.ALLOWED_ORIGINS);
+    const cors = corsHeaders(origin, env.ALLOWED_ORIGINS || "");
 
     if (request.method === "OPTIONS") {
       return new Response(null, { status: 204, headers: cors });
@@ -66,6 +66,7 @@ export default {
           turnstile: Boolean(clean(env.TURNSTILE_SECRET_KEY)),
           publicRegistration: clean(env.PUBLIC_REGISTRATION_ENABLED).toLowerCase() === "true",
           adminConsole: true,
+          companyAnalytics: true,
         }, 200, cors);
       }
 
@@ -94,6 +95,13 @@ export default {
 
       if (url.pathname === "/admin/companies" && request.method === "POST") {
         return await adminCreateCompany(request, env, cors);
+      }
+
+      if (url.pathname.startsWith("/admin/companies/") && url.pathname.endsWith("/analytics") && request.method === "GET") {
+        const companyId = decodeURIComponent(
+          url.pathname.slice("/admin/companies/".length, -"/analytics".length)
+        );
+        return await adminCompanyAnalytics(request, env, cors, companyId);
       }
 
       if (url.pathname.startsWith("/admin/companies/") && request.method === "PATCH") {
@@ -144,10 +152,14 @@ async function register(request: Request, env: Env, cors: HeadersInit) {
   const subscriptionStatus = role === "admin" ? "active" : "pending";
 
   await env.DB.batch([
-    env.DB.prepare("INSERT INTO users (id, name, email, password_hash, password_salt, role) VALUES (?, ?, ?, ?, ?, ?)").bind(userId, name, email, passwordHash, salt, role),
-    env.DB.prepare("INSERT INTO companies (id, name, slug) VALUES (?, ?, ?)").bind(companyId, companyName, slug),
-    env.DB.prepare("INSERT INTO memberships (id, user_id, company_id, role) VALUES (?, ?, ?, ?)").bind(membershipId, userId, companyId, "owner"),
-    env.DB.prepare("INSERT INTO subscriptions (id, company_id, plan, status) VALUES (?, ?, ?, ?)").bind(subscriptionId, companyId, plan, subscriptionStatus),
+    env.DB.prepare("INSERT INTO users (id, name, email, password_hash, password_salt, role) VALUES (?, ?, ?, ?, ?, ?)")
+      .bind(userId, name, email, passwordHash, salt, role),
+    env.DB.prepare("INSERT INTO companies (id, name, slug) VALUES (?, ?, ?)")
+      .bind(companyId, companyName, slug),
+    env.DB.prepare("INSERT INTO memberships (id, user_id, company_id, role) VALUES (?, ?, ?, ?)")
+      .bind(membershipId, userId, companyId, "owner"),
+    env.DB.prepare("INSERT INTO subscriptions (id, company_id, plan, status) VALUES (?, ?, ?, ?)")
+      .bind(subscriptionId, companyId, plan, subscriptionStatus),
   ]);
 
   const session = await createSession(env.DB, userId);
@@ -163,8 +175,8 @@ async function login(request: Request, env: Env, cors: HeadersInit) {
   const password = body.password || "";
 
   const user = await env.DB.prepare(
-    "SELECT id, password_hash, password_salt, role FROM users WHERE email = ?"
-  ).bind(email).first<{ id: string; password_hash: string; password_salt: string; role: string }>();
+    "SELECT id, email, password_hash, password_salt, role FROM users WHERE email = ?"
+  ).bind(email).first<{ id: string; email: string; password_hash: string; password_salt: string; role: string }>();
 
   if (!user) {
     return json({ error: "Email or password is incorrect." }, 401, cors);
@@ -173,6 +185,14 @@ async function login(request: Request, env: Env, cors: HeadersInit) {
   const suppliedHash = await hashPassword(password, user.password_salt);
   if (!constantTimeEqual(suppliedHash, user.password_hash)) {
     return json({ error: "Email or password is incorrect." }, 401, cors);
+  }
+
+  const configuredAdminEmail = clean(env.ADMIN_EMAIL).toLowerCase();
+  if (configuredAdminEmail && email === configuredAdminEmail && user.role !== "admin") {
+    await env.DB.prepare("UPDATE users SET role = 'admin', updated_at = CURRENT_TIMESTAMP WHERE id = ?")
+      .bind(user.id)
+      .run();
+    user.role = "admin";
   }
 
   if (user.role !== "admin") {
@@ -207,6 +227,10 @@ async function adminListCompanies(request: Request, env: Env, cors: HeadersInit)
       s.plan,
       s.status,
       (SELECT COUNT(*) FROM memberships mc WHERE mc.company_id = c.id) AS member_count,
+      (SELECT COUNT(*) FROM memberships mc WHERE mc.company_id = c.id AND mc.role = 'owner') AS owner_count,
+      (SELECT COUNT(*) FROM memberships mc WHERE mc.company_id = c.id AND mc.role = 'admin') AS admin_count,
+      (SELECT COUNT(*) FROM memberships mc WHERE mc.company_id = c.id AND mc.role = 'dispatcher') AS dispatcher_count,
+      (SELECT COUNT(*) FROM memberships mc WHERE mc.company_id = c.id AND mc.role = 'driver') AS driver_member_count,
       (SELECT u.name
          FROM memberships mo
          JOIN users u ON u.id = mo.user_id
@@ -231,6 +255,109 @@ async function adminListCompanies(request: Request, env: Env, cors: HeadersInit)
   `).all();
 
   return json({ ok: true, companies: result.results || [] }, 200, cors);
+}
+
+async function adminCompanyAnalytics(request: Request, env: Env, cors: HeadersInit, companyId: string) {
+  const adminId = await authenticatedAdminUserId(request, env.DB);
+  if (!adminId) return json({ error: "Administrator access required." }, 403, cors);
+  if (!companyId) return json({ error: "Company id is required." }, 400, cors);
+
+  const company = await env.DB.prepare("SELECT id FROM companies WHERE id = ?").bind(companyId).first();
+  if (!company) return json({ error: "Company not found." }, 404, cors);
+
+  const hasDrivers = await tableExists(env.DB, "drivers");
+  const hasJobs = await tableExists(env.DB, "jobs");
+  const hasSettings = await tableExists(env.DB, "company_settings");
+
+  let drivers = { total: 0, active: 0, offline: 0 };
+  if (hasDrivers) {
+    const row = await env.DB.prepare(`
+      SELECT
+        COUNT(*) AS total,
+        SUM(CASE WHEN lower(status) IN ('active','available','online','en route','on job') THEN 1 ELSE 0 END) AS active,
+        SUM(CASE WHEN lower(status) IN ('offline','inactive') THEN 1 ELSE 0 END) AS offline
+      FROM drivers
+      WHERE company_id = ?
+    `).bind(companyId).first<Record<string, number | null>>();
+    drivers = {
+      total: Number(row?.total || 0),
+      active: Number(row?.active || 0),
+      offline: Number(row?.offline || 0),
+    };
+  }
+
+  let jobs = {
+    total: 0,
+    active: 0,
+    completed: 0,
+    canceled: 0,
+    today: 0,
+    thisMonth: 0,
+    completionRate: 0,
+  };
+
+  if (hasJobs) {
+    const row = await env.DB.prepare(`
+      SELECT
+        COUNT(*) AS total,
+        SUM(CASE WHEN lower(status) NOT IN ('completed','cancelled','canceled') THEN 1 ELSE 0 END) AS active,
+        SUM(CASE WHEN lower(status) = 'completed' THEN 1 ELSE 0 END) AS completed,
+        SUM(CASE WHEN lower(status) IN ('cancelled','canceled') THEN 1 ELSE 0 END) AS canceled,
+        SUM(CASE WHEN date(created_at) = date('now') THEN 1 ELSE 0 END) AS today,
+        SUM(CASE WHEN strftime('%Y-%m', created_at) = strftime('%Y-%m', 'now') THEN 1 ELSE 0 END) AS this_month
+      FROM jobs
+      WHERE company_id = ?
+    `).bind(companyId).first<Record<string, number | null>>();
+
+    const total = Number(row?.total || 0);
+    const completed = Number(row?.completed || 0);
+    jobs = {
+      total,
+      active: Number(row?.active || 0),
+      completed,
+      canceled: Number(row?.canceled || 0),
+      today: Number(row?.today || 0),
+      thisMonth: Number(row?.this_month || 0),
+      completionRate: total > 0 ? Math.round((completed / total) * 100) : 0,
+    };
+  }
+
+  let settings = {
+    dispatchMode: null as string | null,
+    driverAcceptanceMode: null as string | null,
+    bookingEnabled: null as boolean | null,
+    driverAppEnabled: null as boolean | null,
+    customerUpdatesEnabled: null as boolean | null,
+  };
+
+  if (hasSettings) {
+    const row = await env.DB.prepare(`
+      SELECT dispatch_mode, driver_acceptance_mode, booking_enabled, driver_app_enabled, customer_updates_enabled
+      FROM company_settings
+      WHERE company_id = ?
+    `).bind(companyId).first<Record<string, string | number | null>>();
+
+    if (row) {
+      settings = {
+        dispatchMode: String(row.dispatch_mode || ""),
+        driverAcceptanceMode: String(row.driver_acceptance_mode || ""),
+        bookingEnabled: Boolean(row.booking_enabled),
+        driverAppEnabled: Boolean(row.driver_app_enabled),
+        customerUpdatesEnabled: Boolean(row.customer_updates_enabled),
+      };
+    }
+  }
+
+  return json({
+    ok: true,
+    analytics: {
+      companyId,
+      operationalDataReady: hasDrivers && hasJobs,
+      drivers,
+      jobs,
+      settings,
+    },
+  }, 200, cors);
 }
 
 async function adminCreateCompany(request: Request, env: Env, cors: HeadersInit) {
@@ -264,7 +391,8 @@ async function adminCreateCompany(request: Request, env: Env, cors: HeadersInit)
   await env.DB.batch([
     env.DB.prepare("INSERT INTO users (id, name, email, password_hash, password_salt, role) VALUES (?, ?, ?, ?, ?, 'owner')")
       .bind(userId, ownerName, ownerEmail, passwordHash, salt),
-    env.DB.prepare("INSERT INTO companies (id, name, slug) VALUES (?, ?, ?)").bind(companyId, companyName, slug),
+    env.DB.prepare("INSERT INTO companies (id, name, slug) VALUES (?, ?, ?)")
+      .bind(companyId, companyName, slug),
     env.DB.prepare("INSERT INTO memberships (id, user_id, company_id, role) VALUES (?, ?, ?, 'owner')")
       .bind(crypto.randomUUID(), userId, companyId),
     env.DB.prepare("INSERT INTO subscriptions (id, company_id, plan, status) VALUES (?, ?, ?, ?)")
@@ -457,7 +585,7 @@ async function createSession(db: D1Database, userId: string) {
 async function hashPassword(password: string, saltHex: string) {
   const key = await crypto.subtle.importKey("raw", encoder.encode(password), "PBKDF2", false, ["deriveBits"]);
   const bits = await crypto.subtle.deriveBits(
-    { name: "PBKDF2", hash: "SHA-256", salt: hexToBytes(saltHex), iterations: 210000 },
+    { name: "PBKDF2", hash: "SHA-256", salt: hexToBytes(saltHex), iterations: 100000 },
     key,
     256
   );
@@ -467,6 +595,13 @@ async function hashPassword(password: string, saltHex: string) {
 async function sha256(value: string) {
   const digest = await crypto.subtle.digest("SHA-256", encoder.encode(value));
   return bytesToHex(new Uint8Array(digest));
+}
+
+async function tableExists(db: D1Database, tableName: string) {
+  const row = await db.prepare(
+    "SELECT name FROM sqlite_master WHERE type = 'table' AND name = ? LIMIT 1"
+  ).bind(tableName).first<{ name: string }>();
+  return Boolean(row?.name);
 }
 
 function bearerToken(request: Request) {
