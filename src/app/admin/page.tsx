@@ -12,10 +12,12 @@ import {
   Clock3,
   CreditCard,
   Gift,
+  LayoutDashboard,
   Plus,
   RefreshCw,
   ShieldCheck,
   Smartphone,
+  Trash2,
   Truck,
   UserCog,
   Users,
@@ -118,6 +120,10 @@ export default function AdminPage() {
     return { total, active, comped, suspended };
   }, [companies]);
 
+  function openMyCompanyPlatform() {
+    window.location.href = `${basePath()}/workspace`;
+  }
+
   async function updateCompany(id: string, update: { plan?: string; status?: string }) {
     setSavingId(id);
     setError("");
@@ -129,6 +135,34 @@ export default function AdminPage() {
       await loadCompanies();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Unable to update company.");
+    } finally {
+      setSavingId("");
+    }
+  }
+
+  async function removeCompany(company: CompanyRow) {
+    if (company.protected_admin_company) return;
+
+    const confirmed = window.confirm(
+      `Remove ${company.name} from DispatchOS?\n\nThis permanently removes the company workspace, access, memberships, and company-owned operational data. This cannot be undone.`
+    );
+    if (!confirmed) return;
+
+    setSavingId(company.id);
+    setError("");
+    try {
+      await authRequest(`/admin/companies/${encodeURIComponent(company.id)}`, {
+        method: "DELETE",
+      });
+      setExpandedCompanyId((current) => (current === company.id ? "" : current));
+      setAnalyticsByCompany((current) => {
+        const next = { ...current };
+        delete next[company.id];
+        return next;
+      });
+      await loadCompanies();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Unable to remove company.");
     } finally {
       setSavingId("");
     }
@@ -204,6 +238,9 @@ export default function AdminPage() {
               </p>
             </div>
             <div className="flex flex-wrap gap-3">
+              <button onClick={openMyCompanyPlatform} className="inline-flex items-center gap-2 rounded-xl border border-cyan-400/30 bg-cyan-500/10 px-4 py-3 text-sm font-semibold text-cyan-100 hover:bg-cyan-500/15">
+                <LayoutDashboard className="h-4 w-4" /> My Company Platform
+              </button>
               <button onClick={() => void loadCompanies()} className="inline-flex items-center gap-2 rounded-xl border border-white/15 bg-white/5 px-4 py-3 text-sm font-semibold hover:bg-white/10">
                 <RefreshCw className="h-4 w-4" /> Refresh
               </button>
@@ -321,6 +358,9 @@ export default function AdminPage() {
                         </button>
                         <button disabled={disabled || protectedCompany} onClick={() => void updateCompany(company.id, { status: "suspended" })} className="inline-flex items-center gap-2 rounded-lg border border-rose-400/20 bg-rose-500/10 px-3 py-2 text-xs font-semibold text-rose-200 disabled:opacity-35">
                           <Ban className="h-4 w-4" /> Suspend
+                        </button>
+                        <button disabled={disabled || protectedCompany} onClick={() => void removeCompany(company)} className="inline-flex items-center gap-2 rounded-lg border border-rose-400/15 bg-rose-500/[0.04] px-3 py-2 text-xs font-semibold text-rose-200/60 transition hover:border-rose-400/30 hover:bg-rose-500/10 hover:text-rose-100 disabled:cursor-not-allowed disabled:opacity-25">
+                          <Trash2 className="h-4 w-4" /> Remove
                         </button>
                       </div>
                     </div>
