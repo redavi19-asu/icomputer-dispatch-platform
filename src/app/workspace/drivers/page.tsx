@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
-import { ArrowLeft, Copy, Mail, Pencil, Plus, Send, Smartphone } from "lucide-react";
+import { ArrowLeft, Copy, Mail, Pencil, Plus, Send, Smartphone, UserPlus, Users } from "lucide-react";
 
 import { AppShellNav } from "@/components/platform/app-shell-nav";
 import { Button } from "@/components/ui/button";
@@ -73,8 +73,7 @@ export default function WorkspaceDriversPage() {
       phone: driver.phone,
       zone: driver.zone,
       accountStatus: driver.accountStatus,
-      liveWorkStatus:
-        driver.accountStatus === "disabled" ? "offline" : driver.liveWorkStatus,
+      liveWorkStatus: driver.accountStatus === "disabled" ? "offline" : driver.liveWorkStatus,
       inviteStatus: driver.inviteStatus,
     });
     setIsEditorOpen(true);
@@ -94,8 +93,7 @@ export default function WorkspaceDriversPage() {
                 zone: draft.zone.trim() || "Unassigned",
                 accountStatus: draft.accountStatus,
                 inviteStatus: draft.inviteStatus,
-                liveWorkStatus:
-                  draft.accountStatus === "disabled" ? "offline" : draft.liveWorkStatus,
+                liveWorkStatus: draft.accountStatus === "disabled" ? "offline" : draft.liveWorkStatus,
               }
             : driver
         )
@@ -110,8 +108,7 @@ export default function WorkspaceDriversPage() {
           zone: draft.zone.trim() || "Unassigned",
           accountStatus: draft.accountStatus,
           inviteStatus: draft.inviteStatus,
-          liveWorkStatus:
-            draft.accountStatus === "disabled" ? "offline" : draft.liveWorkStatus,
+          liveWorkStatus: draft.accountStatus === "disabled" ? "offline" : draft.liveWorkStatus,
         },
         ...prev,
       ]);
@@ -123,13 +120,8 @@ export default function WorkspaceDriversPage() {
   };
 
   const buildDriverInviteLink = (driver: WorkspaceDriver) => {
-    const baseUrl =
-      typeof window !== "undefined"
-        ? window.location.origin
-        : "https://redavi19-asu.github.io/icomuteranythingV3/";
-    return `${baseUrl}/driver?company=build-electric&driver=${encodeURIComponent(
-      driver.id
-    )}&invite=1`;
+    const baseUrl = typeof window !== "undefined" ? window.location.origin : "https://redavi19-asu.github.io/icomputer-dispatch-platform";
+    return `${baseUrl}/driver?company=build-electric&driver=${encodeURIComponent(driver.id)}&invite=1`;
   };
 
   const sendDriverInvite = (driverId: string) => {
@@ -138,21 +130,16 @@ export default function WorkspaceDriversPage() {
         driver.id === driverId ? { ...driver, inviteStatus: "invite-sent" } : driver
       )
     );
-    setActionMessage("Driver invite sent.");
+    setActionMessage("Driver invite marked as sent.");
   };
 
   const resendInvite = (driverId: string) => {
     setDrivers((prev) =>
       prev.map((driver) =>
-        driver.id === driverId
-          ? {
-              ...driver,
-              inviteStatus: "invite-resent",
-            }
-          : driver
+        driver.id === driverId ? { ...driver, inviteStatus: "invite-resent" } : driver
       )
     );
-    setActionMessage("Invite resent to driver.");
+    setActionMessage("Driver invite marked as resent.");
   };
 
   const copyDriverLink = async (driver: WorkspaceDriver) => {
@@ -197,290 +184,118 @@ export default function WorkspaceDriversPage() {
         <div className="mb-8 flex flex-wrap items-center justify-between gap-4">
           <div>
             <p className="text-xs uppercase tracking-[0.22em] text-cyan-300">Workspace Drivers</p>
-            <h1 className="mt-2 text-3xl font-semibold tracking-tight md:text-4xl">
-              Driver management
-            </h1>
-            <p className="mt-3 text-sm text-white/70">
-              {enabledDrivers} enabled of {drivers.length} total drivers.
-            </p>
+            <h1 className="mt-2 text-3xl font-semibold tracking-tight md:text-4xl">Driver management</h1>
+            <p className="mt-3 text-sm text-white/70">{enabledDrivers} enabled of {drivers.length} total drivers.</p>
           </div>
 
-          <div className="flex items-center gap-3">
-            <Link
-              href="/workspace"
-              className="inline-flex items-center gap-2 rounded-lg border border-white/15 bg-white/5 px-3 py-2 text-sm text-white/85 hover:bg-white/10"
-            >
-              <ArrowLeft className="h-4 w-4" />
-              Back to Workspace
+          <div className="flex flex-wrap items-center gap-3">
+            <Link href="/workspace" className="inline-flex items-center gap-2 rounded-lg border border-white/15 bg-white/5 px-3 py-2 text-sm text-white/85 hover:bg-white/10">
+              <ArrowLeft className="h-4 w-4" /> Back to Workspace
             </Link>
-            <Button
-              variant="secondary"
-              onClick={() => setIsInstallGuideOpen(true)}
-              className="rounded-xl border border-white/10 bg-white/5 px-4 py-2.5 text-sm font-semibold text-white hover:bg-white/10"
-            >
-              <Smartphone className="h-4 w-4" />
-              Install Guide
+            <Button variant="secondary" onClick={() => setIsInstallGuideOpen(true)} className="rounded-xl border border-white/10 bg-white/5 px-4 py-2.5 text-sm font-semibold text-white hover:bg-white/10">
+              <Smartphone className="h-4 w-4" /> Driver Install Guide
             </Button>
-            <Button
-              onClick={openAddDriver}
-              className="rounded-xl bg-cyan-500 px-4 py-2.5 text-sm font-semibold text-slate-950 hover:bg-cyan-400"
-            >
-              <Plus className="h-4 w-4" />
-              Add Driver
+            <Button onClick={openAddDriver} className="rounded-xl bg-cyan-500 px-4 py-2.5 text-sm font-semibold text-slate-950 hover:bg-cyan-400">
+              <Plus className="h-4 w-4" /> Add Driver
             </Button>
           </div>
         </div>
+
+        <section className="mb-6 rounded-3xl border border-cyan-400/20 bg-[linear-gradient(145deg,rgba(8,47,73,.35),rgba(2,6,23,.92)_68%)] p-6 md:p-7">
+          <div className="flex items-start gap-4">
+            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-cyan-300/20 bg-cyan-400/10">
+              <UserPlus className="h-5 w-5 text-cyan-300" />
+            </div>
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-cyan-300">How to add a driver</p>
+              <h2 className="mt-2 text-xl font-semibold">Add the person first, then give them app access.</h2>
+              <p className="mt-2 max-w-3xl text-sm leading-6 text-white/62">
+                Click <strong className="text-white">Add Driver</strong>, enter the driver&apos;s name, phone, zone, and account status, then save. After the driver appears in the roster, use <strong className="text-white">Send Driver Invite</strong> or <strong className="text-white">Copy Driver Link</strong> so they can open the Driver app on their device.
+              </p>
+              <div className="mt-4 grid gap-3 text-sm sm:grid-cols-3">
+                <div className="rounded-2xl border border-white/10 bg-black/20 p-4"><span className="text-cyan-300">1.</span> Add the driver profile.</div>
+                <div className="rounded-2xl border border-white/10 bg-black/20 p-4"><span className="text-cyan-300">2.</span> Send or copy their invite link.</div>
+                <div className="rounded-2xl border border-white/10 bg-black/20 p-4"><span className="text-cyan-300">3.</span> Driver installs/signs in and goes online.</div>
+              </div>
+              <p className="mt-4 text-xs text-white/45">
+                The Driver Install Guide button is specifically for showing the driver how to put the Driver app on their phone or tablet. It is separate from adding the driver account here.
+              </p>
+            </div>
+          </div>
+        </section>
 
         <Card className="rounded-3xl border border-white/10 bg-white/5 text-white shadow-none">
           <CardContent className="p-0">
             <div className="grid gap-3 border-b border-white/10 bg-slate-900/70 px-5 py-3 text-[11px] uppercase tracking-[0.14em] text-white/50 md:grid-cols-[1.4fr_1fr_1fr_auto] md:items-center">
-              <p>Driver</p>
-              <p>Zone</p>
-              <p>Status</p>
-              <p className="md:text-right">Actions</p>
+              <p>Driver</p><p>Zone</p><p>Status</p><p className="md:text-right">Actions</p>
             </div>
             <div className="divide-y divide-white/10">
-              {drivers.map((driver) => (
-                <div key={driver.id} className="grid gap-4 p-5 md:grid-cols-[1.4fr_1fr_1fr_auto] md:items-center">
-                  <div>
-                    <p className="font-semibold">{driver.name}</p>
-                    <p className="mt-1 text-sm text-white/65">{driver.phone || "No phone on file"}</p>
-                  </div>
-
-                  <div>
-                    <p className="text-xs uppercase tracking-[0.18em] text-white/45">Zone</p>
-                    <p className="mt-1 text-sm text-white/80">{driver.zone}</p>
-                  </div>
-
-                  <div className="flex items-center gap-2">
-                    <button
-                      onClick={() => toggleAccountStatus(driver.id)}
-                      className={`rounded-full border px-3 py-1 text-xs font-semibold transition ${
-                        driver.accountStatus === "enabled"
-                          ? "border-emerald-400/45 bg-emerald-500/15 text-emerald-200"
-                          : "border-white/20 bg-white/5 text-white/70"
-                      }`}
-                    >
-                      {driver.accountStatus === "enabled" ? "Enabled" : "Disabled"}
-                    </button>
-
-                    <span className="rounded-full border border-cyan-400/30 bg-cyan-500/10 px-3 py-1 text-xs text-cyan-200">
-                      {getDriverInviteLabel(driver.inviteStatus)}
-                    </span>
-                    <span className="rounded-full border border-white/20 bg-white/10 px-3 py-1 text-xs text-white/75">
-                      {getDriverLiveWorkLabel(driver.liveWorkStatus)}
-                    </span>
-                  </div>
-
-                  <div className="flex items-center gap-2 md:justify-end">
-                    {driver.inviteStatus === "not-sent" ? (
-                      <Button
-                        variant="secondary"
-                        onClick={() => sendDriverInvite(driver.id)}
-                        className="border border-white/10 bg-white/5 text-white hover:bg-white/10"
-                      >
-                        <Send className="h-4 w-4" />
-                        Send Driver Invite
-                      </Button>
-                    ) : (
-                      <Button
-                        variant="secondary"
-                        onClick={() => resendInvite(driver.id)}
-                        className="border border-white/10 bg-white/5 text-white hover:bg-white/10"
-                      >
-                        <Send className="h-4 w-4" />
-                        Resend Invite
-                      </Button>
-                    )}
-
-                    <Button
-                      variant="secondary"
-                      onClick={() => void copyDriverLink(driver)}
-                      className="border border-white/10 bg-white/5 text-white hover:bg-white/10"
-                    >
-                      <Copy className="h-4 w-4" />
-                      Copy Driver Link
-                    </Button>
-                    <Button
-                      variant="secondary"
-                      onClick={() => openEditDriver(driver)}
-                      className="border border-white/10 bg-white/5 text-white hover:bg-white/10"
-                    >
-                      <Pencil className="h-4 w-4" />
-                      Edit
-                    </Button>
-                  </div>
+              {drivers.length === 0 ? (
+                <div className="p-8 text-center">
+                  <Users className="mx-auto h-8 w-8 text-white/25" />
+                  <p className="mt-3 font-semibold">No drivers added yet.</p>
+                  <p className="mt-2 text-sm text-white/50">Use Add Driver above to create your first driver profile.</p>
                 </div>
-              ))}
+              ) : (
+                drivers.map((driver) => (
+                  <div key={driver.id} className="grid gap-4 p-5 md:grid-cols-[1.4fr_1fr_1fr_auto] md:items-center">
+                    <div><p className="font-semibold">{driver.name}</p><p className="mt-1 text-sm text-white/65">{driver.phone || "No phone on file"}</p></div>
+                    <div><p className="text-xs uppercase tracking-[0.18em] text-white/45">Zone</p><p className="mt-1 text-sm text-white/80">{driver.zone}</p></div>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <button onClick={() => toggleAccountStatus(driver.id)} className={`rounded-full border px-3 py-1 text-xs font-semibold transition ${driver.accountStatus === "enabled" ? "border-emerald-400/45 bg-emerald-500/15 text-emerald-200" : "border-white/20 bg-white/5 text-white/70"}`}>
+                        {driver.accountStatus === "enabled" ? "Enabled" : "Disabled"}
+                      </button>
+                      <span className="rounded-full border border-cyan-400/30 bg-cyan-500/10 px-3 py-1 text-xs text-cyan-200">{getDriverInviteLabel(driver.inviteStatus)}</span>
+                      <span className="rounded-full border border-white/20 bg-white/10 px-3 py-1 text-xs text-white/75">{getDriverLiveWorkLabel(driver.liveWorkStatus)}</span>
+                    </div>
+                    <div className="flex flex-wrap items-center gap-2 md:justify-end">
+                      {driver.inviteStatus === "not-sent" ? (
+                        <Button variant="secondary" onClick={() => sendDriverInvite(driver.id)} className="border border-white/10 bg-white/5 text-white hover:bg-white/10"><Send className="h-4 w-4" /> Send Driver Invite</Button>
+                      ) : (
+                        <Button variant="secondary" onClick={() => resendInvite(driver.id)} className="border border-white/10 bg-white/5 text-white hover:bg-white/10"><Send className="h-4 w-4" /> Resend Invite</Button>
+                      )}
+                      <Button variant="secondary" onClick={() => void copyDriverLink(driver)} className="border border-white/10 bg-white/5 text-white hover:bg-white/10"><Copy className="h-4 w-4" /> Copy Driver Link</Button>
+                      <Button variant="secondary" onClick={() => openEditDriver(driver)} className="border border-white/10 bg-white/5 text-white hover:bg-white/10"><Pencil className="h-4 w-4" /> Edit</Button>
+                    </div>
+                  </div>
+                ))
+              )}
             </div>
           </CardContent>
         </Card>
 
-        {actionMessage ? (
-          <p className="mt-4 text-sm text-cyan-200">{actionMessage}</p>
-        ) : null}
+        {actionMessage ? <p className="mt-4 text-sm text-cyan-200">{actionMessage}</p> : null}
       </section>
 
-      <Modal
-        isOpen={isEditorOpen}
-        onClose={() => setIsEditorOpen(false)}
-        title={editingDriverId ? "Edit Driver" : "Add Driver"}
-      >
+      <Modal isOpen={isEditorOpen} onClose={() => setIsEditorOpen(false)} title={editingDriverId ? "Edit Driver" : "Add Driver"}>
         <div className="space-y-4 text-slate-800">
-          <label className="block">
-            <span className="mb-2 block text-sm text-slate-600">Driver Name</span>
-            <input
-              value={draft.name}
-              onChange={(event) => setDraft((prev) => ({ ...prev, name: event.target.value }))}
-              className="w-full rounded-xl border border-slate-300 px-4 py-3 text-slate-900 outline-none focus:border-slate-500"
-              placeholder="Full name"
-            />
-          </label>
-
-          <label className="block">
-            <span className="mb-2 block text-sm text-slate-600">Phone</span>
-            <input
-              value={draft.phone}
-              onChange={(event) => setDraft((prev) => ({ ...prev, phone: event.target.value }))}
-              className="w-full rounded-xl border border-slate-300 px-4 py-3 text-slate-900 outline-none focus:border-slate-500"
-              placeholder="(555) 555-5555"
-            />
-          </label>
-
-          <label className="block">
-            <span className="mb-2 block text-sm text-slate-600">Zone</span>
-            <input
-              value={draft.zone}
-              onChange={(event) => setDraft((prev) => ({ ...prev, zone: event.target.value }))}
-              className="w-full rounded-xl border border-slate-300 px-4 py-3 text-slate-900 outline-none focus:border-slate-500"
-              placeholder="Central Zone"
-            />
-          </label>
-
-          <label className="block">
-            <span className="mb-2 block text-sm text-slate-600">Account Status</span>
-            <select
-              value={draft.accountStatus}
-              onChange={(event) =>
-                setDraft((prev) => ({
-                  ...prev,
-                  accountStatus: event.target.value as DriverAccountStatus,
-                  liveWorkStatus:
-                    event.target.value === "disabled"
-                      ? "offline"
-                      : prev.liveWorkStatus === "offline"
-                      ? "available"
-                      : prev.liveWorkStatus,
-                }))
-              }
-              className="w-full rounded-xl border border-slate-300 px-4 py-3 text-slate-900 outline-none focus:border-slate-500"
-            >
-              <option value="enabled">Enabled</option>
-              <option value="disabled">Disabled</option>
-            </select>
-          </label>
-
-          <label className="block">
-            <span className="mb-2 block text-sm text-slate-600">Invite Status</span>
-            <select
-              value={draft.inviteStatus}
-              onChange={(event) =>
-                setDraft((prev) => ({
-                  ...prev,
-                  inviteStatus: event.target.value as DriverInviteStatus,
-                }))
-              }
-              className="w-full rounded-xl border border-slate-300 px-4 py-3 text-slate-900 outline-none focus:border-slate-500"
-            >
-              <option value="not-sent">Not Sent</option>
-              <option value="invite-sent">Invite Sent</option>
-              <option value="invite-resent">Invite Resent</option>
-              <option value="joined">Joined</option>
-            </select>
-          </label>
-
-          <label className="block">
-            <span className="mb-2 block text-sm text-slate-600">Live Work Status</span>
-            <select
-              value={draft.accountStatus === "disabled" ? "offline" : draft.liveWorkStatus}
-              onChange={(event) =>
-                setDraft((prev) => ({
-                  ...prev,
-                  liveWorkStatus: event.target.value as DriverLiveWorkStatus,
-                }))
-              }
-              disabled={draft.accountStatus === "disabled"}
-              className="w-full rounded-xl border border-slate-300 px-4 py-3 text-slate-900 outline-none focus:border-slate-500 disabled:cursor-not-allowed disabled:bg-slate-100"
-            >
-              <option value="available">Available</option>
-              <option value="assigned">Assigned</option>
-              <option value="on-route">On Route</option>
-              <option value="at-pickup">At Pickup</option>
-              <option value="at-stop">At Stop</option>
-              <option value="completed">Completed</option>
-              <option value="offline">Offline</option>
-            </select>
-          </label>
-
-          <div className="flex gap-3 pt-2">
-            <Button onClick={() => setIsEditorOpen(false)} variant="secondary" className="flex-1">
-              Cancel
-            </Button>
-            <Button onClick={saveDriver} className="flex-1 bg-slate-900 text-white hover:bg-slate-800">
-              <Mail className="h-4 w-4" />
-              Save Driver
-            </Button>
-          </div>
+          <label className="block"><span className="mb-2 block text-sm text-slate-600">Driver Name</span><input value={draft.name} onChange={(event) => setDraft((prev) => ({ ...prev, name: event.target.value }))} className="w-full rounded-xl border border-slate-300 px-4 py-3 text-slate-900 outline-none focus:border-slate-500" placeholder="Full name" /></label>
+          <label className="block"><span className="mb-2 block text-sm text-slate-600">Phone</span><input value={draft.phone} onChange={(event) => setDraft((prev) => ({ ...prev, phone: event.target.value }))} className="w-full rounded-xl border border-slate-300 px-4 py-3 text-slate-900 outline-none focus:border-slate-500" placeholder="(555) 555-5555" /></label>
+          <label className="block"><span className="mb-2 block text-sm text-slate-600">Zone</span><input value={draft.zone} onChange={(event) => setDraft((prev) => ({ ...prev, zone: event.target.value }))} className="w-full rounded-xl border border-slate-300 px-4 py-3 text-slate-900 outline-none focus:border-slate-500" placeholder="Central Zone" /></label>
+          <label className="block"><span className="mb-2 block text-sm text-slate-600">Account Status</span><select value={draft.accountStatus} onChange={(event) => setDraft((prev) => ({ ...prev, accountStatus: event.target.value as DriverAccountStatus, liveWorkStatus: event.target.value === "disabled" ? "offline" : prev.liveWorkStatus === "offline" ? "available" : prev.liveWorkStatus }))} className="w-full rounded-xl border border-slate-300 px-4 py-3 text-slate-900 outline-none focus:border-slate-500"><option value="enabled">Enabled</option><option value="disabled">Disabled</option></select></label>
+          <label className="block"><span className="mb-2 block text-sm text-slate-600">Invite Status</span><select value={draft.inviteStatus} onChange={(event) => setDraft((prev) => ({ ...prev, inviteStatus: event.target.value as DriverInviteStatus }))} className="w-full rounded-xl border border-slate-300 px-4 py-3 text-slate-900 outline-none focus:border-slate-500"><option value="not-sent">Not Sent</option><option value="invite-sent">Invite Sent</option><option value="invite-resent">Invite Resent</option><option value="joined">Joined</option></select></label>
+          <label className="block"><span className="mb-2 block text-sm text-slate-600">Live Work Status</span><select value={draft.accountStatus === "disabled" ? "offline" : draft.liveWorkStatus} onChange={(event) => setDraft((prev) => ({ ...prev, liveWorkStatus: event.target.value as DriverLiveWorkStatus }))} disabled={draft.accountStatus === "disabled"} className="w-full rounded-xl border border-slate-300 px-4 py-3 text-slate-900 outline-none focus:border-slate-500 disabled:cursor-not-allowed disabled:bg-slate-100"><option value="available">Available</option><option value="assigned">Assigned</option><option value="on-route">On Route</option><option value="at-pickup">At Pickup</option><option value="at-stop">At Stop</option><option value="completed">Completed</option><option value="offline">Offline</option></select></label>
+          <div className="flex gap-3 pt-2"><Button onClick={() => setIsEditorOpen(false)} variant="secondary" className="flex-1">Cancel</Button><Button onClick={saveDriver} className="flex-1 bg-slate-900 text-white hover:bg-slate-800"><Mail className="h-4 w-4" /> Save Driver</Button></div>
         </div>
       </Modal>
 
-      <Modal
-        isOpen={isInstallGuideOpen}
-        onClose={() => setIsInstallGuideOpen(false)}
-        title="Driver Mobile Install Guide"
-      >
+      <Modal isOpen={isInstallGuideOpen} onClose={() => setIsInstallGuideOpen(false)} title="Driver Mobile Install Guide">
         <div className="space-y-4 text-slate-800">
-          <p className="text-sm text-slate-700">
-            DispatchOS driver access works today as a mobile web app with an invite link, and can
-            later be added to the home screen for app-like use.
-          </p>
-
+          <p className="text-sm text-slate-700">This guide is for installing the Driver app on the driver&apos;s device after you have already added the driver and sent their invite.</p>
           <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
-            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">Driver flow</p>
+            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">Driver install flow</p>
             <ol className="mt-3 list-decimal space-y-2 pl-5 text-sm text-slate-700">
-              <li>Dispatcher sends invite link from Driver Management.</li>
-              <li>Driver opens link on mobile browser.</li>
+              <li>Add the driver in Driver Management.</li>
+              <li>Send the driver invite or copy their driver link.</li>
+              <li>Driver opens the link on their phone or tablet.</li>
               <li>Driver signs in or verifies identity.</li>
-              <li>Driver uses the live mission screen in browser.</li>
-              <li>Add to Home Screen for one-tap full-screen launch.</li>
+              <li>Driver installs/adds DispatchOS Driver to the home screen.</li>
+              <li>Driver opens the app and taps Go Online when ready to work.</li>
             </ol>
           </div>
-
-          <div className="rounded-2xl border border-cyan-200 bg-cyan-50 p-4 text-sm text-cyan-900">
-            This setup avoids app store distribution today and keeps onboarding simple:
-            invite link {"->"} mobile browser {"->"} add to home screen.
-          </div>
-
-          <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 text-xs text-slate-600">
-            <p className="font-semibold text-slate-700">Mobile app readiness</p>
-            <p className="mt-1">PWA install behavior and home-screen launch are enabled.</p>
-            <p className="mt-1">Next rollout: push notifications, secure sign-in, and camera/QR mission verification.</p>
-          </div>
-
-          <Link
-            href="/driver"
-            className="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-cyan-400/35 bg-cyan-500/10 px-4 py-3 text-sm font-semibold text-cyan-900 hover:bg-cyan-500/20"
-          >
-            <Smartphone className="h-4 w-4" />
-            Open Driver App
-          </Link>
-
-          <Button
-            onClick={() => setIsInstallGuideOpen(false)}
-            className="w-full bg-slate-900 text-white hover:bg-slate-800"
-          >
-            Close Guide
-          </Button>
+          <div className="rounded-2xl border border-cyan-200 bg-cyan-50 p-4 text-sm text-cyan-900">Adding the driver happens on this page. Installing the app happens on the driver&apos;s phone after their profile/invite is ready.</div>
+          <Link href="/driver/install" className="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-cyan-400/35 bg-cyan-500/10 px-4 py-3 text-sm font-semibold text-cyan-900 hover:bg-cyan-500/20"><Smartphone className="h-4 w-4" /> Open Driver Install Page</Link>
+          <Button onClick={() => setIsInstallGuideOpen(false)} className="w-full bg-slate-900 text-white hover:bg-slate-800">Close Guide</Button>
         </div>
       </Modal>
     </main>
