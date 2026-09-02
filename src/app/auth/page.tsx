@@ -122,7 +122,7 @@ export default function AuthPage() {
         ? "/admin"
         : mode === "register"
           ? "/subscribe"
-          : "/workspace";
+          : "/download";
       window.location.href = `${base}${destination}`;
     } catch (err) {
       setError(err instanceof Error ? err.message : "Unable to continue.");
