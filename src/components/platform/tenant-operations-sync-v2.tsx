@@ -23,11 +23,22 @@ const buildTenantOperationsSyncScript = (apiBase: string) => `
       }
     };
 
-    const session = readJson(SESSION_KEY, null);
+    const readSessionJson = (key, fallback) => {
+      try {
+        const raw =
+          window.sessionStorage.getItem(key) ||
+          window.localStorage.getItem(key);
+        return raw ? JSON.parse(raw) : fallback;
+      } catch {
+        return fallback;
+      }
+    };
+
+    const session = readSessionJson(SESSION_KEY, null);
     const token = session && session.token;
     const company = session && session.company;
     const userRole = session && session.user && session.user.role;
-    if (!token || !company || !company.slug) return;
+    if (!token || !company || !company.id || !company.slug) return;
 
     const tenantSlug = company.slug;
     const driverKey = DRIVER_KEY_PREFIX + tenantSlug;
