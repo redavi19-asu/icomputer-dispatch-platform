@@ -31,9 +31,8 @@ export function resolveDriverAcceptanceMode(
   defaultMode: DriverAcceptanceMode,
   companySlug?: string | null
 ): DriverAcceptanceMode {
-  const storedOverride = getStoredDriverAcceptanceMode(companySlug);
-  if (storedOverride) return storedOverride;
-
+  // Workspace settings are the source of truth. The legacy per-driver-mode key
+  // remains only as a fallback for older saved sessions.
   if (typeof window !== "undefined" && companySlug) {
     const workspaceMode = readWorkspaceSettings(companySlug).driverAcceptanceMode;
     if (workspaceMode === "manual" || workspaceMode === "auto") {
@@ -41,5 +40,5 @@ export function resolveDriverAcceptanceMode(
     }
   }
 
-  return defaultMode;
+  return getStoredDriverAcceptanceMode(companySlug) ?? defaultMode;
 }
