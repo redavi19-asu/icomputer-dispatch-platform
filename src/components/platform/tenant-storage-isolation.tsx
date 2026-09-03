@@ -8,16 +8,19 @@ const tenantStorageIsolationScript = String.raw`
     const nativeGetItem = Storage.prototype.getItem;
     const nativeSetItem = Storage.prototype.setItem;
     const nativeRemoveItem = Storage.prototype.removeItem;
+    const nativeFetch = window.fetch.bind(window);
 
     const normalizedPath = () =>
       window.location.pathname.replace(/^\/icomputer-dispatch-platform/, "");
 
     const readSessionCompany = () => {
       try {
-        const raw = nativeGetItem.call(window.localStorage, SESSION_KEY);
-        const session = raw ? JSON.parse(raw) : null;
+        const sessionRaw =
+          nativeGetItem.call(window.sessionStorage, SESSION_KEY) ||
+          nativeGetItem.call(window.localStorage, SESSION_KEY);
+        const session = sessionRaw ? JSON.parse(sessionRaw) : null;
         const company = session && session.company;
-        if (!company || !company.slug) return null;
+        if (!company || !company.id || !company.slug) return null;
         return company;
       } catch {
         return null;
@@ -32,12 +35,13 @@ const tenantStorageIsolationScript = String.raw`
       return match ? decodeURIComponent(match[1]) : "";
     };
 
+    const isOperationalSurface = () =>
+      /^\/(workspace|dashboard|driver|download|billing)(\/|$)/.test(normalizedPath());
+
     const currentTenantSlug = () => {
       const sessionCompany = readSessionCompany();
-      const path = normalizedPath();
-      const operational = /^\/(workspace|dashboard|driver|download|billing)(\/|$)/.test(path);
 
-      if (operational && sessionCompany && sessionCompany.slug) {
+      if (isOperationalSurface() && sessionCompany && sessionCompany.slug) {
         return sessionCompany.slug;
       }
 
@@ -93,6 +97,58 @@ const tenantStorageIsolationScript = String.raw`
         return nativeRemoveItem.call(this, scopedJobKey());
       }
       return nativeRemoveItem.call(this, key);
+    };
+
+    // Legacy operational code may still request the old demo company slug.
+    // On authenticated operational surfaces, force all jobs API company queries
+    // to the company bound to the signed-in session. This prevents Company A
+    // from accidentally requesting Company B/demo jobs by URL or stale code.
+    window.fetch = function (input, init) {
+      const sessionCompany = readSessionCompany();
+      if (!sessionCompany || !isOperationalSurface()) {
+        return nativeFetch(input, init);
+      }
+
+      try {
+        const rawUrl =
+          typeof input === "string"
+            ? input
+            : input instanceof URL
+            ? input.toString()
+            : input instanceof Request
+            ? input.url
+            : "";
+
+        if (!rawUrl) return nativeFetch(input, init);
+
+        const url = new URL(rawUrl, window.location.origin);
+        const isJobsRequest = /\/api\/jobs(?:\/|$)/.test(url.pathname);
+        if (!isJobsRequest) return nativeFetch(input, init);
+
+        if (url.searchParams.has("company")) {
+          url.searchParams.set("company", sessionCompany.slug);
+        }
+
+        if (typeof input === "string") {
+          const sameOrigin = url.origin === window.location.origin;
+          const rewritten = sameOrigin
+            ? `${url.pathname}${url.search}${url.hash}`
+            : url.toString();
+          return nativeFetch(rewritten, init);
+        }
+
+        if (input instanceof URL) {
+          return nativeFetch(url, init);
+        }
+
+        if (input instanceof Request) {
+          return nativeFetch(new Request(url.toString(), input), init);
+        }
+      } catch {
+        // If rewriting fails, keep normal fetch behavior rather than breaking the app.
+      }
+
+      return nativeFetch(input, init);
     };
   } catch {
     // Storage restrictions should not prevent the application from rendering.
