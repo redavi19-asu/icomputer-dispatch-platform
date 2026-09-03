@@ -48,7 +48,7 @@ export const defaultWorkspaceSettings: WorkspaceSettingsState = {
   customerTrackingEnabled: true,
   pickupVerificationEnabled: false,
   deliveryVerificationEnabled: true,
-  proofOfDeliveryEnabled: true,
+  proofOfDeliveryEnabled: false,
   qrHandoffEnabled: true,
   photoProofEnabled: false,
   signatureConfirmationEnabled: false,
@@ -116,7 +116,7 @@ export const normalizeWorkspaceSettings = (
     deliveryVerificationEnabled:
       typeof value.deliveryVerificationEnabled === "boolean" ? value.deliveryVerificationEnabled : true,
     proofOfDeliveryEnabled:
-      typeof value.proofOfDeliveryEnabled === "boolean" ? value.proofOfDeliveryEnabled : true,
+      typeof value.proofOfDeliveryEnabled === "boolean" ? value.proofOfDeliveryEnabled : false,
     qrHandoffEnabled:
       typeof value.qrHandoffEnabled === "boolean" ? value.qrHandoffEnabled : true,
     photoProofEnabled:
