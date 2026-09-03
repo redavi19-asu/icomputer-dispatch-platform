@@ -8,7 +8,7 @@ import { AppShellNav } from "@/components/platform/app-shell-nav";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Modal } from "@/components/ui/modal";
-import { getCompanyBySlug } from "@/lib/platform/selectors";
+import { getStoredSession } from "@/lib/dispatchos-auth";
 import {
   getDriverInviteLabel,
   getDriverLiveWorkLabel,
@@ -19,8 +19,6 @@ import {
   type DriverLiveWorkStatus,
   type WorkspaceDriver,
 } from "@/lib/platform/workspace-drivers";
-
-const company = getCompanyBySlug("build-electric");
 
 type DriverDraft = {
   name: string;
@@ -40,10 +38,14 @@ const emptyDraft: DriverDraft = {
   inviteStatus: "not-sent",
 };
 
+const basePath = () =>
+  process.env.NODE_ENV === "production" ? "/icomputer-dispatch-platform" : "";
+
 export default function WorkspaceDriversPage() {
-  const [drivers, setDrivers] = useState<WorkspaceDriver[]>(() =>
-    company ? readWorkspaceDrivers(company.id, company.slug) : []
-  );
+  const [companyId, setCompanyId] = useState("");
+  const [companySlug, setCompanySlug] = useState("");
+  const [companyName, setCompanyName] = useState("");
+  const [drivers, setDrivers] = useState<WorkspaceDriver[]>([]);
   const [isEditorOpen, setIsEditorOpen] = useState(false);
   const [editingDriverId, setEditingDriverId] = useState<string | null>(null);
   const [draft, setDraft] = useState<DriverDraft>(emptyDraft);
@@ -51,9 +53,22 @@ export default function WorkspaceDriversPage() {
   const [isInstallGuideOpen, setIsInstallGuideOpen] = useState(false);
 
   useEffect(() => {
-    if (!company) return;
-    writeWorkspaceDrivers(company.slug, drivers);
-  }, [drivers]);
+    const session = getStoredSession();
+    if (!session?.company?.id || !session.company.slug) {
+      window.location.replace(`${basePath()}/auth?mode=login`);
+      return;
+    }
+
+    setCompanyId(session.company.id);
+    setCompanySlug(session.company.slug);
+    setCompanyName(session.company.name);
+    setDrivers(readWorkspaceDrivers(session.company.id, session.company.slug));
+  }, []);
+
+  useEffect(() => {
+    if (!companySlug) return;
+    writeWorkspaceDrivers(companySlug, drivers);
+  }, [companySlug, drivers]);
 
   const enabledDrivers = useMemo(
     () => drivers.filter((driver) => driver.accountStatus === "enabled").length,
@@ -80,7 +95,7 @@ export default function WorkspaceDriversPage() {
   };
 
   const saveDriver = () => {
-    if (!draft.name.trim()) return;
+    if (!draft.name.trim() || !companyId || !companySlug) return;
 
     if (editingDriverId) {
       setDrivers((prev) =>
@@ -93,7 +108,8 @@ export default function WorkspaceDriversPage() {
                 zone: draft.zone.trim() || "Unassigned",
                 accountStatus: draft.accountStatus,
                 inviteStatus: draft.inviteStatus,
-                liveWorkStatus: draft.accountStatus === "disabled" ? "offline" : draft.liveWorkStatus,
+                liveWorkStatus:
+                  draft.accountStatus === "disabled" ? "offline" : draft.liveWorkStatus,
               }
             : driver
         )
@@ -108,7 +124,8 @@ export default function WorkspaceDriversPage() {
           zone: draft.zone.trim() || "Unassigned",
           accountStatus: draft.accountStatus,
           inviteStatus: draft.inviteStatus,
-          liveWorkStatus: draft.accountStatus === "disabled" ? "offline" : draft.liveWorkStatus,
+          liveWorkStatus:
+            draft.accountStatus === "disabled" ? "offline" : draft.liveWorkStatus,
         },
         ...prev,
       ]);
@@ -120,8 +137,14 @@ export default function WorkspaceDriversPage() {
   };
 
   const buildDriverInviteLink = (driver: WorkspaceDriver) => {
-    const baseUrl = typeof window !== "undefined" ? window.location.origin : "https://redavi19-asu.github.io/icomputer-dispatch-platform";
-    return `${baseUrl}/driver?company=build-electric&driver=${encodeURIComponent(driver.id)}&invite=1`;
+    const origin =
+      typeof window !== "undefined"
+        ? window.location.origin
+        : "https://redavi19-asu.github.io";
+    const appBase = basePath();
+    return `${origin}${appBase}/driver?company=${encodeURIComponent(
+      companySlug
+    )}&driver=${encodeURIComponent(driver.id)}&invite=1`;
   };
 
   const sendDriverInvite = (driverId: string) => {
@@ -177,6 +200,10 @@ export default function WorkspaceDriversPage() {
     return () => window.clearTimeout(timeout);
   }, [actionMessage]);
 
+  if (!companySlug) {
+    return <main className="min-h-screen bg-slate-950" />;
+  }
+
   return (
     <main className="min-h-screen bg-slate-950 text-white">
       <AppShellNav />
@@ -185,6 +212,7 @@ export default function WorkspaceDriversPage() {
           <div>
             <p className="text-xs uppercase tracking-[0.22em] text-cyan-300">Workspace Drivers</p>
             <h1 className="mt-2 text-3xl font-semibold tracking-tight md:text-4xl">Driver management</h1>
+            <p className="mt-2 text-sm text-cyan-200/75">{companyName || companySlug}</p>
             <p className="mt-3 text-sm text-white/70">{enabledDrivers} enabled of {drivers.length} total drivers.</p>
           </div>
 
@@ -294,7 +322,7 @@ export default function WorkspaceDriversPage() {
             </ol>
           </div>
           <div className="rounded-2xl border border-cyan-200 bg-cyan-50 p-4 text-sm text-cyan-900">Adding the driver happens on this page. Installing the app happens on the driver&apos;s phone after their profile/invite is ready.</div>
-          <Link href="/driver/install" className="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-cyan-400/35 bg-cyan-500/10 px-4 py-3 text-sm font-semibold text-cyan-900 hover:bg-cyan-500/20"><Smartphone className="h-4 w-4" /> Open Driver Install Page</Link>
+          <Link href={`/driver/install?company=${encodeURIComponent(companySlug)}`} className="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-cyan-400/35 bg-cyan-500/10 px-4 py-3 text-sm font-semibold text-cyan-900 hover:bg-cyan-500/20"><Smartphone className="h-4 w-4" /> Open Driver Install Page</Link>
           <Button onClick={() => setIsInstallGuideOpen(false)} className="w-full bg-slate-900 text-white hover:bg-slate-800">Close Guide</Button>
         </div>
       </Modal>
