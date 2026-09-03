@@ -146,8 +146,7 @@ export const getDriverSurfaceConfig = (
       (stage) => stage.label
     ),
     showsHandoffControls:
-      settings.driverMustConfirmHandoff &&
-      (settings.qrHandoffEnabled || settings.proofOfDeliveryEnabled),
+      settings.driverMustConfirmHandoff && settings.qrHandoffEnabled,
     showsVerificationChecklist:
       settings.pickupVerificationEnabled || settings.deliveryVerificationEnabled,
   };
@@ -162,10 +161,9 @@ export const getTrackingSurfaceConfig = (
       (stage) => stage.label
     ),
     showTimeline: settings.customerUpdatesEnabled,
-    showProofSection:
-      settings.proofOfDeliveryEnabled ||
-      settings.photoProofEnabled ||
-      settings.signatureConfirmationEnabled,
+    // Proof-of-delivery/photo/signature capture are reserved in the settings schema,
+    // but are not surfaced until a real capture + storage workflow exists.
+    showProofSection: false,
     showVerificationSection:
       settings.qrHandoffEnabled ||
       settings.pickupVerificationEnabled ||
