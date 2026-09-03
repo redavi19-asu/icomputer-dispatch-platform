@@ -12,6 +12,7 @@ import {
   type JobTimelineEvent,
 } from "@/lib/platform/job-lifecycle";
 import {
+  defaultWorkspaceSettings,
   readWorkspaceSettings,
   type WorkspaceSettingsState,
 } from "@/lib/platform/workspace-preferences";
@@ -34,6 +35,11 @@ type TrackJob = {
 const WORKSPACE_SETTINGS_UPDATED_EVENT = "dispatch:workspace-settings-updated";
 const LOCAL_JOBS_KEY = "dispatch_jobs";
 
+const queryCompanySlug = () => {
+  if (typeof window === "undefined") return "";
+  return new URLSearchParams(window.location.search).get("company")?.trim() || "";
+};
+
 export default function TrackJobPage() {
   const params = useParams<{ jobId: string }>();
   const jobId = Array.isArray(params.jobId) ? params.jobId[0] : params.jobId;
@@ -41,14 +47,19 @@ export default function TrackJobPage() {
   const [job, setJob] = useState<TrackJob | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [workspaceSettings, setWorkspaceSettings] = useState<WorkspaceSettingsState>(() =>
-    readWorkspaceSettings("build-electric")
-  );
+  const [companySlug, setCompanySlug] = useState("");
+  const [workspaceSettings, setWorkspaceSettings] = useState<WorkspaceSettingsState>({
+    ...defaultWorkspaceSettings,
+    companySlug: "",
+  });
   const trackingSurface = getTrackingSurfaceConfig(workspaceSettings);
 
   useEffect(() => {
+    const slug = companySlug || queryCompanySlug();
+    if (!slug) return;
+
     const syncSettings = () => {
-      setWorkspaceSettings(readWorkspaceSettings("build-electric"));
+      setWorkspaceSettings(readWorkspaceSettings(slug));
     };
 
     syncSettings();
@@ -59,7 +70,7 @@ export default function TrackJobPage() {
       window.removeEventListener("storage", syncSettings);
       window.removeEventListener(WORKSPACE_SETTINGS_UPDATED_EVENT, syncSettings as EventListener);
     };
-  }, []);
+  }, [companySlug]);
 
   useEffect(() => {
     if (!jobId) return;
@@ -69,13 +80,19 @@ export default function TrackJobPage() {
     const fetchJob = async () => {
       const isPages =
         typeof window !== "undefined" && window.location.hostname.includes("github.io");
+      const requestedCompany = queryCompanySlug();
 
       try {
         if (isPages) {
           const raw = window.localStorage.getItem(LOCAL_JOBS_KEY);
           const parsed = raw ? JSON.parse(raw) : [];
           const localJobs = Array.isArray(parsed) ? parsed : [];
-          const localJob = localJobs.find((item: TrackJob) => item.id === jobId) ?? null;
+          const localJob =
+            localJobs.find(
+              (item: TrackJob) =>
+                item.id === jobId &&
+                (!requestedCompany || item.companySlug === requestedCompany)
+            ) ?? null;
 
           if (!localJob) {
             throw new Error("Job not found");
@@ -83,6 +100,7 @@ export default function TrackJobPage() {
 
           if (isMounted) {
             setJob(localJob);
+            setCompanySlug(localJob.companySlug || requestedCompany);
             setError(null);
             setIsLoading(false);
           }
@@ -90,7 +108,10 @@ export default function TrackJobPage() {
           return;
         }
 
-        const res = await fetch(`/api/jobs?id=${encodeURIComponent(jobId)}`, {
+        const query = new URLSearchParams({ id: jobId });
+        if (requestedCompany) query.set("company", requestedCompany);
+
+        const res = await fetch(`/api/jobs?${query.toString()}`, {
           cache: "no-store",
         });
 
@@ -99,9 +120,19 @@ export default function TrackJobPage() {
         }
 
         const data = await res.json();
+        const nextJob = (data.job ?? null) as TrackJob | null;
+
+        if (
+          requestedCompany &&
+          nextJob?.companySlug &&
+          nextJob.companySlug !== requestedCompany
+        ) {
+          throw new Error("Tracking company mismatch");
+        }
 
         if (isMounted) {
-          setJob(data.job ?? null);
+          setJob(nextJob);
+          setCompanySlug(nextJob?.companySlug || requestedCompany);
           setError(null);
           setIsLoading(false);
         }
@@ -113,7 +144,7 @@ export default function TrackJobPage() {
       }
     };
 
-    fetchJob();
+    void fetchJob();
     const interval = setInterval(fetchJob, 5000);
 
     return () => {
@@ -166,11 +197,22 @@ export default function TrackJobPage() {
           <h1 className="text-2xl font-semibold">Tracking unavailable</h1>
           <p className="mt-2 text-white/70">{error ?? "Tracking record not found."}</p>
           <Link
-            href="/booking"
+            href={companySlug ? `/${companySlug}/booking` : "/booking"}
             className="mt-4 inline-flex rounded-lg border border-white/20 bg-white/10 px-3 py-2 text-sm text-white/85 hover:bg-white/15"
           >
             Back to booking
           </Link>
+        </div>
+      </main>
+    );
+  }
+
+  if (!companySlug) {
+    return (
+      <main className="min-h-screen bg-slate-950 px-4 py-10 text-white">
+        <div className="mx-auto max-w-xl rounded-2xl border border-white/10 bg-white/5 p-6">
+          <h1 className="text-2xl font-semibold">Tracking unavailable</h1>
+          <p className="mt-2 text-white/70">This tracking record is missing its company identity.</p>
         </div>
       </main>
     );
@@ -193,7 +235,7 @@ export default function TrackJobPage() {
     <main className="min-h-screen bg-slate-950 text-white">
       <section className="mx-auto max-w-xl px-4 py-8 sm:px-6 sm:py-10">
         <p className="text-xs uppercase tracking-[0.2em] text-cyan-300">
-          {workspaceSettings.companyName} Tracking
+          {workspaceSettings.companyName || companySlug} Tracking
         </p>
         <h1 className="mt-2 text-2xl font-semibold">Job {job.id}</h1>
         <p className="mt-2 text-sm text-white/65">Live tracking and service progress updates.</p>
