@@ -4,6 +4,7 @@ import "./globals.css";
 import { ServiceWorkerRegister } from "@/components/platform/service-worker-register";
 import { TenantStorageIsolation } from "@/components/platform/tenant-storage-isolation";
 import { TenantOperationsSyncV2 } from "@/components/platform/tenant-operations-sync-v2";
+import { TenantSettingsCloudSync } from "@/components/platform/tenant-settings-cloud-sync";
 import { SecureDriverInviteGuard } from "@/components/platform/secure-driver-invite-guard";
 import { OperationalTenantGuard } from "@/components/platform/operational-tenant-guard";
 import { LegalConsent } from "@/components/platform/legal-consent";
@@ -53,6 +54,7 @@ export default function RootLayout({
       >
         <TenantStorageIsolation />
         <OperationalTenantGuard />
+        <TenantSettingsCloudSync />
         <TenantOperationsSyncV2 />
         <SecureDriverInviteGuard />
         <ServiceWorkerRegister />
