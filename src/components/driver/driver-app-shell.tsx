@@ -3,7 +3,7 @@
 import { ReactNode, useEffect, useMemo, useState } from "react";
 import { LogOut, Power, Radio, ShieldCheck } from "lucide-react";
 
-import { clearSession, getStoredSession } from "@/lib/dispatchos-auth";
+import { getStoredSession, logoutSession } from "@/lib/dispatchos-auth";
 
 type DriverAppShellProps = {
   children: ReactNode;
@@ -19,6 +19,7 @@ export function DriverAppShell({ children }: DriverAppShellProps) {
     : "dispatch.driver.online";
   const [online, setOnline] = useState(false);
   const [ready, setReady] = useState(false);
+  const [signingOut, setSigningOut] = useState(false);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -38,9 +39,11 @@ export function DriverAppShell({ children }: DriverAppShellProps) {
     }
   };
 
-  const signOut = () => {
+  const signOut = async () => {
+    if (signingOut) return;
+    setSigningOut(true);
     setAvailability(false);
-    clearSession();
+    await logoutSession();
     window.location.replace(`${appBase()}/auth?mode=login&app=driver`);
   };
 
@@ -79,10 +82,13 @@ export function DriverAppShell({ children }: DriverAppShellProps) {
             <button
               type="button"
               onClick={signOut}
+              disabled={signingOut}
               aria-label="Sign out"
-              className="rounded-full border border-white/10 bg-white/5 p-2 text-white/55 transition hover:bg-white/10 hover:text-white"
+              title="Log out"
+              className="inline-flex items-center gap-2 rounded-full border border-rose-300/20 bg-rose-500/10 px-3 py-2 text-xs font-semibold text-rose-100 transition hover:bg-rose-500/15 disabled:cursor-wait disabled:opacity-60"
             >
               <LogOut className="h-4 w-4" />
+              <span className="hidden sm:inline">{signingOut ? "Logging out…" : "Log Out"}</span>
             </button>
           </div>
         </div>
