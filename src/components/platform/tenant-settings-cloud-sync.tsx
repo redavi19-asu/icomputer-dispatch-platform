@@ -9,7 +9,6 @@ import {
 } from "@/lib/platform/workspace-preferences";
 
 const SETTINGS_UPDATED_EVENT = "dispatch:workspace-settings-updated";
-const MANAGER_ROLES = new Set(["admin", "owner", "dispatcher"]);
 
 type SettingsResponse = {
   success?: boolean;
@@ -35,7 +34,7 @@ export function TenantSettingsCloudSync() {
     if (!session?.token || !session.company?.slug) return;
 
     const companySlug = session.company.slug;
-    const canManage = MANAGER_ROLES.has(session.user.role);
+    const canManage = session.user.role !== "driver";
     let cancelled = false;
 
     const serialize = (settings: WorkspaceSettingsState) =>
