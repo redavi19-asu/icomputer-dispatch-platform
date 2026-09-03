@@ -4,6 +4,7 @@ import { handleDriverInviteSeatLimit } from "./invite-seat-limit";
 import { handleDriverPayRequest } from "./driver-pay";
 import { handleOperationsRequest } from "./operations";
 import { handlePlanLimitRequest } from "./plan-limits";
+import { handleWorkspaceSettingsRequest } from "./workspace-settings";
 
 interface Env {
   DB: D1Database;
@@ -26,6 +27,9 @@ export default {
 
     const driverPayResponse = await handleDriverPayRequest(request.clone(), env);
     if (driverPayResponse) return driverPayResponse;
+
+    const workspaceSettingsResponse = await handleWorkspaceSettingsRequest(request.clone(), env);
+    if (workspaceSettingsResponse) return workspaceSettingsResponse;
 
     const operationsResponse = await handleOperationsRequest(request, env);
     if (operationsResponse) return operationsResponse;
