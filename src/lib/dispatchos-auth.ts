@@ -63,12 +63,44 @@ export function getStoredToken() {
   return sessionStorage.getItem(TOKEN_KEY) || localStorage.getItem(TOKEN_KEY) || "";
 }
 
+function clearTenantOperationalCache(companySlug?: string | null) {
+  if (typeof window === "undefined" || !companySlug) return;
+
+  const slug = companySlug.trim();
+  if (!slug) return;
+
+  const exactKeys = new Set([
+    `dispatch_jobs::${slug}`,
+    `dispatch.workspace.settings.${slug}`,
+    `dispatch.workspace.drivers.${slug}`,
+    `dispatch.sync.driver-alias.${slug}`,
+    `dispatch.sync.job-alias.${slug}`,
+  ]);
+  const proofPrefix = `dispatch.proof-of-delivery.${slug}.`;
+
+  for (let index = localStorage.length - 1; index >= 0; index -= 1) {
+    const key = localStorage.key(index);
+    if (!key) continue;
+    if (exactKeys.has(key) || key.startsWith(proofPrefix)) {
+      localStorage.removeItem(key);
+    }
+  }
+}
+
 export function clearSession() {
   if (typeof window === "undefined") return;
+
+  const currentSession = getStoredSession();
+  clearTenantOperationalCache(currentSession?.company?.slug);
+
   localStorage.removeItem(TOKEN_KEY);
   localStorage.removeItem(SESSION_KEY);
   sessionStorage.removeItem(TOKEN_KEY);
   sessionStorage.removeItem(SESSION_KEY);
+
+  delete document.documentElement.dataset.dispatchCompanyId;
+  delete document.documentElement.dataset.dispatchCompanySlug;
+  delete document.documentElement.dataset.dispatchUserRole;
 }
 
 export async function logoutSession() {
