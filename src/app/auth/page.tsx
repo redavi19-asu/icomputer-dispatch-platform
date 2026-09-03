@@ -34,6 +34,7 @@ export default function AuthPage() {
   const [plan, setPlan] = useState("basic");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [rememberDevice, setRememberDevice] = useState(true);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [turnstileToken, setTurnstileToken] = useState("");
@@ -101,9 +102,10 @@ export default function AuthPage() {
       });
 
       const session = data as DispatchOSSession;
-      saveSession(session);
+      saveSession(session, rememberDevice);
       const base = process.env.NODE_ENV === "production" ? "/icomputer-dispatch-platform" : "";
-      window.location.href = `${base}${session.user.role === "admin" ? "/admin" : "/workspace"}`;
+      const destination = session.user.role === "admin" ? "/admin" : session.user.role === "driver" ? "/driver" : "/workspace";
+      window.location.href = `${base}${destination}`;
     } catch (err) {
       setError(err instanceof Error ? err.message : "Unable to continue.");
       if (turnstileEnabled) resetTurnstile();
@@ -149,6 +151,11 @@ export default function AuthPage() {
           <form onSubmit={handleSubmit} className="space-y-5">
             <label className="block"><span className="text-sm text-white/70">Email</span><input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required autoComplete="email" className="mt-2 w-full rounded-xl border border-white/10 bg-black/25 px-4 py-3 outline-none focus:border-cyan-300/50" placeholder="you@company.com" /></label>
             <label className="block"><span className="text-sm text-white/70">Password</span><input type="password" value={password} onChange={(e) => setPassword(e.target.value)} required minLength={10} autoComplete="current-password" className="mt-2 w-full rounded-xl border border-white/10 bg-black/25 px-4 py-3 outline-none focus:border-cyan-300/50" placeholder="10+ characters" /></label>
+
+            <label className="flex cursor-pointer items-start gap-3 rounded-xl border border-cyan-400/15 bg-cyan-500/[0.05] px-4 py-3">
+              <input type="checkbox" checked={rememberDevice} onChange={(e) => setRememberDevice(e.target.checked)} className="mt-1 h-4 w-4 accent-cyan-400" />
+              <span><span className="block text-sm font-medium text-cyan-100">Keep me signed in on this device for up to 7 days</span><span className="mt-1 block text-xs leading-5 text-white/45">Uncheck this on a shared device. Closing the installed app will not sign you out while this is enabled.</span></span>
+            </label>
 
             {turnstileEnabled && <div className="rounded-xl border border-white/10 bg-black/20 p-4"><div className="mb-3 flex items-center gap-2 text-xs text-white/55"><ShieldCheck className="h-4 w-4 text-emerald-300" /> Security verification</div><div ref={turnstileContainerRef} className="min-h-[65px]" /></div>}
             {error && <div className="rounded-xl border border-rose-400/20 bg-rose-500/10 px-4 py-3 text-sm text-rose-200">{error}</div>}
