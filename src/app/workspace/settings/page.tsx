@@ -51,8 +51,6 @@ export default function WorkspaceSettingsPage() {
   function save() {
     if (!settings) return;
 
-    // Preserve every preference exactly as configured. The previous implementation
-    // silently forced booking off and job intake back to dashboard on every save.
     const savedSettings = writeWorkspaceSettings({
       ...settings,
       setupComplete: true,
@@ -214,7 +212,10 @@ export default function WorkspaceSettingsPage() {
           </section>
 
           <section className="rounded-3xl border border-white/10 bg-white/5 p-6 md:p-8">
-            <h2 className="text-xl font-semibold">Verification and proof controls</h2>
+            <h2 className="text-xl font-semibold">Verification controls</h2>
+            <p className="mt-2 text-sm text-white/55">
+              Only controls with a live verification path are shown here.
+            </p>
             <div className="mt-6 grid gap-4 md:grid-cols-3">
               <Toggle
                 label="Pickup verification"
@@ -227,24 +228,9 @@ export default function WorkspaceSettingsPage() {
                 onToggle={(v) => update("deliveryVerificationEnabled", v)}
               />
               <Toggle
-                label="Proof of delivery"
-                enabled={settings.proofOfDeliveryEnabled}
-                onToggle={(v) => update("proofOfDeliveryEnabled", v)}
-              />
-              <Toggle
                 label="QR handoff"
                 enabled={settings.qrHandoffEnabled}
                 onToggle={(v) => update("qrHandoffEnabled", v)}
-              />
-              <Toggle
-                label="Photo proof"
-                enabled={settings.photoProofEnabled}
-                onToggle={(v) => update("photoProofEnabled", v)}
-              />
-              <Toggle
-                label="Signature confirmation"
-                enabled={settings.signatureConfirmationEnabled}
-                onToggle={(v) => update("signatureConfirmationEnabled", v)}
               />
               <Toggle
                 label="Dispatcher can confirm handoff"
@@ -259,20 +245,14 @@ export default function WorkspaceSettingsPage() {
             </div>
           </section>
 
-          <section className="rounded-3xl border border-white/10 bg-white/5 p-6 md:p-8">
-            <h2 className="text-xl font-semibold">Route completion rules</h2>
-            <div className="mt-6 grid gap-4 md:grid-cols-3">
-              <Toggle
-                label="Base required before final stop"
-                enabled={settings.baseRequiredBeforeFinalStop}
-                onToggle={(v) => update("baseRequiredBeforeFinalStop", v)}
-              />
-              <Toggle
-                label="Return to base after completion"
-                enabled={settings.returnToBaseAfterCompletion}
-                onToggle={(v) => update("returnToBaseAfterCompletion", v)}
-              />
-            </div>
+          <section className="rounded-3xl border border-amber-400/15 bg-amber-400/[0.04] p-6 md:p-8">
+            <h2 className="text-lg font-semibold">Advanced proof and route rules</h2>
+            <p className="mt-2 max-w-3xl text-sm leading-6 text-white/60">
+              Photo capture, signature capture, proof-of-delivery storage, and base-return rules
+              stay reserved in the company configuration but are not exposed as live switches until
+              those workflows have a complete capture/storage or base-location path. This prevents
+              a setting from appearing enabled when the operation cannot actually enforce it.
+            </p>
           </section>
 
           <section className="rounded-3xl border border-violet-400/20 bg-violet-500/[0.05] p-6 md:p-8">
