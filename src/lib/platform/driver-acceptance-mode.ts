@@ -1,4 +1,5 @@
 import { resolveTenantSlug } from "@/lib/platform/tenant-context";
+import { readWorkspaceSettings } from "@/lib/platform/workspace-preferences";
 
 export type DriverAcceptanceMode = "manual" | "auto";
 
@@ -30,5 +31,15 @@ export function resolveDriverAcceptanceMode(
   defaultMode: DriverAcceptanceMode,
   companySlug?: string | null
 ): DriverAcceptanceMode {
-  return getStoredDriverAcceptanceMode(companySlug) ?? defaultMode;
+  const storedOverride = getStoredDriverAcceptanceMode(companySlug);
+  if (storedOverride) return storedOverride;
+
+  if (typeof window !== "undefined" && companySlug) {
+    const workspaceMode = readWorkspaceSettings(companySlug).driverAcceptanceMode;
+    if (workspaceMode === "manual" || workspaceMode === "auto") {
+      return workspaceMode;
+    }
+  }
+
+  return defaultMode;
 }
