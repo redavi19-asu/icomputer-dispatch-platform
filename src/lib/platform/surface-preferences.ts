@@ -32,6 +32,9 @@ type DriverSurfaceConfig = {
   workflowStatuses: string[];
   showsHandoffControls: boolean;
   showsVerificationChecklist: boolean;
+  showsProofOfDelivery: boolean;
+  requiresPhotoProof: boolean;
+  requiresSignature: boolean;
 };
 
 type TrackingSurfaceConfig = {
@@ -131,7 +134,8 @@ export const getDashboardSurfaceConfig = (
     showsVerificationColumn:
       settings.operationalMode === "Chain of Custody" ||
       settings.pickupVerificationEnabled ||
-      settings.deliveryVerificationEnabled,
+      settings.deliveryVerificationEnabled ||
+      settings.proofOfDeliveryEnabled,
   };
 };
 
@@ -146,9 +150,14 @@ export const getDriverSurfaceConfig = (
       (stage) => stage.label
     ),
     showsHandoffControls:
-      settings.driverMustConfirmHandoff && settings.qrHandoffEnabled,
+      settings.driverMustConfirmHandoff &&
+      (settings.qrHandoffEnabled || settings.proofOfDeliveryEnabled),
     showsVerificationChecklist:
       settings.pickupVerificationEnabled || settings.deliveryVerificationEnabled,
+    showsProofOfDelivery: settings.proofOfDeliveryEnabled,
+    requiresPhotoProof: settings.proofOfDeliveryEnabled && settings.photoProofEnabled,
+    requiresSignature:
+      settings.proofOfDeliveryEnabled && settings.signatureConfirmationEnabled,
   };
 };
 
@@ -161,9 +170,10 @@ export const getTrackingSurfaceConfig = (
       (stage) => stage.label
     ),
     showTimeline: settings.customerUpdatesEnabled,
-    // Proof-of-delivery/photo/signature capture are reserved in the settings schema,
-    // but are not surfaced until a real capture + storage workflow exists.
-    showProofSection: false,
+    showProofSection:
+      settings.proofOfDeliveryEnabled ||
+      settings.photoProofEnabled ||
+      settings.signatureConfirmationEnabled,
     showVerificationSection:
       settings.qrHandoffEnabled ||
       settings.pickupVerificationEnabled ||
