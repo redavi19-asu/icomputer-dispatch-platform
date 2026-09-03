@@ -24,18 +24,25 @@ export function getApiBase() {
   return (process.env.NEXT_PUBLIC_DISPATCHOS_API_URL || "").replace(/\/$/, "");
 }
 
-export function saveSession(session: DispatchOSSession, rememberDevice = true) {
+export function saveSession(session: DispatchOSSession, rememberDevice?: boolean) {
   if (typeof window === "undefined") return;
 
-  // Keep only one browser copy of the session. Trusted devices use localStorage
-  // so the login survives app/browser restarts; temporary sessions use
-  // sessionStorage and disappear when that browser/app session ends.
+  // When callers refresh an existing session without specifying a preference,
+  // preserve the storage type that session already uses. A brand-new session
+  // defaults to remembered-device behavior for backward compatibility.
+  const shouldRemember =
+    typeof rememberDevice === "boolean"
+      ? rememberDevice
+      : sessionStorage.getItem(TOKEN_KEY)
+        ? false
+        : true;
+
   localStorage.removeItem(TOKEN_KEY);
   localStorage.removeItem(SESSION_KEY);
   sessionStorage.removeItem(TOKEN_KEY);
   sessionStorage.removeItem(SESSION_KEY);
 
-  const store = rememberDevice ? localStorage : sessionStorage;
+  const store = shouldRemember ? localStorage : sessionStorage;
   store.setItem(TOKEN_KEY, session.token);
   store.setItem(SESSION_KEY, JSON.stringify(session));
 }
