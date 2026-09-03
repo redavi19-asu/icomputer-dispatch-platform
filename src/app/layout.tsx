@@ -5,6 +5,7 @@ import { ServiceWorkerRegister } from "@/components/platform/service-worker-regi
 import { TenantStorageIsolation } from "@/components/platform/tenant-storage-isolation";
 import { TenantOperationsSyncV2 } from "@/components/platform/tenant-operations-sync-v2";
 import { SecureDriverInviteGuard } from "@/components/platform/secure-driver-invite-guard";
+import { OperationalTenantGuard } from "@/components/platform/operational-tenant-guard";
 import { LegalConsent } from "@/components/platform/legal-consent";
 import { DriverScanLauncher } from "@/components/driver/driver-scan-launcher";
 
@@ -51,6 +52,7 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} ${orbitron.variable} bg-white text-slate-900 antialiased`}
       >
         <TenantStorageIsolation />
+        <OperationalTenantGuard />
         <TenantOperationsSyncV2 />
         <SecureDriverInviteGuard />
         <ServiceWorkerRegister />
