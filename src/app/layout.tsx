@@ -6,6 +6,7 @@ import { TenantStorageIsolation } from "@/components/platform/tenant-storage-iso
 import { TenantOperationsSyncV2 } from "@/components/platform/tenant-operations-sync-v2";
 import { SecureDriverInviteGuard } from "@/components/platform/secure-driver-invite-guard";
 import { LegalConsent } from "@/components/platform/legal-consent";
+import { DriverScanLauncher } from "@/components/driver/driver-scan-launcher";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -54,6 +55,7 @@ export default function RootLayout({
         <SecureDriverInviteGuard />
         <ServiceWorkerRegister />
         {children}
+        <DriverScanLauncher />
         <LegalConsent />
       </body>
     </html>
