@@ -159,7 +159,7 @@ const limitDriversForCurrentPlan = (
 
 export const readWorkspaceDrivers = (
   companyId: string,
-  companySlug = "build-electric"
+  companySlug = "company"
 ): WorkspaceDriver[] => {
   const resolvedSlug = resolveTenantSlug(companySlug);
   const fallback = seedWorkspaceDrivers(companyId);
