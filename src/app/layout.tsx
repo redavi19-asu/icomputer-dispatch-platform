@@ -9,6 +9,7 @@ import { SecureDriverInviteGuard } from "@/components/platform/secure-driver-inv
 import { OperationalTenantGuard } from "@/components/platform/operational-tenant-guard";
 import { LegalConsent } from "@/components/platform/legal-consent";
 import { DriverScanLauncher } from "@/components/driver/driver-scan-launcher";
+import { DriverCompletionRequirementsGuard } from "@/components/driver/driver-completion-requirements-guard";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -60,6 +61,7 @@ export default function RootLayout({
         <ServiceWorkerRegister />
         {children}
         <DriverScanLauncher />
+        <DriverCompletionRequirementsGuard />
         <LegalConsent />
       </body>
     </html>
