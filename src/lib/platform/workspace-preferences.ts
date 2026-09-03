@@ -28,6 +28,7 @@ export type WorkspaceSettingsState = {
   jobStructureMode: JobStructureMode;
   baseRequiredBeforeFinalStop: boolean;
   returnToBaseAfterCompletion: boolean;
+  baseAddress: string;
   jobIntakeSource: JobIntakeSource;
   dispatchMode: DispatchMode;
   driverAcceptanceMode: DriverAcceptanceMode;
@@ -48,7 +49,7 @@ export const defaultWorkspaceSettings: WorkspaceSettingsState = {
   customerTrackingEnabled: true,
   pickupVerificationEnabled: false,
   deliveryVerificationEnabled: true,
-  proofOfDeliveryEnabled: false,
+  proofOfDeliveryEnabled: true,
   qrHandoffEnabled: true,
   photoProofEnabled: false,
   signatureConfirmationEnabled: false,
@@ -57,6 +58,7 @@ export const defaultWorkspaceSettings: WorkspaceSettingsState = {
   jobStructureMode: "One-stop job",
   baseRequiredBeforeFinalStop: false,
   returnToBaseAfterCompletion: false,
+  baseAddress: "",
   jobIntakeSource: "dashboard",
   dispatchMode: "Manual",
   driverAcceptanceMode: "auto",
@@ -116,7 +118,7 @@ export const normalizeWorkspaceSettings = (
     deliveryVerificationEnabled:
       typeof value.deliveryVerificationEnabled === "boolean" ? value.deliveryVerificationEnabled : true,
     proofOfDeliveryEnabled:
-      typeof value.proofOfDeliveryEnabled === "boolean" ? value.proofOfDeliveryEnabled : false,
+      typeof value.proofOfDeliveryEnabled === "boolean" ? value.proofOfDeliveryEnabled : true,
     qrHandoffEnabled:
       typeof value.qrHandoffEnabled === "boolean" ? value.qrHandoffEnabled : true,
     photoProofEnabled:
@@ -134,6 +136,7 @@ export const normalizeWorkspaceSettings = (
       typeof value.baseRequiredBeforeFinalStop === "boolean" ? value.baseRequiredBeforeFinalStop : false,
     returnToBaseAfterCompletion:
       typeof value.returnToBaseAfterCompletion === "boolean" ? value.returnToBaseAfterCompletion : false,
+    baseAddress: typeof value.baseAddress === "string" ? value.baseAddress.trim() : "",
     jobIntakeSource: isJobIntakeSource(value.jobIntakeSource) ? value.jobIntakeSource : "dashboard",
     dispatchMode: isDispatchMode(value.dispatchMode) ? value.dispatchMode : "Manual",
     driverAcceptanceMode: isDriverAcceptanceMode(value.driverAcceptanceMode)
