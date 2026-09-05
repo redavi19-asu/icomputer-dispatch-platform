@@ -60,15 +60,28 @@ export default {
 
     try {
       if (url.pathname === "/health" && request.method === "GET") {
-        return json({
-          ok: true,
-          service: "dispatchos-auth",
-          turnstile: Boolean(clean(env.TURNSTILE_SECRET_KEY)),
-          publicRegistration: clean(env.PUBLIC_REGISTRATION_ENABLED).toLowerCase() === "true",
-          adminConsole: true,
-          companyAnalytics: true,
-          companyRemoval: true,
-        }, 200, cors);
+        try {
+          await env.DB.prepare("SELECT COUNT(*) AS count FROM companies").first();
+
+          return json({
+            ok: true,
+            service: "dispatchos-auth",
+            database: "connected",
+            turnstile: Boolean(clean(env.TURNSTILE_SECRET_KEY)),
+            publicRegistration: clean(env.PUBLIC_REGISTRATION_ENABLED).toLowerCase() === "true",
+            adminConsole: true,
+            companyAnalytics: true,
+            companyRemoval: true,
+          }, 200, cors);
+        } catch (error) {
+          console.error("DISPATCHOS_HEALTH_DB_ERROR", error);
+
+          return json({
+            ok: false,
+            service: "dispatchos-auth",
+            database: "unavailable",
+          }, 503, cors);
+        }
       }
 
       if (url.pathname === "/auth/register" && request.method === "POST") {
