@@ -2,7 +2,7 @@
 
 import { motion } from "framer-motion";
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import DispatchPreviewMap from "@/components/marketing/dispatch-preview-map";
 import CustomVersionModal from "@/components/marketing/custom-version-modal";
 import {
@@ -51,9 +51,66 @@ const toneClasses: Record<string, string> = {
   amber: "border-amber-400/20 bg-amber-500/[0.06] text-amber-300",
 };
 
+type SystemHealth = "checking" | "online" | "issue";
+
 export default function Home() {
   const [globeVideoFailed, setGlobeVideoFailed] = useState(false);
   const [customModalOpen, setCustomModalOpen] = useState(false);
+  const [systemHealth, setSystemHealth] = useState<SystemHealth>("checking");
+
+  useEffect(() => {
+    let mounted = true;
+    const apiBase =
+      process.env.NEXT_PUBLIC_DISPATCHOS_API_URL?.replace(/\/+$/, "") ||
+      "https://dispatchos-auth-api.ryanedavis.workers.dev";
+
+    async function checkSystemHealth() {
+      try {
+        const response = await fetch(`${apiBase}/health`, {
+          cache: "no-store",
+          headers: { Accept: "application/json" },
+        });
+        const data = await response.json().catch(() => null);
+        const healthy =
+          response.ok &&
+          data?.ok === true &&
+          data?.database === "connected";
+
+        if (mounted) setSystemHealth(healthy ? "online" : "issue");
+      } catch {
+        if (mounted) setSystemHealth("issue");
+      }
+    }
+
+    checkSystemHealth();
+    const timer = window.setInterval(checkSystemHealth, 60000);
+
+    return () => {
+      mounted = false;
+      window.clearInterval(timer);
+    };
+  }, []);
+
+  const healthLabel =
+    systemHealth === "online"
+      ? "System Online"
+      : systemHealth === "checking"
+        ? "Checking System"
+        : "Service Issue";
+
+  const healthBadgeClass =
+    systemHealth === "online"
+      ? "bg-emerald-500/15 text-emerald-300"
+      : systemHealth === "checking"
+        ? "bg-amber-500/15 text-amber-200"
+        : "bg-rose-500/15 text-rose-300";
+
+  const healthDotClass =
+    systemHealth === "online"
+      ? "bg-emerald-400 shadow-[0_0_12px_rgba(52,211,153,.95)] animate-pulse"
+      : systemHealth === "checking"
+        ? "bg-amber-300 shadow-[0_0_10px_rgba(252,211,77,.7)] animate-pulse"
+        : "bg-rose-400 shadow-[0_0_10px_rgba(251,113,133,.75)]";
 
   const withBasePath = (path: string) => {
     const base = process.env.NODE_ENV === "production" ? "/icomputer-dispatch-platform" : "";
@@ -100,7 +157,14 @@ export default function Home() {
             <div className="relative rounded-[2rem] border border-white/15 bg-slate-950/80 p-4 shadow-2xl backdrop-blur-xl sm:p-5">
               <div className="flex items-center justify-between gap-3 border-b border-white/10 pb-4">
                 <div><p className="text-xs uppercase tracking-[.2em] text-white/40">Live Operations</p><p className="mt-1 text-lg font-semibold">Dispatch Command</p></div>
-                <span className="shrink-0 rounded-full bg-emerald-500/15 px-3 py-1 text-[11px] text-emerald-300 sm:text-xs">System Online</span>
+                <span
+                  className={`inline-flex shrink-0 items-center gap-2 rounded-full px-3 py-1 text-[11px] sm:text-xs ${healthBadgeClass}`}
+                  aria-live="polite"
+                  title="Live DispatchOS Worker and database health"
+                >
+                  <span className={`h-2 w-2 rounded-full ${healthDotClass}`} aria-hidden="true" />
+                  {healthLabel}
+                </span>
               </div>
               <div className="mt-5 grid grid-cols-3 gap-2 sm:gap-3">
                 {[["12","Waiting"],["7","Assigned"],["5","Active"]].map(([value,label]) => <div key={label} className="rounded-2xl border border-white/10 bg-white/[0.04] p-3 sm:p-4"><p className="text-xl font-bold sm:text-2xl">{value}</p><p className="text-[10px] text-white/45 sm:text-xs">{label}</p></div>)}
