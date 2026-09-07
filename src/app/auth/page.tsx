@@ -131,6 +131,15 @@ export default function AuthPage() {
         </div>
       </section>
 
+      <div className="mx-auto max-w-6xl px-6 pt-8">
+        <a
+          href="https://icomputeranything.com/master"
+          className="inline-flex items-center rounded-xl border border-cyan-300/20 bg-cyan-400/[0.06] px-4 py-2 text-xs font-semibold uppercase tracking-[0.16em] text-cyan-100 hover:bg-cyan-400/[0.1]"
+        >
+          ICA Master Owner → Open Super Platform
+        </a>
+      </div>
+
       <section className="mx-auto grid max-w-6xl gap-8 px-6 py-12 md:py-16 lg:grid-cols-[.9fr_1.1fr]">
         <aside className="rounded-[2rem] border border-white/10 bg-white/[0.035] p-7 md:p-9">
           <Building2 className="h-9 w-9 text-emerald-300" />
