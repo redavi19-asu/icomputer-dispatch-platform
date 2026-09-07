@@ -8,6 +8,7 @@ import { handleWorkspaceSettingsRequest } from "./workspace-settings";
 
 interface Env {
   DB: D1Database;
+  ICA_DB: D1Database;
   ALLOWED_ORIGINS: string;
   ADMIN_EMAIL?: string;
   TURNSTILE_SECRET_KEY?: string;
