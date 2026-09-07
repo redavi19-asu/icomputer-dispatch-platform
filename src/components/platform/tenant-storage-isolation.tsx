@@ -132,7 +132,7 @@ const tenantStorageIsolationScript = String.raw`
         if (typeof input === "string") {
           const sameOrigin = url.origin === window.location.origin;
           const rewritten = sameOrigin
-            ? `${url.pathname}${url.search}${url.hash}`
+            ? url.pathname + url.search + url.hash
             : url.toString();
           return nativeFetch(rewritten, init);
         }
