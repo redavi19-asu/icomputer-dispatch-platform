@@ -1,5 +1,6 @@
 interface Env {
   DB: D1Database;
+  ICA_DB: D1Database;
   ALLOWED_ORIGINS: string;
   ADMIN_EMAIL?: string;
   TURNSTILE_SECRET_KEY?: string;
@@ -193,21 +194,42 @@ async function login(request: Request, env: Env, cors: HeadersInit) {
   const email = clean(body.email).toLowerCase();
   const password = body.password || "";
 
-  const user = await env.DB.prepare(
+  let user = await env.DB.prepare(
     "SELECT id, email, password_hash, password_salt, role FROM users WHERE email = ?"
   ).bind(email).first<{ id: string; email: string; password_hash: string; password_salt: string; role: string }>();
+
+  let authenticatedLocally = false;
+
+  if (user) {
+    const suppliedHash = await hashPassword(password, user.password_salt);
+    authenticatedLocally = constantTimeEqual(suppliedHash, user.password_hash);
+  }
+
+  if (!authenticatedLocally) {
+    const master = await authenticateIcaMasterOwner(env.ICA_DB, email, password);
+
+    if (!master) {
+      return json({ error: "Email or password is incorrect." }, 401, cors);
+    }
+
+    user = await ensureDispatchMasterAdmin(env.DB, {
+      email: master.email,
+      displayName: master.display_name || "ICA Master Owner",
+    });
+  }
 
   if (!user) {
     return json({ error: "Email or password is incorrect." }, 401, cors);
   }
 
-  const suppliedHash = await hashPassword(password, user.password_salt);
-  if (!constantTimeEqual(suppliedHash, user.password_hash)) {
-    return json({ error: "Email or password is incorrect." }, 401, cors);
-  }
-
   const configuredAdminEmail = clean(env.ADMIN_EMAIL).toLowerCase();
-  if (configuredAdminEmail && email === configuredAdminEmail && user.role !== "admin") {
+  if (
+    user.role !== "admin" &&
+    (
+      (configuredAdminEmail && email === configuredAdminEmail) ||
+      (await isIcaMasterOwner(env.ICA_DB, email))
+    )
+  ) {
     await env.DB.prepare("UPDATE users SET role = 'admin', updated_at = CURRENT_TIMESTAMP WHERE id = ?")
       .bind(user.id)
       .run();
@@ -654,6 +676,124 @@ async function createSession(db: D1Database, userId: string) {
     .bind(crypto.randomUUID(), userId, tokenHash, expiresAt)
     .run();
   return { token, expiresAt };
+}
+
+type IcaMasterOwner = {
+  id: string;
+  email: string;
+  display_name: string | null;
+  role: string;
+  status: string;
+  password_hash: string;
+  password_salt: string;
+};
+
+async function authenticateIcaMasterOwner(db: D1Database, email: string, password: string) {
+  if (!db || !email || !password) return null;
+
+  const row = await db.prepare(`
+    SELECT
+      id,
+      email,
+      display_name,
+      role,
+      status,
+      password_hash,
+      password_salt
+    FROM users
+    WHERE email = ?
+    LIMIT 1
+  `)
+    .bind(email)
+    .first<IcaMasterOwner>();
+
+  if (!row || row.role !== "owner" || row.status !== "active") return null;
+
+  const suppliedHash = await hashPassword(password, row.password_salt);
+  if (!constantTimeEqual(suppliedHash, row.password_hash)) return null;
+
+  return row;
+}
+
+async function isIcaMasterOwner(db: D1Database, email: string) {
+  if (!db || !email) return false;
+
+  const row = await db.prepare(
+    "SELECT role, status FROM users WHERE email = ? LIMIT 1"
+  )
+    .bind(email)
+    .first<{ role: string; status: string }>();
+
+  return row?.role === "owner" && row?.status === "active";
+}
+
+async function ensureDispatchMasterAdmin(
+  db: D1Database,
+  master: { email: string; displayName: string }
+) {
+  let user = await db.prepare(
+    "SELECT id, email, password_hash, password_salt, role FROM users WHERE email = ? LIMIT 1"
+  )
+    .bind(master.email)
+    .first<{ id: string; email: string; password_hash: string; password_salt: string; role: string }>();
+
+  if (user) {
+    if (user.role !== "admin") {
+      await db.prepare(
+        "UPDATE users SET role = 'admin', updated_at = CURRENT_TIMESTAMP WHERE id = ?"
+      )
+        .bind(user.id)
+        .run();
+      user.role = "admin";
+    }
+
+    const membership = await db.prepare(
+      "SELECT company_id FROM memberships WHERE user_id = ? ORDER BY created_at ASC LIMIT 1"
+    )
+      .bind(user.id)
+      .first<{ company_id: string }>();
+
+    if (!membership) {
+      const companyId = crypto.randomUUID();
+      const slug = await uniqueCompanySlug(db, "ICA Master");
+      await db.batch([
+        db.prepare("INSERT INTO companies (id, name, slug) VALUES (?, ?, ?)")
+          .bind(companyId, "ICA Master", slug),
+        db.prepare("INSERT INTO memberships (id, user_id, company_id, role) VALUES (?, ?, ?, 'owner')")
+          .bind(crypto.randomUUID(), user.id, companyId),
+        db.prepare("INSERT INTO subscriptions (id, company_id, plan, status) VALUES (?, ?, 'custom', 'active')")
+          .bind(crypto.randomUUID(), companyId),
+      ]);
+    }
+
+    return user;
+  }
+
+  const userId = crypto.randomUUID();
+  const companyId = crypto.randomUUID();
+  const salt = randomHex(16);
+  const localOnlyPassword = randomHex(32);
+  const passwordHash = await hashPassword(localOnlyPassword, salt);
+  const slug = await uniqueCompanySlug(db, "ICA Master");
+
+  await db.batch([
+    db.prepare("INSERT INTO users (id, name, email, password_hash, password_salt, role) VALUES (?, ?, ?, ?, ?, 'admin')")
+      .bind(userId, master.displayName || "ICA Master Owner", master.email, passwordHash, salt),
+    db.prepare("INSERT INTO companies (id, name, slug) VALUES (?, ?, ?)")
+      .bind(companyId, "ICA Master", slug),
+    db.prepare("INSERT INTO memberships (id, user_id, company_id, role) VALUES (?, ?, ?, 'owner')")
+      .bind(crypto.randomUUID(), userId, companyId),
+    db.prepare("INSERT INTO subscriptions (id, company_id, plan, status) VALUES (?, ?, 'custom', 'active')")
+      .bind(crypto.randomUUID(), companyId),
+  ]);
+
+  return {
+    id: userId,
+    email: master.email,
+    password_hash: passwordHash,
+    password_salt: salt,
+    role: "admin",
+  };
 }
 
 async function hashPassword(password: string, saltHex: string) {
