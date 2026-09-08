@@ -21,12 +21,12 @@ import { getStoredSession } from "@/lib/dispatchos-auth";
 const statusCopy: Record<string, { label: string; message: string; operating: boolean }> = {
   active: {
     label: "Active",
-    message: "Your subscription is active and DispatchOS operational apps are available.",
+    message: "Your subscription is active and Urban Carrier OS operational apps are available.",
     operating: true,
   },
   trialing: {
     label: "Trial Active",
-    message: "Your trial is active and DispatchOS operational apps are available.",
+    message: "Your trial is active and Urban Carrier OS operational apps are available.",
     operating: true,
   },
   grace_period: {
@@ -51,12 +51,12 @@ const statusCopy: Record<string, { label: string; message: string; operating: bo
   },
   canceled: {
     label: "Canceled",
-    message: "The subscription has ended. You can choose a plan directly below when you are ready to reactivate DispatchOS.",
+    message: "The subscription has ended. You can choose a plan directly below when you are ready to reactivate Urban Carrier OS.",
     operating: false,
   },
   cancelled: {
     label: "Canceled",
-    message: "The subscription has ended. You can choose a plan directly below when you are ready to reactivate DispatchOS.",
+    message: "The subscription has ended. You can choose a plan directly below when you are ready to reactivate Urban Carrier OS.",
     operating: false,
   },
   pending: {
@@ -69,7 +69,7 @@ const statusCopy: Record<string, { label: string; message: string; operating: bo
 const planOptions = [
   {
     id: "basic",
-    name: "DispatchOS Basic",
+    name: "Urban Carrier OS Basic",
     price: "$49.99",
     cadence: "/month",
     icon: Zap,
@@ -83,7 +83,7 @@ const planOptions = [
   },
   {
     id: "business",
-    name: "DispatchOS Business",
+    name: "Urban Carrier OS Business",
     price: "$149",
     cadence: "/month",
     icon: Crown,
@@ -125,7 +125,7 @@ export default function BillingPage() {
             <p className="text-xs uppercase tracking-[0.22em] text-cyan-300">{companyName} Billing</p>
             <h1 className="mt-2 text-3xl font-semibold tracking-tight md:text-4xl">Billing & subscription</h1>
             <p className="mt-3 max-w-2xl text-sm text-white/70">
-              Manage your current DispatchOS plan here without leaving your company workspace. Plan changes, payment recovery, invoices, and payment methods will stay on this page as Stripe is connected.
+              Manage your current Urban Carrier OS plan here without leaving your company workspace. Plan changes, payment recovery, invoices, and payment methods will stay on this page as Stripe is connected.
             </p>
           </div>
           <Link
@@ -187,7 +187,7 @@ export default function BillingPage() {
               ? isBusiness
                 ? "Upgrade to Business"
                 : "Switch to Basic"
-              : `Choose ${option.name.replace("DispatchOS ", "")}`;
+              : `Choose ${option.name.replace("Urban Carrier OS ", "")}`;
 
             return (
               <Card
