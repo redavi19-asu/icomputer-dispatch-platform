@@ -299,7 +299,7 @@ export default function WorkspaceSettingsPage() {
             <p className="mt-3 max-w-3xl text-sm leading-6 text-white/58">
               Booking is no longer a standard portal feature. If you want your website,
               request form, booking system, or another business system feeding jobs into
-              DispatchOS, that is configured as a custom integration. Existing integration
+              Urban Carrier OS, that is configured as a custom integration. Existing integration
               settings are preserved when you save this page.
             </p>
             <button
