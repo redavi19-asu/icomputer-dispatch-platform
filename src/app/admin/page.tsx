@@ -174,7 +174,7 @@ export default function AdminPage() {
   async function removeCompany(company: CompanyRow) {
     if (company.protected_admin_company) return;
     const confirmed = window.confirm(
-      `Remove ${company.name} from DispatchOS?\n\nThis permanently removes the company workspace, access, memberships, and company-owned operational data. This cannot be undone.`
+      `Remove ${company.name} from Urban Carrier OS?\n\nThis permanently removes the company workspace, access, memberships, and company-owned operational data. This cannot be undone.`
     );
     if (!confirmed) return;
 
@@ -243,7 +243,7 @@ export default function AdminPage() {
             <div className="flex items-center gap-2 text-xs uppercase tracking-[0.24em] text-cyan-300">
               <ShieldCheck className="h-4 w-4" /> Platform Administrator
             </div>
-            <h1 className="mt-4 text-4xl font-semibold tracking-tight md:text-6xl">DispatchOS Command Center</h1>
+            <h1 className="mt-4 text-4xl font-semibold tracking-tight md:text-6xl">Urban Carrier OS Command Center</h1>
             <p className="mt-4 max-w-3xl text-white/60">
               Control company access, plans, trials, complimentary accounts, onboarding, and company-level analytics from one place.
             </p>
@@ -258,7 +258,7 @@ export default function AdminPage() {
               <div>
                 <div className="flex items-center gap-2 text-violet-200"><Sparkles className="h-5 w-5" /><h2 className="text-xl font-semibold">Grant Trial Access</h2></div>
                 <p className="mt-2 max-w-2xl text-sm leading-6 text-white/55">
-                  Choose one of the companies already onboarded below. You do not type a company name here. The list is populated automatically from your DispatchOS company accounts.
+                  Choose one of the companies already onboarded below. You do not type a company name here. The list is populated automatically from your Urban Carrier OS company accounts.
                 </p>
               </div>
               <span className="rounded-full border border-violet-300/20 bg-violet-500/10 px-3 py-1 text-xs font-semibold text-violet-100">ADMIN CONTROLLED</span>
