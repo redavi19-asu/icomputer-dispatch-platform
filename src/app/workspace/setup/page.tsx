@@ -59,7 +59,7 @@ export default function CompanySetupPage() {
           </div>
           <h1 className="mt-5 text-4xl font-semibold tracking-tight md:text-6xl">Set up your company before you install the apps.</h1>
           <p className="mt-5 max-w-3xl text-base leading-7 text-white/60 md:text-lg">
-            These preferences become the starting configuration for your DispatchOS workspace, Dispatcher app, and Driver app.
+            These preferences become the starting configuration for your Urban Carrier OS workspace, Dispatcher app, and Driver app.
           </p>
         </div>
       </section>
