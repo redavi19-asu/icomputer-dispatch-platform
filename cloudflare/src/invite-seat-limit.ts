@@ -90,9 +90,9 @@ function stringValue(value: unknown) {
 }
 
 function planLabel(plan: string) {
-  if (plan === "business") return "DispatchOS Business";
-  if (plan === "custom") return "DispatchOS Custom";
-  return "DispatchOS Basic";
+  if (plan === "business") return "Urban Carrier OS Business";
+  if (plan === "custom") return "Urban Carrier OS Custom";
+  return "Urban Carrier OS Basic";
 }
 
 async function sha256(value: string) {
