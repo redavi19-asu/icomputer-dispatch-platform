@@ -61,28 +61,49 @@ export default {
 
     try {
       if (url.pathname === "/health" && request.method === "GET") {
+        let operationsDatabaseReady = false;
+        let centralDatabaseReady = false;
+        let centralUserCount: number | null = null;
+
         try {
-          await env.DB.prepare("SELECT COUNT(*) AS count FROM companies").first();
-
-          return json({
-            ok: true,
-            service: "dispatchos-auth",
-            database: "connected",
-            turnstile: Boolean(clean(env.TURNSTILE_SECRET_KEY)),
-            publicRegistration: clean(env.PUBLIC_REGISTRATION_ENABLED).toLowerCase() === "true",
-            adminConsole: true,
-            companyAnalytics: true,
-            companyRemoval: true,
-          }, 200, cors);
+          if (env.DB) {
+            const row = await env.DB.prepare("SELECT 1 AS ok").first<{ ok: number }>();
+            operationsDatabaseReady = Number(row?.ok || 0) === 1;
+          }
         } catch (error) {
-          console.error("DISPATCHOS_HEALTH_DB_ERROR", error);
-
-          return json({
-            ok: false,
-            service: "dispatchos-auth",
-            database: "unavailable",
-          }, 503, cors);
+          console.error("DISPATCHOS_OPERATIONS_DB_HEALTH_ERROR", error);
         }
+
+        try {
+          if (env.ICA_DB) {
+            const row = await env.ICA_DB.prepare(
+              "SELECT COUNT(*) AS count FROM users"
+            ).first<{ count: number }>();
+            centralUserCount = Number(row?.count || 0);
+            centralDatabaseReady = true;
+          }
+        } catch (error) {
+          console.error("DISPATCHOS_ICA_DB_HEALTH_ERROR", error);
+        }
+
+        const healthy =
+          Boolean(env.DB) &&
+          Boolean(env.ICA_DB) &&
+          operationsDatabaseReady &&
+          centralDatabaseReady;
+
+        return json({
+          ok: healthy,
+          service: "Dispatch OS",
+          databaseBound: Boolean(env.DB),
+          databaseReady: operationsDatabaseReady,
+          centralDatabaseBound: Boolean(env.ICA_DB),
+          centralDatabaseReady,
+          centralUserCount,
+          turnstileConfigured: Boolean(clean(env.TURNSTILE_SECRET_KEY)),
+          publicRegistration:
+            clean(env.PUBLIC_REGISTRATION_ENABLED).toLowerCase() === "true",
+        }, healthy ? 200 : 503, cors);
       }
 
       if (url.pathname === "/auth/register" && request.method === "POST") {
