@@ -6,13 +6,13 @@ import { DriverAppShell } from "@/components/driver/driver-app-shell";
 import { DriverPayRecorder } from "@/components/driver/driver-pay-recorder";
 
 export const metadata: Metadata = {
-  title: "DispatchOS Driver",
-  description: "Mobile-first driver mission app for DispatchOS.",
-  applicationName: "DispatchOS Driver",
+  title: "Urban Carrier OS Driver",
+  description: "Mobile-first driver mission app for Urban Carrier OS.",
+  applicationName: "Urban Carrier OS Driver",
   manifest: "/driver.webmanifest",
   appleWebApp: {
     capable: true,
-    title: "DispatchOS Driver",
+    title: "Urban Carrier OS Driver",
     statusBarStyle: "black-translucent",
   },
 };
