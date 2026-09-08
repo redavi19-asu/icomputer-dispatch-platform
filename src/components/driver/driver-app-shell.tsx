@@ -57,7 +57,7 @@ export function DriverAppShell({ children }: DriverAppShellProps) {
             <div className="flex items-center gap-2">
               <ShieldCheck className="h-4 w-4 shrink-0 text-cyan-300" />
               <p className="truncate text-sm font-semibold">
-                {session?.company.name ?? "DispatchOS"} Driver
+                {session?.company.name ?? "Urban Carrier OS"} Driver
               </p>
             </div>
             <p className="mt-0.5 truncate text-xs text-white/50">
