@@ -33,7 +33,7 @@ function isAuthenticatedOperationalSurface() {
 /**
  * Older demo-era operational pages still pass "build-electric" in a few places.
  * On authenticated company surfaces, treat that legacy slug as an alias for the
- * company in the signed-in DispatchOS session. Explicit public company routes
+ * company in the signed-in Urban Carrier OS session. Explicit public company routes
  * (for example /acme/booking) keep their own slug.
  */
 export function resolveTenantSlug(requestedSlug?: string | null) {
