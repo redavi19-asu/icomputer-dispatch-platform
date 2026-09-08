@@ -938,7 +938,7 @@ export default function DriverPage() {
         <div className="mx-auto mt-20 w-full max-w-md rounded-2xl border border-white/10 bg-white/5 p-6">
           <h1 className="text-xl font-semibold">Driver app is disabled</h1>
           <p className="mt-2 text-sm text-white/70">
-            Driver missions are disabled in company preferences. DispatchOS can still run as an
+            Driver missions are disabled in company preferences. Urban Carrier OS can still run as an
             operations layer while field execution happens in another system.
           </p>
         </div>
@@ -1635,7 +1635,7 @@ export default function DriverPage() {
       >
         <div className="space-y-4 text-slate-800">
           <p className="text-sm text-slate-700">
-            Use DispatchOS Driver as an installable mobile web app for full-screen mission mode,
+            Use Urban Carrier OS Driver as an installable mobile web app for full-screen mission mode,
             faster launch, and reduced browser chrome.
           </p>
 
