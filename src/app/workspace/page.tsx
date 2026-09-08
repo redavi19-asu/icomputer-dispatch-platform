@@ -49,7 +49,7 @@ const portalCards = [
   },
   {
     title: "Billing",
-    description: "Review your DispatchOS subscription, billing status, plan information, and future invoice activity.",
+    description: "Review your Urban Carrier OS subscription, billing status, plan information, and future invoice activity.",
     href: "/billing",
     cta: "Open Billing",
     icon: CreditCard,
@@ -64,7 +64,7 @@ const portalCards = [
   },
   {
     title: "Custom Integration",
-    description: "Need payroll, payouts, your website, forms, intake flow, branding, or company systems connected to DispatchOS? See what can be connected before requesting a quote.",
+    description: "Need payroll, payouts, your website, forms, intake flow, branding, or company systems connected to Urban Carrier OS? See what can be connected before requesting a quote.",
     cta: "View Integration Options",
     icon: LifeBuoy,
     customIntegration: true,
@@ -110,7 +110,7 @@ export default function WorkspacePage() {
             {settings.companyName} workspace
           </h1>
           <p className="mt-5 max-w-3xl text-base leading-7 text-white/70 md:text-lg">
-            Manage the company account here. Configure preferences, manage drivers, review driver mileage and calculated earnings, review billing, and install DispatchOS on the devices your team actually uses.
+            Manage the company account here. Configure preferences, manage drivers, review driver mileage and calculated earnings, review billing, and install Urban Carrier OS on the devices your team actually uses.
           </p>
           <p className="mt-4 max-w-3xl text-sm leading-6 text-cyan-100/70">
             Daily dispatch work happens inside the installed Dispatcher app. Drivers work from the installed Driver app. This portal is for company administration.
