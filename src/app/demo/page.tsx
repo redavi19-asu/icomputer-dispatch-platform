@@ -44,15 +44,15 @@ export default function DemoPage() {
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_78%_28%,rgba(34,211,238,.18),transparent_28%),radial-gradient(circle_at_18%_72%,rgba(16,185,129,.11),transparent_32%)]" />
         <div className="relative mx-auto max-w-7xl px-6 py-10 md:py-16">
           <div className="flex flex-wrap items-center justify-between gap-4">
-            <Link href="/" className="inline-flex items-center gap-2 text-sm text-cyan-200 hover:text-cyan-100"><ArrowLeft className="h-4 w-4" /> Back to DispatchOS</Link>
+            <Link href="/" className="inline-flex items-center gap-2 text-sm text-cyan-200 hover:text-cyan-100"><ArrowLeft className="h-4 w-4" /> Back to Urban Carrier OS</Link>
             <Link href="/plans" className="inline-flex items-center gap-2 rounded-xl border border-emerald-300/20 bg-emerald-500/10 px-5 py-3 text-sm font-semibold text-emerald-100 hover:bg-emerald-500/15">View Plans <ArrowRight className="h-4 w-4" /></Link>
           </div>
 
           <div className="mt-12 grid gap-10 lg:grid-cols-[.9fr_1.1fr] lg:items-center">
             <div>
-              <p className="text-xs uppercase tracking-[0.28em] text-cyan-300">DispatchOS Product Tour</p>
+              <p className="text-xs uppercase tracking-[0.28em] text-cyan-300">Urban Carrier OS Product Tour</p>
               <h1 className="mt-4 max-w-3xl text-4xl font-semibold tracking-tight sm:text-5xl md:text-6xl">See how your operation runs before you install.</h1>
-              <p className="mt-6 max-w-2xl text-base leading-7 text-white/65 md:text-lg">DispatchOS gives your office a command center and your field team a connected mobile workflow. Set up the company once, install the apps on the devices you use, and start dispatching.</p>
+              <p className="mt-6 max-w-2xl text-base leading-7 text-white/65 md:text-lg">Urban Carrier OS gives your office a command center and your field team a connected mobile workflow. Set up the company once, install the apps on the devices you use, and start dispatching.</p>
               <div className="mt-8 flex flex-wrap gap-3">
                 <Link href="/plans" className="inline-flex items-center gap-2 rounded-xl bg-emerald-500 px-6 py-4 font-bold text-white hover:bg-emerald-400">Choose a Plan <ArrowRight className="h-4 w-4" /></Link>
                 <button type="button" onClick={() => setCustomModalOpen(true)} className="rounded-xl border border-white/15 bg-white/[0.05] px-6 py-4 font-semibold text-white hover:bg-white/[0.09]">Need Custom Integration?</button>
@@ -99,8 +99,8 @@ export default function DemoPage() {
 
       <section className="mx-auto max-w-7xl px-6 py-16 md:py-24">
         <div className="grid gap-8 lg:grid-cols-[1.05fr_.95fr]">
-          <div><p className="text-xs uppercase tracking-[0.24em] text-cyan-300">Standard DispatchOS</p><h2 className="mt-3 text-3xl font-semibold tracking-tight md:text-5xl">The operating tools your team needs.</h2><div className="mt-7 grid gap-3 sm:grid-cols-2">{standardFeatures.map(item => <div key={item} className="flex items-start gap-3 rounded-2xl border border-white/10 bg-white/[0.03] p-4 text-sm text-white/70"><CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-emerald-400"/>{item}</div>)}</div></div>
-          <div className="rounded-[2rem] border border-violet-400/20 bg-violet-500/[0.055] p-7 md:p-9"><Wand2 className="h-9 w-9 text-violet-300"/><p className="mt-6 text-xs uppercase tracking-[.2em] text-violet-300">Custom Integration</p><h2 className="mt-2 text-2xl font-semibold">Want DispatchOS connected to your existing business?</h2><p className="mt-4 text-sm leading-7 text-white/60">Website booking or request pages, branded customer intake, APIs, existing systems, special workflows, and company-specific integrations are custom professional services—not part of the standard subscription.</p><button type="button" onClick={() => setCustomModalOpen(true)} className="mt-6 inline-flex items-center gap-2 rounded-xl border border-violet-300/25 bg-violet-500/15 px-5 py-3 font-semibold text-violet-100 hover:bg-violet-500/20">Request Custom Integration <ArrowRight className="h-4 w-4"/></button></div>
+          <div><p className="text-xs uppercase tracking-[0.24em] text-cyan-300">Standard Urban Carrier OS</p><h2 className="mt-3 text-3xl font-semibold tracking-tight md:text-5xl">The operating tools your team needs.</h2><div className="mt-7 grid gap-3 sm:grid-cols-2">{standardFeatures.map(item => <div key={item} className="flex items-start gap-3 rounded-2xl border border-white/10 bg-white/[0.03] p-4 text-sm text-white/70"><CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-emerald-400"/>{item}</div>)}</div></div>
+          <div className="rounded-[2rem] border border-violet-400/20 bg-violet-500/[0.055] p-7 md:p-9"><Wand2 className="h-9 w-9 text-violet-300"/><p className="mt-6 text-xs uppercase tracking-[.2em] text-violet-300">Custom Integration</p><h2 className="mt-2 text-2xl font-semibold">Want Urban Carrier OS connected to your existing business?</h2><p className="mt-4 text-sm leading-7 text-white/60">Website booking or request pages, branded customer intake, APIs, existing systems, special workflows, and company-specific integrations are custom professional services—not part of the standard subscription.</p><button type="button" onClick={() => setCustomModalOpen(true)} className="mt-6 inline-flex items-center gap-2 rounded-xl border border-violet-300/25 bg-violet-500/15 px-5 py-3 font-semibold text-violet-100 hover:bg-violet-500/20">Request Custom Integration <ArrowRight className="h-4 w-4"/></button></div>
         </div>
       </section>
 
@@ -109,7 +109,7 @@ export default function DemoPage() {
           <Crown className="mx-auto h-9 w-9 text-emerald-300"/>
           <p className="mt-5 text-xs uppercase tracking-[0.22em] text-emerald-300">Ready to get operating?</p>
           <h2 className="mx-auto mt-3 max-w-3xl text-3xl font-semibold tracking-tight md:text-5xl">Set up your company. Install your apps. Put your team in motion.</h2>
-          <p className="mx-auto mt-5 max-w-2xl text-sm leading-7 text-white/55">Choose the DispatchOS plan that fits your team size and operating needs.</p>
+          <p className="mx-auto mt-5 max-w-2xl text-sm leading-7 text-white/55">Choose the Urban Carrier OS plan that fits your team size and operating needs.</p>
           <Link href="/plans" className="mt-7 inline-flex items-center gap-2 rounded-xl bg-emerald-500 px-7 py-4 font-bold text-white transition hover:bg-emerald-400">View Plans <ArrowRight className="h-4 w-4"/></Link>
         </div>
       </section>
