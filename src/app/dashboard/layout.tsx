@@ -2,9 +2,9 @@ import type { Metadata, Viewport } from "next";
 import ProtectedRoute from "@/components/auth/protected-route";
 
 export const metadata: Metadata = {
-  title: "DispatchOS Dispatcher",
-  description: "Desktop dispatch dashboard for DispatchOS operations.",
-  applicationName: "DispatchOS Dispatcher",
+  title: "Urban Carrier OS Dispatcher",
+  description: "Desktop dispatch dashboard for Urban Carrier OS operations.",
+  applicationName: "Urban Carrier OS Dispatcher",
   manifest: "/dispatch.webmanifest",
 };
 
