@@ -317,7 +317,7 @@ export default function WorkspaceDriversPage() {
               <li>Send the driver invite or copy their driver link.</li>
               <li>Driver opens the link on their phone or tablet.</li>
               <li>Driver signs in or verifies identity.</li>
-              <li>Driver installs/adds DispatchOS Driver to the home screen.</li>
+              <li>Driver installs/adds Urban Carrier OS Driver to the home screen.</li>
               <li>Driver opens the app and taps Go Online when ready to work.</li>
             </ol>
           </div>
