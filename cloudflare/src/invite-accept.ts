@@ -61,7 +61,7 @@ export async function handleDriverInviteAcceptance(
       .bind(email)
       .first<{ id: string }>();
     if (existingUser) {
-      return json({ error: "That email already has a DispatchOS account. Sign in instead or ask the company to use another driver email." }, 409, cors);
+      return json({ error: "That email already has a Urban Carrier OS account. Sign in instead or ask the company to use another driver email." }, 409, cors);
     }
 
     let driver = await env.DB.prepare(`
