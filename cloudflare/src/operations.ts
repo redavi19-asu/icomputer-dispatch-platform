@@ -74,8 +74,8 @@ export async function handleOperationsRequest(
 
     return json({ error: "Operational endpoint not found." }, 404, cors);
   } catch (error) {
-    console.error("DispatchOS operations error", error);
-    return json({ error: "DispatchOS operations service error." }, 500, cors);
+    console.error("Urban Carrier OS operations error", error);
+    return json({ error: "Urban Carrier OS operations service error." }, 500, cors);
   }
 }
 
@@ -548,7 +548,7 @@ async function acceptDriverInvite(request: Request, env: OperationsEnv, cors: He
   const email = invite.email || "";
   const existingUser = await env.DB.prepare("SELECT id FROM users WHERE email = ?").bind(email).first<{ id: string }>();
   if (existingUser) {
-    return json({ error: "That email already has a DispatchOS account. Sign in instead or ask the company to use another driver email." }, 409, cors);
+    return json({ error: "That email already has a Urban Carrier OS account. Sign in instead or ask the company to use another driver email." }, 409, cors);
   }
 
   const userId = crypto.randomUUID();
