@@ -124,8 +124,8 @@ export default function AuthPage() {
         <div className="mx-auto max-w-6xl px-6 py-12 md:py-16">
           <Link href="/plans" className="inline-flex items-center gap-2 text-sm text-cyan-200 hover:text-cyan-100"><ArrowLeft className="h-4 w-4" /> Back to Plans</Link>
           <div className="mt-10 max-w-3xl">
-            <p className="text-xs uppercase tracking-[0.26em] text-cyan-300">DispatchOS Account</p>
-            <h1 className="mt-4 text-4xl font-semibold tracking-tight md:text-6xl">Welcome back to DispatchOS.</h1>
+            <p className="text-xs uppercase tracking-[0.26em] text-cyan-300">Urban Carrier OS Account</p>
+            <h1 className="mt-4 text-4xl font-semibold tracking-tight md:text-6xl">Welcome back to Urban Carrier OS.</h1>
             <p className="mt-5 text-base leading-7 text-white/62 md:text-lg">Sign in to manage your company account, settings, drivers, billing, and application downloads.</p>
           </div>
         </div>
@@ -147,14 +147,14 @@ export default function AuthPage() {
           <p className="mt-4 text-sm leading-6 text-white/58">After sign-in, first-time companies complete Company Setup. Then the account portal provides settings, driver management, billing, downloads, and custom integration access.</p>
           <div className="mt-7 rounded-2xl border border-cyan-400/15 bg-cyan-500/[0.05] p-5">
             <p className="text-xs uppercase tracking-[0.18em] text-cyan-300">Selected plan</p>
-            <p className="mt-2 text-xl font-semibold">{plan === "business" ? "DispatchOS Business — $149/mo" : "DispatchOS Basic — $49.99/mo"}</p>
+            <p className="mt-2 text-xl font-semibold">{plan === "business" ? "Urban Carrier OS Business — $149/mo" : "Urban Carrier OS Basic — $49.99/mo"}</p>
             <p className="mt-2 text-xs leading-5 text-white/45">Checkout and automatic activation will be connected next.</p>
           </div>
         </aside>
 
         <div className="rounded-[2rem] border border-white/10 bg-slate-950/80 p-7 shadow-2xl md:p-9">
           <div className="mb-7 rounded-2xl border border-emerald-400/20 bg-emerald-500/[0.07] p-5">
-            <div className="flex items-start gap-3"><Sparkles className="mt-0.5 h-5 w-5 shrink-0 text-emerald-300" /><div><p className="font-semibold text-emerald-100">Your company portal is separate from the working apps.</p><p className="mt-2 text-sm leading-6 text-white/58">Use the portal to configure the company and install DispatchOS. Daily dispatching happens inside Dispatcher; field work happens inside Driver.</p></div></div>
+            <div className="flex items-start gap-3"><Sparkles className="mt-0.5 h-5 w-5 shrink-0 text-emerald-300" /><div><p className="font-semibold text-emerald-100">Your company portal is separate from the working apps.</p><p className="mt-2 text-sm leading-6 text-white/58">Use the portal to configure the company and install Urban Carrier OS. Daily dispatching happens inside Dispatcher; field work happens inside Driver.</p></div></div>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-5">
@@ -172,7 +172,7 @@ export default function AuthPage() {
             <button disabled={loading || (turnstileEnabled && !turnstileToken)} className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-cyan-400 px-6 py-4 font-bold text-slate-950 transition hover:bg-cyan-300 disabled:cursor-wait disabled:opacity-60"><LogIn className="h-5 w-5" />{loading ? "Connecting..." : "Log In"}</button>
           </form>
 
-          <div className="mt-6 flex items-start gap-3 text-xs leading-5 text-white/42"><LockKeyhole className="mt-0.5 h-4 w-4 shrink-0 text-emerald-300" />Passwords are sent only to the DispatchOS account API and stored as one-way password hashes.</div>
+          <div className="mt-6 flex items-start gap-3 text-xs leading-5 text-white/42"><LockKeyhole className="mt-0.5 h-4 w-4 shrink-0 text-emerald-300" />Passwords are sent only to the Urban Carrier OS account API and stored as one-way password hashes.</div>
         </div>
       </section>
     </main>
