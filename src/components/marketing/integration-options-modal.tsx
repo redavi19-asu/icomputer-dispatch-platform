@@ -9,7 +9,7 @@ type IntegrationOptionsModalProps = {
 };
 
 const options = [
-  "Website request and intake forms connected to DispatchOS",
+  "Website request and intake forms connected to Urban Carrier OS",
   "Customer booking or appointment workflows",
   "Company-specific status flows, job rules, and operating steps",
   "Branding and customer-facing experience customization",
@@ -46,7 +46,7 @@ export default function IntegrationOptionsModal({
         </p>
         <h2 className="mt-3 pr-10 text-3xl font-semibold">What can we connect for your company?</h2>
         <p className="mt-4 max-w-xl text-sm leading-6 text-white/60">
-          DispatchOS works as a standard Dispatcher and Driver platform. Custom integration is for companies that want DispatchOS connected to their own website, intake process, software, branding, or special operating workflow.
+          Urban Carrier OS works as a standard Dispatcher and Driver platform. Custom integration is for companies that want Urban Carrier OS connected to their own website, intake process, software, branding, or special operating workflow.
         </p>
 
         <div className="mt-7 grid gap-3 sm:grid-cols-2">
