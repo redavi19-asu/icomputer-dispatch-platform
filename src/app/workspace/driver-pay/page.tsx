@@ -282,7 +282,7 @@ export default function DriverPayPage() {
                 <div className="rounded-2xl border border-amber-400/20 bg-amber-500/10 p-4">
                   <p className="text-sm font-semibold text-amber-100">Payout provider: Not connected</p>
                   <p className="mt-2 text-xs leading-5 text-amber-100/65">
-                    Dispatch OS can calculate and approve earnings now. Money movement stays disabled until the business connects a real payout/payroll provider. Contractor payouts can later use a connected payment rail; W-2 employee wages should sync/export to the company&apos;s payroll system.
+                    Urban Carrier OS can calculate and approve earnings now. Money movement stays disabled until the business connects a real payout/payroll provider. Contractor payouts can later use a connected payment rail; W-2 employee wages should sync/export to the company&apos;s payroll system.
                   </p>
                 </div>
               </div>
@@ -375,7 +375,7 @@ export default function DriverPayPage() {
             <div>
               <p className="font-semibold">How the automatic flow will work</p>
               <p className="mt-2 max-w-4xl text-sm leading-6 text-white/58">
-                Driver completes the job → Dispatch OS records route mileage → the company&apos;s driver-specific pay rule calculates the earning → the business can approve or auto-approve it → a connected payout/payroll provider moves the money → the ledger changes to Paid. The payment provider, not the browser, will be the authority for actual money movement.
+                Driver completes the job → Urban Carrier OS records route mileage → the company&apos;s driver-specific pay rule calculates the earning → the business can approve or auto-approve it → a connected payout/payroll provider moves the money → the ledger changes to Paid. The payment provider, not the browser, will be the authority for actual money movement.
               </p>
             </div>
           </div>
