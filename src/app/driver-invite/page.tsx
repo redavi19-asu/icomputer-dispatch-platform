@@ -62,7 +62,7 @@ export default function DriverInviteAcceptancePage() {
 
     const apiBase = getApiBase();
     if (!apiBase) {
-      setError("DispatchOS account service is not connected.");
+      setError("Urban Carrier OS account service is not connected.");
       return;
     }
 
@@ -123,10 +123,10 @@ export default function DriverInviteAcceptancePage() {
             <Smartphone className="h-7 w-7 text-cyan-300" />
           </div>
           <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.22em] text-cyan-300">DispatchOS Driver</p>
+            <p className="text-xs font-semibold uppercase tracking-[0.22em] text-cyan-300">Urban Carrier OS Driver</p>
             <h1 className="mt-2 text-3xl font-semibold">Activate your secure driver access</h1>
             <p className="mt-3 text-sm leading-6 text-white/60">
-              This invitation can only be used once. Your account will be attached to the company that issued the invite, not to any other DispatchOS workspace.
+              This invitation can only be used once. Your account will be attached to the company that issued the invite, not to any other Urban Carrier OS workspace.
             </p>
           </div>
         </div>
