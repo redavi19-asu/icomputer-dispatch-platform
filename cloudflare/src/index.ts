@@ -94,7 +94,7 @@ export default {
 
         return json({
           ok: healthy,
-          service: "Dispatch OS",
+          service: "Urban Carrier OS",
           databaseBound: Boolean(env.DB),
           databaseReady: operationsDatabaseReady,
           centralDatabaseBound: Boolean(env.ICA_DB),
@@ -153,7 +153,7 @@ export default {
       return json({ error: "Not found." }, 404, cors);
     } catch (error) {
       console.error(error);
-      return json({ error: "DispatchOS account service error." }, 500, cors);
+      return json({ error: "Urban Carrier OS account service error." }, 500, cors);
     }
   },
 };
@@ -268,7 +268,7 @@ async function login(request: Request, env: Env, cors: HeadersInit) {
     `).bind(user.id).first<{ status: string | null }>();
 
     if (access?.status === "suspended" || access?.status === "canceled") {
-      return json({ error: "This company workspace is currently disabled. Contact DispatchOS support." }, 403, cors);
+      return json({ error: "This company workspace is currently disabled. Contact Urban Carrier OS support." }, 403, cors);
     }
   }
 
@@ -442,7 +442,7 @@ async function adminCreateCompany(request: Request, env: Env, cors: HeadersInit)
   }
 
   const existing = await env.DB.prepare("SELECT id FROM users WHERE email = ?").bind(ownerEmail).first();
-  if (existing) return json({ error: "That owner email already has a DispatchOS account." }, 409, cors);
+  if (existing) return json({ error: "That owner email already has a Urban Carrier OS account." }, 409, cors);
 
   const userId = crypto.randomUUID();
   const companyId = crypto.randomUUID();
