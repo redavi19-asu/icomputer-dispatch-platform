@@ -55,7 +55,7 @@ export default function DownloadCenterPage() {
       <section className="border-b border-white/10 bg-[radial-gradient(circle_at_20%_0%,rgba(34,211,238,.17),transparent_34%),radial-gradient(circle_at_82%_8%,rgba(16,185,129,.13),transparent_28%)]">
         <div className="mx-auto max-w-7xl px-6 py-12 md:py-16">
           <div className="max-w-4xl">
-            <div className="flex items-center gap-2 text-xs uppercase tracking-[0.24em] text-cyan-300"><Download className="h-4 w-4" /> DispatchOS Download Center</div>
+            <div className="flex items-center gap-2 text-xs uppercase tracking-[0.24em] text-cyan-300"><Download className="h-4 w-4" /> Urban Carrier OS Download Center</div>
             <h1 className="mt-4 text-4xl font-semibold tracking-tight md:text-6xl">Install the tools your team actually works from.</h1>
             <p className="mt-5 text-base leading-7 text-white/60 md:text-lg"><span className="font-semibold text-white">{companyName}</span> is configured. Install Dispatcher on office devices and Driver on authorized field devices.</p>
 
@@ -73,7 +73,7 @@ export default function DownloadCenterPage() {
                 <p className="mt-2 text-lg font-semibold">Up to {seatLabel(entitlements.maxDispatcherSeats)}</p>
               </div>
             </div>
-            <p className="mt-4 text-sm leading-6 text-white/45">Seats control who can actually sign in and operate DispatchOS. Reinstalling the app on a replacement device does not create another paid seat.</p>
+            <p className="mt-4 text-sm leading-6 text-white/45">Seats control who can actually sign in and operate Urban Carrier OS. Reinstalling the app on a replacement device does not create another paid seat.</p>
           </div>
         </div>
       </section>
@@ -112,7 +112,7 @@ export default function DownloadCenterPage() {
             <div className="max-w-3xl">
               <div className="flex items-center gap-3"><WalletCards className="h-7 w-7 text-fuchsia-300" /><p className="text-xs font-semibold uppercase tracking-[0.2em] text-fuchsia-200">Included with the standard install</p></div>
               <h2 className="mt-4 text-2xl font-semibold md:text-3xl">Driver Pay + Mileage Calculator</h2>
-              <p className="mt-3 text-sm leading-6 text-white/58">DispatchOS can track driver mission mileage, apply company-defined pay rules, and calculate what each driver earned from completed jobs. The company can review daily miles, completed jobs, and calculated earnings without buying a separate payroll system.</p>
+              <p className="mt-3 text-sm leading-6 text-white/58">Urban Carrier OS can track driver mission mileage, apply company-defined pay rules, and calculate what each driver earned from completed jobs. The company can review daily miles, completed jobs, and calculated earnings without buying a separate payroll system.</p>
             </div>
             <div className="rounded-2xl border border-amber-300/20 bg-amber-500/10 px-4 py-3 text-xs leading-5 text-amber-100/80">Actual payroll processing, bank payouts, automatic ACH, or third-party payroll connections are optional custom integrations.</div>
           </div>
