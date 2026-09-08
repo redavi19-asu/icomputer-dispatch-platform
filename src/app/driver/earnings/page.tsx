@@ -19,7 +19,7 @@ const statusClass = (status: DriverEarningRecord["status"]) => {
 
 export default function DriverEarningsPage() {
   const [earnings, setEarnings] = useState<DriverEarningRecord[]>([]);
-  const [companyName, setCompanyName] = useState("DispatchOS");
+  const [companyName, setCompanyName] = useState("Urban Carrier OS");
   const [loading, setLoading] = useState(true);
   const [sourceLabel, setSourceLabel] = useState("Secure earnings ledger");
 
@@ -114,7 +114,7 @@ export default function DriverEarningsPage() {
         </section>
 
         <section className="mt-5 rounded-2xl border border-white/10 bg-white/[0.035] p-4">
-          <div className="flex items-start gap-3"><ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-cyan-300" /><p className="text-xs leading-5 text-white/50">This screen shows the company&apos;s DispatchOS earnings ledger. “Calculated” is an estimate based on company pay rules, “Approved” means the business approved it for payout, and “Paid” should only be shown after the company records or confirms actual payment.</p></div>
+          <div className="flex items-start gap-3"><ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-cyan-300" /><p className="text-xs leading-5 text-white/50">This screen shows the company&apos;s Urban Carrier OS earnings ledger. “Calculated” is an estimate based on company pay rules, “Approved” means the business approved it for payout, and “Paid” should only be shown after the company records or confirms actual payment.</p></div>
         </section>
       </div>
     </main>
