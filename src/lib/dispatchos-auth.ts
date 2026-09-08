@@ -118,7 +118,7 @@ export async function logoutSession() {
 export async function authRequest(path: string, init: RequestInit = {}) {
   const apiBase = getApiBase();
   if (!apiBase) {
-    throw new Error("DispatchOS account service is not connected yet.");
+    throw new Error("Urban Carrier OS account service is not connected yet.");
   }
 
   const token = getStoredToken();
