@@ -1,8 +1,8 @@
 {
   "id": "/dashboard",
-  "name": "DispatchOS Dispatcher",
-  "short_name": "DispatchOS",
-  "description": "Installable DispatchOS dispatcher dashboard for desktop operations.",
+  "name": "Urban Carrier OS Dispatcher",
+  "short_name": "Urban Carrier OS",
+  "description": "Installable Urban Carrier OS dispatcher dashboard for desktop operations.",
   "start_url": "/dashboard",
   "scope": "/dashboard",
   "display": "standalone",
