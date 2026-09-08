@@ -23,8 +23,8 @@ export default function CustomVersionModal({ open, onClose }: CustomVersionModal
     setError("");
 
     const form = new FormData(event.currentTarget);
-    form.set("_subject", "DispatchOS Custom Integration Request");
-    form.set("service", "DispatchOS Custom Integration");
+    form.set("_subject", "Urban Carrier OS Custom Integration Request");
+    form.set("service", "Urban Carrier OS Custom Integration");
 
     try {
       const response = await fetch(FORMSPREE_ENDPOINT, {
@@ -70,7 +70,7 @@ export default function CustomVersionModal({ open, onClose }: CustomVersionModal
         {!sent ? (
           <>
             <p className="text-xs uppercase tracking-[0.25em] text-cyan-300">I Computer Anything</p>
-            <h2 className="mt-3 text-3xl font-semibold">Request Custom DispatchOS Integration</h2>
+            <h2 className="mt-3 text-3xl font-semibold">Request Custom Urban Carrier OS Integration</h2>
             <p className="mt-3 max-w-xl text-sm leading-6 text-white/60">
               Tell us what your company needs connected, branded, changed, or automated. This request goes directly to I Computer Anything for review and a custom quote.
             </p>
@@ -93,7 +93,7 @@ export default function CustomVersionModal({ open, onClose }: CustomVersionModal
                 <input type="tel" name="phone" required className="mt-2 w-full rounded-xl border border-white/10 bg-white/[0.05] px-4 py-3 text-white outline-none focus:border-cyan-400/50" />
               </label>
               <label className="text-sm text-white/75 sm:col-span-2">
-                What do you need DispatchOS to do? *
+                What do you need Urban Carrier OS to do? *
                 <textarea name="message" required rows={5} className="mt-2 w-full resize-none rounded-xl border border-white/10 bg-white/[0.05] px-4 py-3 text-white outline-none focus:border-cyan-400/50" />
               </label>
               <label className="text-sm text-white/75 sm:col-span-2">
@@ -120,7 +120,7 @@ export default function CustomVersionModal({ open, onClose }: CustomVersionModal
           <div className="py-12 text-center">
             <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full border border-emerald-400/30 bg-emerald-500/10 text-2xl text-emerald-300">✓</div>
             <h2 className="mt-6 text-3xl font-semibold">Request Sent</h2>
-            <p className="mt-3 text-white/60">I Computer Anything received your DispatchOS custom integration request.</p>
+            <p className="mt-3 text-white/60">I Computer Anything received your Urban Carrier OS custom integration request.</p>
             <button onClick={closeModal} className="mt-7 rounded-xl border border-white/15 px-6 py-3 font-semibold text-white hover:bg-white/[0.06]">Close</button>
           </div>
         )}
