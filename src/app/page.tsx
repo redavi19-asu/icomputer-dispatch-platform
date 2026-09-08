@@ -137,7 +137,8 @@ export default function Home() {
           <div>
             <a href="https://redavi19-asu.github.io/icomuteranythingV3/" className="inline-flex rounded-full border border-cyan-300/25 bg-black/35 px-4 py-2 text-xs font-medium tracking-wide text-cyan-100 backdrop-blur">Built by I Computer Anything</a>
             <p className="mt-8 text-xs uppercase tracking-[0.28em] text-cyan-300">Urban Carrier OS</p>
-            <p className="mt-3 text-xs font-semibold uppercase tracking-[0.22em] text-emerald-300 sm:text-sm">Business • Driver • Customer Logistics Software</p>
+            <p className="mt-3 text-xs font-semibold uppercase tracking-[0.22em] text-white/70 sm:text-sm">Urban Carrier Operating System</p>
+            <p className="mt-2 text-xs font-semibold uppercase tracking-[0.22em] text-emerald-300 sm:text-sm">Business • Driver • Customer Logistics Software</p>
             <h1 className="mt-4 max-w-4xl text-4xl font-semibold tracking-tight sm:text-5xl md:text-7xl">Run the whole job from one command system.</h1>
             <p className="mt-6 max-w-2xl text-base leading-7 text-white/72 sm:text-lg">Urban Carrier OS connects the business, the driver or field team, and the customer in one operating flow — from request and assignment through field progress, updates, and completion.</p>
 
