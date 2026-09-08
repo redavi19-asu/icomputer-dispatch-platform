@@ -35,9 +35,9 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
-  title: "DispatchOS | Business • Driver • Customer Logistics Software",
-  description: "DispatchOS connects businesses, drivers and field teams, and customers in one logistics workflow from request and assignment through completion.",
-  applicationName: "DispatchOS",
+  title: "Urban Carrier OS | Business • Driver • Customer Logistics Software",
+  description: "Urban Carrier OS connects businesses, drivers and field teams, and customers in one logistics workflow from request and assignment through completion.",
+  applicationName: "Urban Carrier OS",
   icons: {
     icon: [{ url: "/driver-app-icon.svg", type: "image/svg+xml" }],
     shortcut: [{ url: "/driver-app-icon.svg", type: "image/svg+xml" }],
