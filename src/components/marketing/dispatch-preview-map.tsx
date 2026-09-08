@@ -18,7 +18,7 @@ export default function DispatchPreviewMap() {
       {!mapReady && <div className="absolute inset-0 bg-slate-900" />}
       <iframe
         key={mapKey}
-        title="DispatchOS live operations map preview"
+        title="Urban Carrier OS live operations map preview"
         src={mapSrc}
         className="absolute inset-0 block h-full w-full min-w-full border-0"
         style={{ width: "100%", height: "100%", minWidth: "100%" }}
