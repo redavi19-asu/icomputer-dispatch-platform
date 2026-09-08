@@ -8,7 +8,7 @@ import CustomVersionModal from "@/components/marketing/custom-version-modal";
 const plans = [
   {
     id: "basic",
-    name: "DispatchOS Basic",
+    name: "Urban Carrier OS Basic",
     price: "$49.99",
     cadence: "/month",
     description: "A complete business-to-driver-to-customer logistics system for small teams that need the core workflow without enterprise-sized capacity.",
@@ -29,7 +29,7 @@ const plans = [
   },
   {
     id: "business",
-    name: "DispatchOS Business",
+    name: "Urban Carrier OS Business",
     price: "$149",
     cadence: "/month",
     description: "More team capacity, more dispatcher access, and deeper operating tools for growing businesses connecting drivers and customers at scale.",
@@ -60,7 +60,7 @@ export default function PlansPage() {
         <div className="mx-auto max-w-7xl px-6 py-14 md:py-20">
           <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
             <Link href="/" className="inline-flex items-center gap-2 text-sm text-cyan-200 hover:text-cyan-100">
-              <ArrowLeft className="h-4 w-4" /> Back to DispatchOS
+              <ArrowLeft className="h-4 w-4" /> Back to Urban Carrier OS
             </Link>
             <Link href="/auth?mode=login" className="inline-flex items-center justify-center rounded-xl border border-white/15 bg-white/[0.05] px-5 py-3 text-sm font-semibold text-white hover:bg-white/[0.09]">
               Log In
@@ -68,7 +68,7 @@ export default function PlansPage() {
           </div>
 
           <div className="mx-auto mt-14 max-w-3xl text-center">
-            <p className="text-xs uppercase tracking-[0.26em] text-cyan-300">DispatchOS</p>
+            <p className="text-xs uppercase tracking-[0.26em] text-cyan-300">Urban Carrier OS</p>
             <p className="mt-3 text-xs font-semibold uppercase tracking-[0.22em] text-emerald-300 sm:text-sm">Business • Driver • Customer Logistics Software</p>
             <h1 className="mt-4 text-4xl font-semibold tracking-tight md:text-6xl">Pick the operating level your company needs.</h1>
             <p className="mt-5 text-base leading-7 text-white/62 md:text-lg">
@@ -116,7 +116,7 @@ export default function PlansPage() {
                   href={`/auth?mode=register&plan=${plan.id}`}
                   className={`mt-8 inline-flex w-full items-center justify-center gap-2 rounded-xl px-6 py-4 font-bold transition ${featured ? "bg-emerald-500 text-white hover:bg-emerald-400" : "bg-cyan-400 text-slate-950 hover:bg-cyan-300"}`}
                 >
-                  Choose {plan.name.replace("DispatchOS ", "")} <ArrowRight className="h-4 w-4" />
+                  Choose {plan.name.replace("Urban Carrier OS ", "")} <ArrowRight className="h-4 w-4" />
                 </Link>
                 <p className="mt-3 text-center text-xs text-white/40">Create your account next. Checkout activation is coming soon.</p>
               </article>
@@ -130,8 +130,8 @@ export default function PlansPage() {
               <div className="flex items-center gap-3">
                 <Sparkles className="h-8 w-8 text-violet-300" />
                 <div>
-                  <p className="text-xs uppercase tracking-[0.2em] text-violet-300">Custom DispatchOS Integration</p>
-                  <h2 className="mt-1 text-2xl font-semibold">Need DispatchOS connected to your business?</h2>
+                  <p className="text-xs uppercase tracking-[0.2em] text-violet-300">Custom Urban Carrier OS Integration</p>
+                  <h2 className="mt-1 text-2xl font-semibold">Need Urban Carrier OS connected to your business?</h2>
                 </div>
               </div>
               <p className="mt-4 max-w-3xl text-sm leading-6 text-white/60">
