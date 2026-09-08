@@ -86,7 +86,7 @@ export default function CompanyBookingPage() {
             <CardContent className="p-6">
               <h1 className="text-2xl font-semibold">Booking is disabled</h1>
               <p className="mt-3 text-white/70">
-                This company is currently using DispatchOS as an operations layer behind an
+                This company is currently using Urban Carrier OS as an operations layer behind an
                 existing website. Intake can still be routed through dashboard or external forms.
               </p>
             </CardContent>
