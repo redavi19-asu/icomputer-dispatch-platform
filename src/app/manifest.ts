@@ -6,9 +6,9 @@ export const revalidate = false;
 export default function manifest(): MetadataRoute.Manifest {
   return {
     id: "/driver",
-    name: "DispatchOS Driver",
+    name: "Urban Carrier OS Driver",
     short_name: "DriverOS",
-    description: "Installable DispatchOS driver mission app for mobile operations.",
+    description: "Installable Urban Carrier OS driver mission app for mobile operations.",
     start_url: "/driver",
     scope: "/driver",
     display: "standalone",
