@@ -25,13 +25,13 @@ export default function SubscribePage() {
         <div className="mx-auto max-w-6xl px-6 py-16 md:py-24">
           <Link href="/" className="inline-flex items-center gap-2 text-sm text-cyan-200 hover:text-cyan-100">
             <ArrowLeft className="h-4 w-4" />
-            Back to DispatchOS
+            Back to Urban Carrier OS
           </Link>
 
           <div className="mt-12 max-w-3xl">
-            <p className="text-xs uppercase tracking-[0.26em] text-cyan-300">DispatchOS Subscription</p>
+            <p className="text-xs uppercase tracking-[0.26em] text-cyan-300">Urban Carrier OS Subscription</p>
             <h1 className="mt-4 text-4xl font-semibold tracking-tight md:text-6xl">
-              Activate DispatchOS for your company
+              Activate Urban Carrier OS for your company
             </h1>
             <p className="mt-5 text-lg leading-8 text-white/70">
               The public site shows the product. Your operational workspace, dispatcher tools,
@@ -45,7 +45,7 @@ export default function SubscribePage() {
         <div className="rounded-3xl border border-white/10 bg-white/[0.04] p-7 md:p-9">
           <div className="flex items-center justify-between gap-4">
             <div>
-              <p className="text-sm font-medium text-cyan-300">DispatchOS Business</p>
+              <p className="text-sm font-medium text-cyan-300">Urban Carrier OS Business</p>
               <h2 className="mt-2 text-3xl font-semibold">Complete dispatch platform</h2>
             </div>
             <ShieldCheck className="h-10 w-10 text-cyan-300" />
@@ -98,7 +98,7 @@ export default function SubscribePage() {
           <div className="rounded-3xl border border-cyan-400/20 bg-cyan-500/[0.06] p-7">
             <p className="text-sm font-semibold text-cyan-200">Need a custom deployment?</p>
             <p className="mt-2 text-sm leading-6 text-white/65">
-              I Computer Anything can tailor DispatchOS to a company-specific workflow, branding, or integration stack.
+              I Computer Anything can tailor Urban Carrier OS to a company-specific workflow, branding, or integration stack.
             </p>
             <button
               type="button"
