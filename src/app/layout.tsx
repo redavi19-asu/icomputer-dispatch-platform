@@ -12,6 +12,7 @@ import { DriverScanLauncher } from "@/components/driver/driver-scan-launcher";
 import { DriverCompletionRequirementsGuard } from "@/components/driver/driver-completion-requirements-guard";
 import { DriverReturnToBasePrompt } from "@/components/driver/driver-return-to-base-prompt";
 import { CourierNextStopLauncher } from "@/components/driver/courier-next-stop-launcher";
+import { CourierDriverLoadLauncher } from "@/components/driver/courier-driver-load-launcher";
 import { CourierConsoleLauncher } from "@/components/platform/courier-console-launcher";
 
 const geistSans = Geist({
@@ -67,6 +68,7 @@ export default function RootLayout({
         <DriverScanLauncher />
         <DriverCompletionRequirementsGuard />
         <DriverReturnToBasePrompt />
+        <CourierDriverLoadLauncher />
         <CourierNextStopLauncher />
         <CourierConsoleLauncher />
         <LegalConsent />
