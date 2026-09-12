@@ -172,9 +172,11 @@ export function DriverCompletionRequirementsGuard() {
             <ProofOfDeliveryPanel
               companySlug={companySlug}
               jobId={job.id}
-              enabled={settings.proofOfDeliveryEnabled}
-              photoRequired={settings.photoProofEnabled}
-              signatureRequired={settings.signatureConfirmationEnabled}
+              requirements={{
+                proofOfDeliveryEnabled: settings.proofOfDeliveryEnabled,
+                photoProofEnabled: settings.photoProofEnabled,
+                signatureConfirmationEnabled: settings.signatureConfirmationEnabled,
+              }}
               onChange={(next) => setProof(next)}
             />
           </div>
