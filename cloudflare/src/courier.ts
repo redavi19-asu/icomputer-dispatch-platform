@@ -185,7 +185,8 @@ async function getRoutes(url: URL, tenant: TenantContext, db: D1Database, cors: 
   for (const route of routeRows.results || []) {
     const stops = await db.prepare(`
       SELECT s.*,
-        (SELECT COUNT(*) FROM courier_proofs p WHERE p.stop_id = s.id AND p.company_id = s.company_id) AS proof_count
+        (SELECT COUNT(*) FROM courier_proofs p WHERE p.stop_id = s.id AND p.company_id = s.company_id) AS proof_count,
+        (SELECT GROUP_CONCAT(DISTINCT p.proof_type) FROM courier_proofs p WHERE p.stop_id = s.id AND p.company_id = s.company_id) AS proof_types
       FROM courier_stops s
       WHERE s.route_id = ? AND s.company_id = ?
       ORDER BY s.sequence ASC
@@ -601,6 +602,7 @@ function toApiStop(row: Record<string, unknown>) {
     driverNote: row.driver_note,
     deliveredAt: row.delivered_at,
     proofCount: Number(row.proof_count || 0),
+    proofTypes: String(row.proof_types || "").split(",").filter(Boolean),
     createdAt: row.created_at,
     updatedAt: row.updated_at,
   };
