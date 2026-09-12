@@ -11,6 +11,8 @@ import { LegalConsent } from "@/components/platform/legal-consent";
 import { DriverScanLauncher } from "@/components/driver/driver-scan-launcher";
 import { DriverCompletionRequirementsGuard } from "@/components/driver/driver-completion-requirements-guard";
 import { DriverReturnToBasePrompt } from "@/components/driver/driver-return-to-base-prompt";
+import { CourierNextStopLauncher } from "@/components/driver/courier-next-stop-launcher";
+import { CourierConsoleLauncher } from "@/components/platform/courier-console-launcher";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -35,9 +37,10 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
-  title: "Urban Carrier OS | Business • Driver • Customer Logistics Software",
-  description: "Urban Carrier OS connects businesses, drivers and field teams, and customers in one logistics workflow from request and assignment through completion.",
-  applicationName: "Urban Carrier OS",
+  title: "Urban Courier OS | Business • Driver • Customer Logistics Software",
+  description:
+    "Urban Courier OS connects dispatchers, drivers, packages, routes and customers in one scan-to-route-to-deliver logistics workflow.",
+  applicationName: "Urban Courier OS",
   icons: {
     icon: [{ url: "/driver-app-icon.svg", type: "image/svg+xml" }],
     shortcut: [{ url: "/driver-app-icon.svg", type: "image/svg+xml" }],
@@ -64,6 +67,8 @@ export default function RootLayout({
         <DriverScanLauncher />
         <DriverCompletionRequirementsGuard />
         <DriverReturnToBasePrompt />
+        <CourierNextStopLauncher />
+        <CourierConsoleLauncher />
         <LegalConsent />
       </body>
     </html>
