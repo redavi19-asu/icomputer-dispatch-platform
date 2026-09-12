@@ -451,17 +451,17 @@ export function CourierDriverLoadLauncher() {
         <button
           type="button"
           onClick={() => setOpen(true)}
-          className="pointer-events-auto flex items-center gap-3 rounded-full border border-cyan-300/35 bg-slate-950/95 px-4 py-3 text-left text-white shadow-2xl backdrop-blur"
+          className="pointer-events-auto flex items-center gap-3 rounded-full border border-black/10 bg-white/95 px-4 py-3 text-left text-slate-950 shadow-2xl backdrop-blur-xl"
         >
-          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-cyan-400/15">
+          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-slate-100">
             {needsAssignedLoadScan ? (
-              <ScanLine className="h-5 w-5 text-cyan-300" />
+              <ScanLine className="h-5 w-5 text-white" />
             ) : (
-              <PackagePlus className="h-5 w-5 text-cyan-300" />
+              <PackagePlus className="h-5 w-5 text-white" />
             )}
           </div>
           <div>
-            <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-cyan-300">
+            <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-white">
               {needsAssignedLoadScan ? "Load Packages" : "Courier Load"}
             </p>
             <p className="text-sm font-bold">
@@ -474,10 +474,10 @@ export function CourierDriverLoadLauncher() {
           </div>
         </button>
       ) : (
-        <div className="pointer-events-auto max-h-[82vh] overflow-y-auto rounded-3xl border border-white/10 bg-slate-950/97 p-4 text-white shadow-2xl backdrop-blur">
+        <div className="pointer-events-auto max-h-[82vh] overflow-y-auto rounded-3xl border border-black/5 bg-white/98 p-4 text-slate-950 shadow-2xl backdrop-blur-xl">
           <div className="flex items-start justify-between gap-3">
             <div>
-              <p className="text-xs font-bold uppercase tracking-[0.2em] text-cyan-300">
+              <p className="text-xs font-bold uppercase tracking-[0.2em] text-white">
                 Driver Courier Load
               </p>
               <h3 className="mt-1 text-xl font-black">
@@ -494,7 +494,7 @@ export function CourierDriverLoadLauncher() {
                 stopCamera();
                 setOpen(false);
               }}
-              className="rounded-xl p-2 text-white/60 hover:bg-white/10"
+              className="rounded-xl p-2 text-slate-500 hover:bg-white/10"
               aria-label="Close courier load"
             >
               <X className="h-4 w-4" />
@@ -506,16 +506,16 @@ export function CourierDriverLoadLauncher() {
               <p className="inline-flex items-center gap-2 font-bold text-emerald-200">
                 <CheckCircle2 className="h-5 w-5" /> Packages ready
               </p>
-              <p className="mt-2 text-sm text-white/60">
+              <p className="mt-2 text-sm text-slate-500">
                 {activeRoute.name} is loaded. Close this panel and use NEXT STOP.
               </p>
             </div>
           ) : (
             <>
               {needsAssignedLoadScan ? (
-                <div className="mt-4 rounded-2xl border border-white/10 bg-white/5 p-4">
+                <div className="mt-4 rounded-2xl border border-black/10 bg-slate-50 p-4">
                   <p className="text-3xl font-black">{assignedProgress}</p>
-                  <p className="mt-1 text-xs uppercase tracking-[0.18em] text-white/40">
+                  <p className="mt-1 text-xs uppercase tracking-[0.18em] text-slate-400">
                     Assigned packages loaded
                   </p>
                 </div>
@@ -525,9 +525,9 @@ export function CourierDriverLoadLauncher() {
                     value={routeName}
                     onChange={(event) => setRouteName(event.target.value)}
                     placeholder="Route name"
-                    className="w-full rounded-xl border border-white/10 bg-white/5 px-3 py-3 text-sm outline-none focus:border-cyan-400/50"
+                    className="w-full rounded-xl border border-black/10 bg-slate-50 px-3 py-3 text-sm outline-none focus:border-cyan-400/50"
                   />
-                  <p className="text-sm leading-6 text-white/55">
+                  <p className="text-sm leading-6 text-slate-500">
                     Scan each package on the phone. A label photo can capture both the barcode and printed address.
                   </p>
                 </div>
@@ -538,15 +538,15 @@ export function CourierDriverLoadLauncher() {
                   type="button"
                   disabled={busy}
                   onClick={() => (cameraActive ? stopCamera() : void startScanner())}
-                  className="rounded-2xl border border-white/10 bg-white/5 p-3 text-left disabled:opacity-40"
+                  className="rounded-2xl border border-black/10 bg-slate-50 p-3 text-left disabled:opacity-40"
                 >
-                  <ScanLine className="h-5 w-5 text-cyan-300" />
+                  <ScanLine className="h-5 w-5 text-white" />
                   <span className="mt-2 block text-sm font-bold">
                     {cameraActive ? "Stop Scanner" : "Bulk Barcode Scan"}
                   </span>
                 </button>
 
-                <label className="cursor-pointer rounded-2xl border border-white/10 bg-white/5 p-3">
+                <label className="cursor-pointer rounded-2xl border border-black/10 bg-slate-50 p-3">
                   {ocrBusy ? (
                     <Loader2 className="h-5 w-5 animate-spin text-amber-300" />
                   ) : (
@@ -588,11 +588,11 @@ export function CourierDriverLoadLauncher() {
                   {draftStops.map((stop, index) => (
                     <div
                       key={stop.id}
-                      className="rounded-2xl border border-white/10 bg-white/5 p-3"
+                      className="rounded-2xl border border-black/10 bg-slate-50 p-3"
                     >
                       <div className="flex items-start justify-between gap-3">
                         <div className="min-w-0 flex-1">
-                          <p className="text-xs font-bold uppercase tracking-[0.15em] text-cyan-300">
+                          <p className="text-xs font-bold uppercase tracking-[0.15em] text-white">
                             Package {index + 1}
                           </p>
                           <input
@@ -607,7 +607,7 @@ export function CourierDriverLoadLauncher() {
                               )
                             }
                             placeholder="Tracking / barcode"
-                            className="mt-2 w-full rounded-xl border border-white/10 bg-slate-900 px-3 py-2 text-sm outline-none"
+                            className="mt-2 w-full rounded-xl border border-black/10 bg-white px-3 py-2 text-sm outline-none"
                           />
                           <input
                             value={stop.address}
@@ -626,7 +626,7 @@ export function CourierDriverLoadLauncher() {
                               )
                             }
                             placeholder="Delivery address"
-                            className="mt-2 w-full rounded-xl border border-white/10 bg-slate-900 px-3 py-2 text-sm outline-none"
+                            className="mt-2 w-full rounded-xl border border-black/10 bg-white px-3 py-2 text-sm outline-none"
                           />
                           <input
                             value={stop.packageLocation}
@@ -640,7 +640,7 @@ export function CourierDriverLoadLauncher() {
                               )
                             }
                             placeholder="Vehicle location: Bin 2 / rear-left"
-                            className="mt-2 w-full rounded-xl border border-white/10 bg-slate-900 px-3 py-2 text-sm outline-none"
+                            className="mt-2 w-full rounded-xl border border-black/10 bg-white px-3 py-2 text-sm outline-none"
                           />
                         </div>
                         <button
@@ -650,7 +650,7 @@ export function CourierDriverLoadLauncher() {
                               current.filter((item) => item.id !== stop.id)
                             )
                           }
-                          className="rounded-lg p-2 text-white/40 hover:bg-rose-500/10 hover:text-rose-300"
+                          className="rounded-lg p-2 text-slate-400 hover:bg-rose-500/10 hover:text-rose-300"
                           aria-label="Remove package"
                         >
                           <Trash2 className="h-4 w-4" />
@@ -664,7 +664,7 @@ export function CourierDriverLoadLauncher() {
                     onClick={() =>
                       setDraftStops((current) => [...current, newDraftStop()])
                     }
-                    className="w-full rounded-xl border border-dashed border-white/15 px-3 py-3 text-sm text-white/55"
+                    className="w-full rounded-xl border border-dashed border-white/15 px-3 py-3 text-sm text-slate-500"
                   >
                     + Add package manually
                   </button>
@@ -673,7 +673,7 @@ export function CourierDriverLoadLauncher() {
                     type="button"
                     disabled={busy || !draftStops.length}
                     onClick={() => void optimizeAndStart()}
-                    className="flex min-h-12 w-full items-center justify-center gap-2 rounded-xl bg-emerald-400 px-4 py-3 font-black text-slate-950 disabled:opacity-35"
+                    className="flex min-h-12 w-full items-center justify-center gap-2 rounded-xl bg-slate-950 px-4 py-3 font-black text-white disabled:opacity-35"
                   >
                     {busy ? (
                       <Loader2 className="h-5 w-5 animate-spin" />
@@ -688,7 +688,7 @@ export function CourierDriverLoadLauncher() {
           )}
 
           {statusText ? (
-            <p className="mt-3 rounded-xl border border-cyan-400/15 bg-cyan-400/5 px-3 py-2 text-sm text-cyan-100" aria-live="polite">
+            <p className="mt-3 rounded-xl border border-cyan-400/15 bg-slate-950/5 px-3 py-2 text-sm text-slate-800" aria-live="polite">
               {statusText}
             </p>
           ) : null}
