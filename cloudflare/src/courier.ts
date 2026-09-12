@@ -500,6 +500,7 @@ async function updateStop(request: Request, tenant: TenantContext, db: D1Databas
     SELECT
       COUNT(*) AS total,
       SUM(CASE WHEN status = 'Delivered' THEN 1 ELSE 0 END) AS delivered,
+      SUM(CASE WHEN status IN ('Delivered','Failed','Skipped') THEN 1 ELSE 0 END) AS terminal,
       SUM(CASE WHEN status IN ('En Route','Arrived') THEN 1 ELSE 0 END) AS active
     FROM courier_stops
     WHERE route_id = ? AND company_id = ?
@@ -507,8 +508,9 @@ async function updateStop(request: Request, tenant: TenantContext, db: D1Databas
 
   const total = Number(counts?.total || 0);
   const delivered = Number(counts?.delivered || 0);
+  const terminal = Number(counts?.terminal || 0);
   const active = Number(counts?.active || 0);
-  const routeStatus = total > 0 && delivered === total ? "Completed" : active > 0 || delivered > 0 ? "In Progress" : "Dispatched";
+  const routeStatus = total > 0 && terminal === total ? "Completed" : active > 0 || delivered > 0 || terminal > 0 ? "In Progress" : "Dispatched";
   await db.prepare("UPDATE courier_routes SET status = ?, updated_at = ? WHERE id = ? AND company_id = ?")
     .bind(routeStatus, now, stop.route_id, tenant.companyId)
     .run();
