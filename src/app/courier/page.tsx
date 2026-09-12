@@ -1,8 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowLeft, Boxes, ScanLine, ShieldCheck, Truck } from "lucide-react";
-import { CourierIntakeConsole } from "@/components/courier/courier-intake-console";
+import { ArrowLeft, ClipboardList, MapPinned, ShieldCheck, Truck } from "lucide-react";
+import { CourierDispatchConsole } from "@/components/courier/courier-dispatch-console";
 
 export default function CourierOperationsPage() {
   return (
@@ -30,17 +30,17 @@ export default function CourierOperationsPage() {
               </div>
             </div>
             <p className="mt-3 max-w-3xl text-sm leading-6 text-white/55 md:text-base">
-              Intake packages by barcode, manifest or address OCR; build an ordered multi-stop route; dispatch it to a driver; and keep every delivery connected to the existing job, tracking and proof system.
+              Prepare manifests, optimize routes, assign drivers and monitor delivery progress here. Physical package scanning and address capture happen on the driver phone.
             </p>
           </div>
 
           <div className="grid grid-cols-3 gap-2 text-center">
             {[
-              [ScanLine, "Scan"],
-              [Boxes, "Route"],
-              [ShieldCheck, "Proof"],
+              [ClipboardList, "Manifest"],
+              [MapPinned, "Route"],
+              [ShieldCheck, "Monitor"],
             ].map(([Icon, label]) => {
-              const ItemIcon = Icon as typeof ScanLine;
+              const ItemIcon = Icon as typeof ClipboardList;
               return (
                 <div key={String(label)} className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3">
                   <ItemIcon className="mx-auto h-5 w-5 text-cyan-300" />
@@ -53,7 +53,7 @@ export default function CourierOperationsPage() {
           </div>
         </div>
 
-        <CourierIntakeConsole />
+        <CourierDispatchConsole />
       </div>
     </main>
   );
