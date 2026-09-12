@@ -914,19 +914,13 @@ export default function DriverPage() {
   const frameContainerClass = isAppViewport
     ? "flex w-full flex-1 min-h-0"
     : "mx-auto flex w-full max-w-md flex-1 min-h-0 px-4 pt-4 pb-0";
-  const missionFrameClass = `relative h-full w-full overflow-hidden border bg-slate-900 shadow-[0_0_0_1px_rgba(34,211,238,0.08)] ${
-    isAppViewport ? "rounded-none border-x-0 border-b-0" : "rounded-[28px]"
-  } ${
-    driverVisualState === "alert"
-      ? "animate-driver-amber-glow border-amber-400/40"
-      : driverVisualState === "searching"
-      ? "animate-driver-cyan-glow border-cyan-400/40"
-      : "animate-driver-cyan-subtle border-cyan-500/25"
+  const missionFrameClass = `relative h-full w-full overflow-hidden bg-white shadow-[0_8px_32px_rgba(0,0,0,0.12)] ${
+    isAppViewport ? "rounded-none" : "rounded-[28px]"
   }`;
 
   if (isLoading) {
     return (
-      <main className="flex h-dvh flex-col bg-slate-950 pb-[env(safe-area-inset-bottom)] text-white">
+      <main className="flex h-dvh flex-col bg-[#f6f6f6] pb-[env(safe-area-inset-bottom)] text-slate-950">
         <div className="mx-auto max-w-md px-4 py-10">Loading driver console...</div>
       </main>
     );
@@ -934,10 +928,10 @@ export default function DriverPage() {
 
   if (!driverSurface.enabled) {
     return (
-      <main className="flex h-dvh flex-col bg-slate-950 pb-[env(safe-area-inset-bottom)] text-white">
+      <main className="flex h-dvh flex-col bg-[#f6f6f6] pb-[env(safe-area-inset-bottom)] text-slate-950">
         <div className="mx-auto mt-20 w-full max-w-md rounded-2xl border border-white/10 bg-white/5 p-6">
           <h1 className="text-xl font-semibold">Driver app is disabled</h1>
-          <p className="mt-2 text-sm text-white/70">
+          <p className="mt-2 text-sm text-slate-600">
             Driver missions are disabled in company preferences. Urban Carrier OS can still run as an
             operations layer while field execution happens in another system.
           </p>
@@ -956,7 +950,7 @@ export default function DriverPage() {
         <source src={withBasePath("/sounds/broadcast-alert.wav")} type="audio/wav" />
       </audio>
 
-      <main className="flex h-dvh flex-col bg-slate-950 pb-[env(safe-area-inset-bottom)] text-white">
+      <main className="flex h-dvh flex-col bg-[#f6f6f6] pb-[env(safe-area-inset-bottom)] text-slate-950">
         {showBroadcastAlert && broadcastAlerts.length > 0 ? (
           <div className="fixed inset-x-0 top-24 z-50 flex justify-center">
             <div className="max-w-xs w-full rounded-xl border border-yellow-400/30 bg-yellow-900/90 px-3 py-2 shadow-md backdrop-blur flex items-center gap-2">
@@ -1074,25 +1068,25 @@ export default function DriverPage() {
           </div>
         ) : null}
 
-        <div className="sticky top-0 z-30 shrink-0 border-b border-white/10 bg-slate-950/95 pt-[env(safe-area-inset-top)] backdrop-blur">
+        <div className="sticky top-0 z-30 shrink-0 border-b border-black/5 bg-white/95 pt-[env(safe-area-inset-top)] backdrop-blur-xl">
           <div className="mx-auto flex max-w-md items-center justify-between px-4 py-3">
             <button
               onClick={() => setDrawerOpen((v) => !v)}
-              className="rounded-2xl border border-white/10 bg-white/5 p-3"
+              className="rounded-full border border-black/10 bg-white p-3 text-slate-950 shadow-sm"
               aria-label="Open menu"
             >
               <Menu className="h-5 w-5" />
             </button>
 
             <div className="text-center">
-              <p className="text-xs uppercase tracking-[0.25em] text-cyan-300">
-                Mission Screen
+              <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">
+                Urban Courier
               </p>
               <h1 className="text-xl font-semibold">
                 {workspaceSettings.companyName || company?.name || "Driver"}
               </h1>
-              <p className="mt-1 text-[11px] text-cyan-200/85">
-                {driverSurface.modeLabel} • {driverSurface.routeTemplateLabel}
+              <p className="mt-0.5 text-[11px] text-slate-500">
+                {driverSurface.modeLabel}
               </p>
             </div>
 
@@ -1100,15 +1094,15 @@ export default function DriverPage() {
               {!isStandaloneMode ? (
                 <button
                   onClick={() => setIsInstallModalOpen(true)}
-                  className="rounded-full border border-cyan-500/30 bg-cyan-500/10 px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.12em] text-cyan-200"
+                  className="rounded-full border border-black/10 bg-white px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.1em] text-slate-700"
                 >
                   Install
                 </button>
               ) : null}
-              <span className="rounded-full border border-emerald-500/40 bg-emerald-500/10 px-3 py-1 text-sm text-emerald-300">
-                Online
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700">
+                <span className="h-2 w-2 rounded-full bg-emerald-500" /> Online
               </span>
-              <span className="flex h-8 w-8 items-center justify-center rounded-full border border-cyan-500/30 bg-cyan-500/10 text-sm text-cyan-300">
+              <span className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-950 text-xs font-bold text-white">
                 {queueCount}
               </span>
             </div>
@@ -1117,12 +1111,12 @@ export default function DriverPage() {
 
         {drawerOpen ? (
           <div className="mx-auto max-w-md shrink-0 px-4 pt-3">
-            <div className="rounded-3xl border border-white/10 bg-slate-900/95 p-4">
+            <div className="rounded-3xl border border-black/5 bg-white p-4 text-slate-950 shadow-xl">
               <p className="text-lg font-semibold">{activeDriver?.name ?? "Driver"}</p>
-              <p className="mt-1 text-sm text-white/60">
+              <p className="mt-1 text-sm text-slate-500">
                 {workspaceSettings.companyName || company?.name || "Dispatch Platform"}
               </p>
-              <p className="mt-3 text-sm text-white/70">Queue: {queueCount}</p>
+              <p className="mt-3 text-sm text-slate-600">Queue: {queueCount}</p>
 
               <div className="mt-4 grid grid-cols-3 gap-2 text-sm">
                 {([
@@ -1136,7 +1130,7 @@ export default function DriverPage() {
                     onClick={() => setActiveDrawerSection(section.key)}
                     className={`rounded-xl border px-3 py-2 text-center transition ${
                       activeDrawerSection === section.key
-                        ? "border-cyan-500/35 bg-cyan-500/15 text-cyan-100"
+                        ? "border-cyan-500/35 bg-cyan-500/15 text-slate-700"
                         : "border-white/10 bg-white/5 text-white/80 hover:bg-white/10"
                     }`}
                   >
@@ -1148,29 +1142,29 @@ export default function DriverPage() {
               {activeDrawerSection === "profile" ? (
                 <div className="mt-4 space-y-3 text-sm">
                   <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
-                    <p className="text-xs uppercase tracking-[0.2em] text-cyan-300">
+                    <p className="text-xs uppercase tracking-[0.2em] text-slate-500">
                       Status
                     </p>
                     <p className="mt-2 text-white">Online</p>
-                    <p className="mt-1 text-white/70">Assigned jobs: {myJobs.length}</p>
-                    <p className="text-white/70">Queue waiting: {queueCount}</p>
+                    <p className="mt-1 text-slate-600">Assigned jobs: {myJobs.length}</p>
+                    <p className="text-slate-600">Queue waiting: {queueCount}</p>
                   </div>
 
                   <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
-                    <p className="text-xs uppercase tracking-[0.2em] text-cyan-300">
+                    <p className="text-xs uppercase tracking-[0.2em] text-slate-500">
                       Current Mission
                     </p>
                     <p className="mt-2 font-medium text-white">
                       {activeJob?.name ?? "No active mission"}
                     </p>
-                    <p className="text-white/70">
+                    <p className="text-slate-600">
                       {activeJob?.service ?? "Waiting for dispatch"}
                     </p>
-                    <p className="text-white/60">{activeJob?.status ?? "Idle"}</p>
+                    <p className="text-slate-500">{activeJob?.status ?? "Idle"}</p>
                   </div>
 
                   <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
-                    <p className="text-xs uppercase tracking-[0.2em] text-cyan-300">
+                    <p className="text-xs uppercase tracking-[0.2em] text-slate-500">
                       Queued Jobs
                     </p>
                     {queuedJobs.length > 0 ? (
@@ -1197,11 +1191,11 @@ export default function DriverPage() {
                         className="rounded-2xl border border-white/10 bg-white/5 p-4"
                       >
                         <p className="font-semibold">{job.name ?? "Customer"}</p>
-                        <p className="mt-1 text-xs text-white/50">{job.id}</p>
-                        <p className="mt-2 text-sm text-white/70">
+                        <p className="mt-1 text-xs text-slate-500">{job.id}</p>
+                        <p className="mt-2 text-sm text-slate-600">
                           {job.service ?? "Service Request"}
                         </p>
-                        <p className="text-sm text-white/60">{job.address ?? "—"}</p>
+                        <p className="text-sm text-slate-500">{job.address ?? "—"}</p>
                       </div>
                     ))}
                   </div>
@@ -1256,7 +1250,7 @@ export default function DriverPage() {
                   <button
                     type="button"
                     onClick={() => setIsInstallModalOpen(true)}
-                    className="flex w-full items-center justify-between rounded-2xl border border-cyan-500/30 bg-cyan-500/10 px-4 py-3 text-cyan-100 transition hover:bg-cyan-500/20"
+                    className="flex w-full items-center justify-between rounded-2xl border border-cyan-500/30 bg-cyan-500/10 px-4 py-3 text-slate-700 transition hover:bg-cyan-500/20"
                   >
                     <span className="inline-flex items-center gap-2">
                       <Download className="h-4 w-4" />
@@ -1268,20 +1262,20 @@ export default function DriverPage() {
                   </button>
 
                   <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
-                    <p className="text-xs uppercase tracking-[0.2em] text-cyan-300">
+                    <p className="text-xs uppercase tracking-[0.2em] text-slate-500">
                       Future Readiness
                     </p>
                     <div className="mt-2 space-y-1 text-xs text-white/75">
                       <p className="inline-flex items-center gap-2">
-                        <Smartphone className="h-3.5 w-3.5 text-cyan-300" />
+                        <Smartphone className="h-3.5 w-3.5 text-slate-500" />
                         Push notifications: {futureReadiness.pushNotificationsReady ? "environment ready" : "needs backend + permissions"}
                       </p>
                       <p className="inline-flex items-center gap-2">
-                        <QrCode className="h-3.5 w-3.5 text-cyan-300" />
+                        <QrCode className="h-3.5 w-3.5 text-slate-500" />
                         QR / camera scans: {futureReadiness.cameraReady ? "device-ready" : "camera API unavailable"}
                       </p>
                       <p className="inline-flex items-center gap-2">
-                        <ShieldCheck className="h-3.5 w-3.5 text-cyan-300" />
+                        <ShieldCheck className="h-3.5 w-3.5 text-slate-500" />
                         Secure sign-in: {futureReadiness.secureSignInReady ? "HTTPS-capable" : "secure context required"}
                       </p>
                     </div>
@@ -1296,11 +1290,11 @@ export default function DriverPage() {
           <div className="mx-auto mt-2 w-full max-w-md px-4">
             <button
               onClick={() => setIsInstallModalOpen(true)}
-              className="flex w-full items-center justify-between rounded-2xl border border-cyan-500/30 bg-cyan-500/10 px-4 py-3 text-left text-cyan-100"
+              className="flex w-full items-center justify-between rounded-2xl border border-cyan-500/30 bg-cyan-500/10 px-4 py-3 text-left text-slate-700"
             >
               <span>
-                <p className="text-xs uppercase tracking-[0.14em] text-cyan-300">Install Driver App</p>
-                <p className="mt-1 text-sm text-cyan-100/90">Add to home screen for full-screen mission mode.</p>
+                <p className="text-xs uppercase tracking-[0.14em] text-slate-500">Install Driver App</p>
+                <p className="mt-1 text-sm text-slate-700/90">Add to home screen for full-screen mission mode.</p>
               </span>
               <Download className="h-5 w-5" />
             </button>
@@ -1312,19 +1306,19 @@ export default function DriverPage() {
             {activeJob && incomingJob ? (
               <div className="pointer-events-none absolute inset-x-3 top-3 z-30">
                 <div className="pointer-events-auto rounded-2xl border border-cyan-500/35 bg-slate-900/95 p-3 shadow-[0_10px_30px_rgba(8,47,73,0.5)] backdrop-blur">
-                  <p className="text-[11px] uppercase tracking-[0.18em] text-cyan-300">
+                  <p className="text-[11px] uppercase tracking-[0.18em] text-slate-500">
                     New job assigned
                   </p>
                   <p className="mt-1 truncate text-sm font-semibold text-white">
                     {incomingJob.name ?? "Customer"}
                   </p>
-                  <p className="mt-0.5 truncate text-xs text-cyan-100/90">
+                  <p className="mt-0.5 truncate text-xs text-slate-700/90">
                     {incomingJob.service ?? "Service Request"}
                   </p>
                   <p className="truncate text-xs text-white/65">
                     {getShortAddress(incomingJob.address)}
                   </p>
-                  <p className="mt-1 text-xs text-cyan-200/85">
+                  <p className="mt-1 text-xs text-slate-600">
                     Going to queue in {incomingCountdownSeconds}...
                   </p>
 
@@ -1342,7 +1336,7 @@ export default function DriverPage() {
                     <button
                       type="button"
                       onClick={clearIncomingJobBanner}
-                      className="rounded-full border border-cyan-500/35 bg-cyan-500/15 px-3 py-1 text-xs text-cyan-100 transition hover:bg-cyan-500/25"
+                      className="rounded-full border border-cyan-500/35 bg-cyan-500/15 px-3 py-1 text-xs text-slate-700 transition hover:bg-cyan-500/25"
                     >
                       Queue Now
                     </button>
@@ -1368,29 +1362,29 @@ export default function DriverPage() {
             </div>
 
             {activeJob ? (
-              <div className="absolute inset-x-0 bottom-0 z-20 rounded-t-[28px] border-t border-white/10 bg-slate-900/95 backdrop-blur-md">
+              <div className="absolute inset-x-0 bottom-0 z-20 rounded-t-[30px] border-t border-black/5 bg-white/98 text-slate-950 shadow-[0_-12px_32px_rgba(0,0,0,0.12)] backdrop-blur-xl">
                 <div className="flex justify-center pb-1 pt-2">
-                  <div className="h-1 w-10 rounded-full bg-white/20" />
+                  <div className="h-1 w-10 rounded-full bg-slate-300" />
                 </div>
 
                 <div className="px-4 pb-4">
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0">
-                      <p className="text-xs uppercase tracking-[0.2em] text-cyan-300">
-                        Active Mission
+                      <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-500">
+                        Current stop
                       </p>
-                      <h2 className="truncate text-lg font-semibold text-white">
+                      <h2 className="truncate text-xl font-bold text-slate-950">
                         {activeJob.name ?? "Customer"}
                       </h2>
                     </div>
 
                     <div className="flex shrink-0 items-center gap-2">
                       {queueCount > 0 ? (
-                        <span className="rounded-full border border-fuchsia-400/35 bg-fuchsia-500/10 px-2.5 py-1 text-xs text-fuchsia-200">
-                          Queue {queueCount}
+                        <span className="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-700">
+                          {queueCount} queued
                         </span>
                       ) : null}
-                      <span className="rounded-full border border-cyan-500/30 bg-cyan-500/10 px-3 py-1 text-sm text-cyan-300">
+                      <span className="rounded-full bg-slate-950 px-3 py-1 text-xs font-semibold text-white">
                         {getDisplayStatusLabel(activeJob.status)}
                       </span>
                     </div>
@@ -1398,14 +1392,14 @@ export default function DriverPage() {
 
                   <button
                     onClick={() => setPanelExpanded((value) => !value)}
-                    className="mt-2 text-sm text-white/70 underline underline-offset-2"
+                    className="mt-2 text-sm font-medium text-slate-600"
                     type="button"
                   >
                     {panelExpanded ? "Hide mission details" : "Show mission details"}
                   </button>
 
                   {panelExpanded ? (
-                    <div className="mt-3 rounded-3xl bg-slate-700 p-4 text-white">
+                    <div className="mt-3 rounded-2xl bg-slate-50 p-4 text-slate-950">
                       <div className="space-y-3 text-base">
                         <div className="flex items-center gap-3">
                           <MapPin className="h-4 w-4 text-white/80" />
@@ -1431,9 +1425,9 @@ export default function DriverPage() {
                       </div>
 
                       {(workspaceSettings.qrHandoffEnabled || workspaceSettings.proofOfDeliveryEnabled) ? (
-                        <div className="mt-3 rounded-2xl border border-cyan-500/25 bg-slate-800/80 p-3 text-sm text-cyan-100">
-                          <p className="text-xs uppercase tracking-[0.2em] text-cyan-300">Handoff</p>
-                          <p className="mt-1 text-cyan-100/95">
+                        <div className="mt-3 rounded-2xl border border-black/5 bg-slate-100 p-3 text-sm text-slate-700">
+                          <p className="text-xs uppercase tracking-[0.2em] text-slate-500">Handoff</p>
+                          <p className="mt-1 text-slate-700">
                             {activeJob.handoffVerifiedAt
                               ? `Verified at ${new Date(activeJob.handoffVerifiedAt).toLocaleTimeString([], {
                                   hour: "numeric",
@@ -1442,15 +1436,15 @@ export default function DriverPage() {
                               : "Pending customer confirmation"}
                           </p>
                           {workspaceSettings.qrHandoffEnabled && activeJob.verificationToken ? (
-                            <p className="mt-1 text-xs text-cyan-200/80">
+                            <p className="mt-1 text-xs text-slate-500">
                               QR token: {activeJob.verificationToken}
                             </p>
                           ) : null}
                         </div>
                       ) : null}
 
-                      <div className="mt-3 rounded-2xl border border-cyan-500/25 bg-slate-800/80 p-3 text-sm text-cyan-100">
-                        <p className="text-xs uppercase tracking-[0.2em] text-cyan-300">Mission Steps</p>
+                      <div className="mt-3 rounded-2xl border border-black/5 bg-slate-100 p-3 text-sm text-slate-700">
+                        <p className="text-xs uppercase tracking-[0.2em] text-slate-500">Mission Steps</p>
                         <div className="mt-2 space-y-1.5">
                           {workflowStages.map((stage) => {
                             const reached =
@@ -1467,7 +1461,7 @@ export default function DriverPage() {
                                     reached ? "bg-emerald-300" : "bg-white/30"
                                   }`}
                                 />
-                                <span className={reached ? "text-white" : "text-cyan-200/70"}>
+                                <span className={reached ? "text-white" : "text-slate-500"}>
                                   {stage.label}
                                 </span>
                               </div>
@@ -1475,17 +1469,17 @@ export default function DriverPage() {
                           })}
                         </div>
                         {workspaceSettings.driverMustConfirmHandoff ? (
-                          <p className="mt-2 text-xs text-cyan-200/80">
+                          <p className="mt-2 text-xs text-slate-500">
                             Driver confirmation is required for verification checkpoints.
                           </p>
                         ) : null}
                         {driverSurface.showsVerificationChecklist ? (
-                          <p className="mt-2 text-xs text-cyan-200/80">
+                          <p className="mt-2 text-xs text-slate-500">
                             Verification checklist active for this workflow.
                           </p>
                         ) : null}
                         {driverSurface.showsHandoffControls ? (
-                          <p className="mt-1 text-xs text-cyan-200/80">
+                          <p className="mt-1 text-xs text-slate-500">
                             Driver handoff confirmation controls are enabled.
                           </p>
                         ) : null}
@@ -1493,16 +1487,16 @@ export default function DriverPage() {
                     </div>
                   ) : null}
 
-                  <div className="mt-3 rounded-2xl border border-cyan-500/30 bg-cyan-500/10 px-3 py-2 text-sm text-cyan-100">
+                  <div className="mt-3 rounded-2xl border border-cyan-500/30 bg-cyan-500/10 px-3 py-2 text-sm text-slate-700">
                     <p className="font-medium">{getPrimaryMissionLabel(activeJob)}</p>
-                    <p className="text-cyan-200/90">
+                    <p className="text-slate-600">
                       Distance estimate: {distanceEstimateLabel}
                     </p>
                   </div>
 
                   {directionsOpen ? (
-                    <div className="mt-2 max-h-40 overflow-y-auto rounded-2xl border border-cyan-500/30 bg-slate-800/95 p-3 text-xs text-cyan-100 backdrop-blur">
-                      <p className="text-xs uppercase tracking-[0.2em] text-cyan-300">
+                    <div className="mt-2 max-h-40 overflow-y-auto rounded-2xl border border-black/5 bg-white p-3 text-xs text-slate-700 backdrop-blur">
+                      <p className="text-xs uppercase tracking-[0.2em] text-slate-500">
                         In-App Directions
                       </p>
                       <p className="mt-1 font-medium">
@@ -1513,13 +1507,13 @@ export default function DriverPage() {
                           Off route — preparing reroute
                         </p>
                       ) : null}
-                      <p className="mt-1 text-cyan-200/90">
+                      <p className="mt-1 text-slate-600">
                         Total distance:{" "}
                         {routeData
                           ? `${routeData.distanceMiles.toFixed(1)} mi`
                           : distanceEstimateLabel}
                       </p>
-                      <p className="text-cyan-200/90">
+                      <p className="text-slate-600">
                         Estimated travel time:{" "}
                         {routeData
                           ? `${Math.max(1, Math.round(routeData.durationMinutes))} min`
@@ -1535,7 +1529,7 @@ export default function DriverPage() {
                           {routeData.steps.slice(0, 3).map((step, index) => (
                             <p
                               key={`${step.instruction}-${index}`}
-                              className="text-cyan-200/80"
+                              className="text-slate-500"
                             >
                               {index + 1}. {step.instruction}
                               {step.distanceMiles > 0
@@ -1554,7 +1548,7 @@ export default function DriverPage() {
                         onClick={() => setDirectionsOpen((open) => !open)}
                         disabled={autoNavigateEnabled && !directionsOpen}
                         variant="secondary"
-                        className="rounded-2xl border border-white/15 bg-white/5 text-white hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-50"
+                        className="rounded-2xl border border-black/10 bg-white text-slate-950 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
                       >
                         {directionsOpen ? "Hide Directions" : "Get Directions"}
                       </Button>
@@ -1579,7 +1573,7 @@ export default function DriverPage() {
                               return next;
                             });
                           }}
-                          className="rounded-full border border-cyan-500/35 bg-cyan-500/15 px-2.5 py-1 text-[11px] text-cyan-100 transition hover:bg-cyan-500/25 sm:px-3 sm:text-xs"
+                          className="rounded-full border border-cyan-500/35 bg-cyan-500/15 px-2.5 py-1 text-[11px] text-slate-700 transition hover:bg-cyan-500/25 sm:px-3 sm:text-xs"
                         >
                           {autoNavigateEnabled ? "Auto Navigate On" : "Auto Navigate"}
                         </button>
@@ -1589,7 +1583,7 @@ export default function DriverPage() {
                     <Button
                       onClick={() => handleUpdateStatus(activeJob)}
                       disabled={!getNextStatus(activeJob.status)}
-                      className="rounded-2xl bg-cyan-500 text-white hover:bg-cyan-600 disabled:opacity-50"
+                      className="rounded-2xl bg-slate-950 text-white hover:bg-black disabled:opacity-50"
                     >
                       <CarFront className="mr-2 h-4 w-4" />
                       {getAdvanceActionLabel(activeJob)}
@@ -1603,7 +1597,7 @@ export default function DriverPage() {
                         }}
                         disabled={!getPreviousStatus(activeJob.status)}
                         variant="secondary"
-                        className="rounded-2xl border border-white/15 bg-white/5 text-white hover:bg-white/10 disabled:opacity-50"
+                        className="rounded-2xl border border-black/10 bg-white text-slate-950 hover:bg-slate-50 disabled:opacity-50"
                       >
                         Go Back
                       </Button>
@@ -1612,11 +1606,11 @@ export default function DriverPage() {
                 </div>
               </div>
             ) : (
-              <div className="border-t border-white/10 bg-slate-950/95 px-4 py-4">
-                <p className="text-sm uppercase tracking-[0.2em] text-cyan-300">
-                  Finding Jobs
+              <div className="border-t border-black/5 bg-white px-5 py-5 text-slate-950">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-500">
+                  You&apos;re online
                 </p>
-                <p className="mt-2 text-white/70">Waiting for assignment...</p>
+                <p className="mt-1 text-lg font-bold">Waiting for the next job</p>
               </div>
             )}
           </div>
