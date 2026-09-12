@@ -455,13 +455,13 @@ export function CourierDriverLoadLauncher() {
         >
           <div className="flex h-10 w-10 items-center justify-center rounded-full bg-slate-100">
             {needsAssignedLoadScan ? (
-              <ScanLine className="h-5 w-5 text-white" />
+              <ScanLine className="h-5 w-5 text-slate-950" />
             ) : (
-              <PackagePlus className="h-5 w-5 text-white" />
+              <PackagePlus className="h-5 w-5 text-slate-950" />
             )}
           </div>
           <div>
-            <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-white">
+            <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-slate-500">
               {needsAssignedLoadScan ? "Load Packages" : "Courier Load"}
             </p>
             <p className="text-sm font-bold">
@@ -477,7 +477,7 @@ export function CourierDriverLoadLauncher() {
         <div className="pointer-events-auto max-h-[82vh] overflow-y-auto rounded-3xl border border-black/5 bg-white/98 p-4 text-slate-950 shadow-2xl backdrop-blur-xl">
           <div className="flex items-start justify-between gap-3">
             <div>
-              <p className="text-xs font-bold uppercase tracking-[0.2em] text-white">
+              <p className="text-xs font-bold uppercase tracking-[0.2em] text-slate-500">
                 Driver Courier Load
               </p>
               <h3 className="mt-1 text-xl font-black">
@@ -540,7 +540,7 @@ export function CourierDriverLoadLauncher() {
                   onClick={() => (cameraActive ? stopCamera() : void startScanner())}
                   className="rounded-2xl border border-black/10 bg-slate-50 p-3 text-left disabled:opacity-40"
                 >
-                  <ScanLine className="h-5 w-5 text-white" />
+                  <ScanLine className="h-5 w-5 text-slate-950" />
                   <span className="mt-2 block text-sm font-bold">
                     {cameraActive ? "Stop Scanner" : "Bulk Barcode Scan"}
                   </span>
