@@ -242,7 +242,7 @@ export function CourierNextStopLauncher() {
       context.scale(ratio, ratio);
       context.lineWidth = 2.25;
       context.lineCap = "round";
-      context.strokeStyle = "#e2e8f0";
+      context.strokeStyle = "#0f172a";
     });
   };
 
@@ -290,13 +290,13 @@ export function CourierNextStopLauncher() {
         <button
           type="button"
           onClick={() => setOpen(true)}
-          className="pointer-events-auto ml-auto flex items-center gap-3 rounded-full border border-emerald-300/35 bg-slate-950/95 px-4 py-3 text-left text-white shadow-2xl backdrop-blur-xl"
+          className="pointer-events-auto ml-auto flex items-center gap-3 rounded-full bg-slate-950 px-4 py-3 text-left text-white shadow-2xl"
         >
-          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-emerald-400/15">
-            <Navigation className="h-5 w-5 text-emerald-300" />
+          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-white/10">
+            <Navigation className="h-5 w-5 text-white" />
           </div>
           <div>
-            <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-emerald-300">
+            <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-white/60">
               Next Stop
             </p>
             <p className="max-w-[15rem] truncate text-sm font-bold">
@@ -312,7 +312,7 @@ export function CourierNextStopLauncher() {
         <div className="pointer-events-auto max-h-[78vh] overflow-y-auto rounded-3xl border border-black/5 bg-white/98 p-4 text-slate-950 shadow-2xl backdrop-blur-xl">
           <div className="flex items-start justify-between gap-3">
             <div>
-              <p className="text-xs font-bold uppercase tracking-[0.2em] text-emerald-300">
+              <p className="text-xs font-bold uppercase tracking-[0.2em] text-emerald-600">
                 NEXT STOP • {completedCount + 1}/{activeRoute.stops.length}
               </p>
               <h3 className="mt-1 text-xl font-black">
@@ -322,7 +322,7 @@ export function CourierNextStopLauncher() {
             <button
               type="button"
               onClick={() => setOpen(false)}
-              className="rounded-xl p-2 text-slate-500 hover:bg-white/10"
+              className="rounded-full p-2 text-slate-500 hover:bg-slate-100"
               aria-label="Close courier next stop"
             >
               <X className="h-4 w-4" />
@@ -331,11 +331,11 @@ export function CourierNextStopLauncher() {
 
           <div className="mt-4 rounded-2xl border border-black/10 bg-slate-50 p-4">
             <div className="flex items-start gap-3">
-              <MapPin className="mt-0.5 h-5 w-5 shrink-0 text-white" />
+              <MapPin className="mt-0.5 h-5 w-5 shrink-0 text-slate-500" />
               <div className="min-w-0">
                 <p className="font-semibold">{nextStop.address}</p>
                 {nextStop.timeWindowStart || nextStop.timeWindowEnd ? (
-                  <p className="mt-1 text-xs text-amber-200">
+                  <p className="mt-1 text-xs text-amber-700">
                     Window: {nextStop.timeWindowStart || "open"} – {nextStop.timeWindowEnd || "open"}
                   </p>
                 ) : null}
@@ -347,7 +347,7 @@ export function CourierNextStopLauncher() {
               </p>
             ) : null}
             {nextStop.instructions ? (
-              <p className="mt-3 text-sm leading-6 text-white/65">
+              <p className="mt-3 text-sm leading-6 text-slate-600">
                 {nextStop.instructions}
               </p>
             ) : null}
@@ -372,7 +372,7 @@ export function CourierNextStopLauncher() {
               onClick={() =>
                 void updateStop(nextStop.status === "En Route" ? "Arrived" : "En Route")
               }
-              className="min-h-11 rounded-xl border border-white/15 bg-slate-50 px-3 py-2 text-sm font-semibold disabled:opacity-40"
+              className="min-h-11 rounded-xl border border-black/10 bg-white px-3 py-2 text-sm font-semibold text-slate-950 disabled:opacity-40"
             >
               {nextStop.status === "En Route" ? "I’m Here" : "Start Stop"}
             </button>
@@ -382,14 +382,14 @@ export function CourierNextStopLauncher() {
             <div className="rounded-2xl border border-black/10 bg-slate-50 p-3">
               <div className="flex items-center justify-between gap-2">
                 <p className="inline-flex items-center gap-2 text-sm font-bold">
-                  <ScanLine className="h-4 w-4 text-emerald-300" /> Package Scan
+                  <ScanLine className="h-4 w-4 text-emerald-600" /> Package Scan
                 </p>
                 {proofTypes.has("scan") || !scanRequired ? (
-                  <span className="inline-flex items-center gap-1 text-xs text-emerald-300">
+                  <span className="inline-flex items-center gap-1 text-xs text-emerald-600">
                     <CheckCircle2 className="h-3.5 w-3.5" /> Ready
                   </span>
                 ) : (
-                  <span className="text-xs text-amber-200">Required</span>
+                  <span className="text-xs text-amber-700">Required</span>
                 )}
               </div>
               {nextStop.trackingCode && !proofTypes.has("scan") ? (
@@ -502,7 +502,7 @@ export function CourierNextStopLauncher() {
             </button>
 
             {!canComplete ? (
-              <p className="text-center text-xs text-amber-200">
+              <p className="text-center text-xs text-amber-700">
                 Finish required proof first:
                 {!scanReady ? " package scan" : ""}
                 {!photoReady ? " photo" : ""}
@@ -511,7 +511,7 @@ export function CourierNextStopLauncher() {
             ) : null}
 
             <div className="rounded-2xl border border-rose-400/15 bg-rose-500/5 p-3">
-              <p className="inline-flex items-center gap-2 text-sm font-bold text-rose-200">
+              <p className="inline-flex items-center gap-2 text-sm font-bold text-rose-700">
                 <TriangleAlert className="h-4 w-4" /> Failed Delivery
               </p>
               <select
@@ -532,7 +532,7 @@ export function CourierNextStopLauncher() {
                 type="button"
                 disabled={busy || !failedReason}
                 onClick={() => void updateStop("Failed")}
-                className="mt-2 w-full rounded-xl border border-rose-300/20 bg-rose-500/10 px-3 py-2 text-sm font-bold text-rose-100 disabled:opacity-35"
+                className="mt-2 w-full rounded-xl border border-rose-300/20 bg-rose-500/10 px-3 py-2 text-sm font-bold text-rose-700 disabled:opacity-35"
               >
                 Record Failed Attempt
               </button>
