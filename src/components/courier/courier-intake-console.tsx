@@ -308,7 +308,7 @@ export function CourierIntakeConsole() {
     );
     const next: DraftStop = {
       ...newStop(),
-      ...manifestMatch,
+      ...(manifestMatch ?? {}),
       id: crypto.randomUUID(),
       trackingCode: rawCode.trim(),
       lat: null,
