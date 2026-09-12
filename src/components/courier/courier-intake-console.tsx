@@ -221,6 +221,8 @@ export function CourierIntakeConsole() {
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const scanTimerRef = useRef<number | null>(null);
+  const stopsRef = useRef<DraftStop[]>([]);
+  const manifestRef = useRef<ManifestRow[]>([]);
 
   const [manifest, setManifest] = useState<ManifestRow[]>([]);
   const [stops, setStops] = useState<DraftStop[]>([]);
@@ -241,6 +243,14 @@ export function CourierIntakeConsole() {
     () => stops.filter((stop) => stop.address.trim()).length,
     [stops]
   );
+
+  useEffect(() => {
+    stopsRef.current = stops;
+  }, [stops]);
+
+  useEffect(() => {
+    manifestRef.current = manifest;
+  }, [manifest]);
 
   const stopCamera = () => {
     if (scanTimerRef.current != null) {
@@ -287,13 +297,13 @@ export function CourierIntakeConsole() {
   const addTrackingCode = (rawCode: string) => {
     const code = normalizeCode(rawCode);
     if (!code) return;
-    const existing = stops.find((stop) => normalizeCode(stop.trackingCode) === code);
+    const existing = stopsRef.current.find((stop) => normalizeCode(stop.trackingCode) === code);
     if (existing) {
       setStatus("That package is already in this load.");
       return;
     }
 
-    const manifestMatch = manifest.find(
+    const manifestMatch = manifestRef.current.find(
       (row) => normalizeCode(String(row.trackingCode || "")) === code
     );
     const next: DraftStop = {
@@ -306,7 +316,9 @@ export function CourierIntakeConsole() {
       priority: Number(manifestMatch?.priority || 0),
       stopType: manifestMatch?.stopType === "pickup" ? "pickup" : "delivery",
     };
-    setStops((current) => [...current, next]);
+    const updatedStops = [...stopsRef.current, next];
+    stopsRef.current = updatedStops;
+    setStops(updatedStops);
     setStatus(
       manifestMatch?.address
         ? "Package matched to manifest and added."
@@ -362,6 +374,7 @@ export function CourierIntakeConsole() {
     setOcrBusy(true);
     setStatus("Reading the printed label...");
     try {
+      let scannedCode = "";
       const Detector = (window as any).BarcodeDetector;
       if (Detector) {
         const bitmap = await createImageBitmap(file);
@@ -370,8 +383,8 @@ export function CourierIntakeConsole() {
             formats: ["qr_code", "code_128", "code_39", "ean_13", "ean_8", "upc_a", "upc_e"],
           });
           const codes = await detector.detect(bitmap);
-          const code = codes?.[0]?.rawValue?.trim();
-          if (code) addTrackingCode(code);
+          scannedCode = codes?.[0]?.rawValue?.trim() || "";
+          if (scannedCode) addTrackingCode(scannedCode);
         } finally {
           bitmap.close();
         }
@@ -384,7 +397,20 @@ export function CourierIntakeConsole() {
         return;
       }
 
-      setDraft((current) => ({ ...current, address }));
+      if (scannedCode) {
+        const normalized = normalizeCode(scannedCode);
+        setStops((current) => {
+          const next = current.map((stop) =>
+            normalizeCode(stop.trackingCode) === normalized && !stop.address.trim()
+              ? { ...stop, address, lat: null, lon: null }
+              : stop
+          );
+          stopsRef.current = next;
+          return next;
+        });
+      } else {
+        setDraft((current) => ({ ...current, address }));
+      }
       setStatus("Address captured from the label: " + address);
     } catch (error) {
       setStatus(error instanceof Error ? error.message : "The label could not be read.");
@@ -474,7 +500,10 @@ export function CourierIntakeConsole() {
             matrix && located.length <= 25
               ? matrix[currentIndex < 0 ? 0 : currentIndex + 1]?.[index + 1]
               : null;
-          const travelScore = Number.isFinite(roadSeconds) ? Number(roadSeconds) / 60 : miles * 2.2;
+          const travelScore =
+            roadSeconds != null && Number.isFinite(roadSeconds)
+              ? Number(roadSeconds) / 60
+              : miles * 2.2;
           const priorityBonus = Math.max(0, stop.priority) * 18;
           const windowBonus = stop.timeWindowStart ? 8 : 0;
           const score = travelScore - priorityBonus - windowBonus;
