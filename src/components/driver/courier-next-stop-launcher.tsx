@@ -38,6 +38,7 @@ type CourierStop = {
   driverNote?: string | null;
   proofCount?: number;
   proofTypes?: string[];
+  loadedAt?: string | null;
 };
 
 type CourierRoute = {
@@ -105,9 +106,14 @@ export function CourierNextStopLauncher() {
 
   const activeRoute = useMemo(
     () =>
-      routes.find((route) =>
-        route.stops.some((stop) => !TERMINAL.has(stop.status))
-      ) || null,
+      routes.find((route) => {
+        const hasOpenStops = route.stops.some((stop) => !TERMINAL.has(stop.status));
+        const trackedStops = route.stops.filter((stop) => Boolean(stop.trackingCode));
+        const loadReady =
+          trackedStops.length === 0 ||
+          trackedStops.every((stop) => Boolean(stop.loadedAt));
+        return hasOpenStops && loadReady;
+      }) || null,
     [routes]
   );
 
