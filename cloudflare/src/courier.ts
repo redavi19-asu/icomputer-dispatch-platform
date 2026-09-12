@@ -224,6 +224,9 @@ async function createRoute(request: Request, tenant: TenantContext, db: D1Databa
   const rawStops = Array.isArray(body.stops) ? (body.stops as CourierStopInput[]) : [];
   if (!rawStops.length) return json({ error: "At least one courier stop is required." }, 400, cors);
   if (rawStops.length > 250) return json({ error: "A route can contain up to 250 stops." }, 400, cors);
+  if (rawStops.some((stop) => !cleanString(stop?.address))) {
+    return json({ error: "Every courier stop needs a delivery or pickup address." }, 400, cors);
+  }
 
   const name = cleanString(body.name) || "Courier Route";
   const startAddress = cleanString(body.startAddress);
