@@ -247,6 +247,7 @@ CREATE TABLE IF NOT EXISTS courier_stops (
   failed_reason TEXT,
   driver_note TEXT,
   delivered_at TEXT,
+  loaded_at TEXT,
   created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY(route_id) REFERENCES courier_routes(id) ON DELETE CASCADE,
