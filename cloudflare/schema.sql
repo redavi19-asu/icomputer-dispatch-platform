@@ -204,3 +204,74 @@ CREATE INDEX IF NOT EXISTS idx_driver_earnings_company ON driver_earnings(compan
 CREATE INDEX IF NOT EXISTS idx_driver_earnings_company_driver ON driver_earnings(company_id, driver_id);
 CREATE INDEX IF NOT EXISTS idx_driver_earnings_company_completed ON driver_earnings(company_id, completed_at);
 CREATE INDEX IF NOT EXISTS idx_driver_earnings_company_status ON driver_earnings(company_id, status);
+
+
+-- Urban Courier OS scan -> route -> deliver workflow
+CREATE TABLE IF NOT EXISTS courier_routes (
+  id TEXT PRIMARY KEY,
+  company_id TEXT NOT NULL,
+  driver_id TEXT,
+  name TEXT NOT NULL,
+  status TEXT NOT NULL DEFAULT 'Draft',
+  start_address TEXT,
+  start_lat REAL,
+  start_lon REAL,
+  total_distance_miles REAL,
+  estimated_minutes INTEGER,
+  created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY(company_id) REFERENCES companies(id) ON DELETE CASCADE,
+  FOREIGN KEY(driver_id) REFERENCES drivers(id) ON DELETE SET NULL
+);
+
+CREATE TABLE IF NOT EXISTS courier_stops (
+  id TEXT PRIMARY KEY,
+  route_id TEXT NOT NULL,
+  company_id TEXT NOT NULL,
+  job_id TEXT,
+  sequence INTEGER NOT NULL,
+  tracking_code TEXT,
+  customer_name TEXT,
+  phone TEXT,
+  address TEXT NOT NULL,
+  lat REAL,
+  lon REAL,
+  package_location TEXT,
+  priority INTEGER NOT NULL DEFAULT 0,
+  time_window_start TEXT,
+  time_window_end TEXT,
+  instructions TEXT,
+  stop_type TEXT NOT NULL DEFAULT 'delivery',
+  pair_key TEXT,
+  status TEXT NOT NULL DEFAULT 'Pending',
+  failed_reason TEXT,
+  driver_note TEXT,
+  delivered_at TEXT,
+  created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY(route_id) REFERENCES courier_routes(id) ON DELETE CASCADE,
+  FOREIGN KEY(company_id) REFERENCES companies(id) ON DELETE CASCADE,
+  FOREIGN KEY(job_id) REFERENCES jobs(id) ON DELETE SET NULL
+);
+
+CREATE TABLE IF NOT EXISTS courier_proofs (
+  id TEXT PRIMARY KEY,
+  company_id TEXT NOT NULL,
+  route_id TEXT NOT NULL,
+  stop_id TEXT NOT NULL,
+  job_id TEXT,
+  proof_type TEXT NOT NULL,
+  proof_value TEXT,
+  note TEXT,
+  created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY(company_id) REFERENCES companies(id) ON DELETE CASCADE,
+  FOREIGN KEY(route_id) REFERENCES courier_routes(id) ON DELETE CASCADE,
+  FOREIGN KEY(stop_id) REFERENCES courier_stops(id) ON DELETE CASCADE,
+  FOREIGN KEY(job_id) REFERENCES jobs(id) ON DELETE SET NULL
+);
+
+CREATE INDEX IF NOT EXISTS idx_courier_routes_company ON courier_routes(company_id);
+CREATE INDEX IF NOT EXISTS idx_courier_routes_driver ON courier_routes(company_id, driver_id);
+CREATE INDEX IF NOT EXISTS idx_courier_stops_route ON courier_stops(route_id, sequence);
+CREATE INDEX IF NOT EXISTS idx_courier_stops_tracking ON courier_stops(company_id, tracking_code);
+CREATE INDEX IF NOT EXISTS idx_courier_proofs_stop ON courier_proofs(stop_id, created_at);
