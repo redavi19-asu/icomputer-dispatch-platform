@@ -248,7 +248,7 @@ export function DriverLeafletMap({
 
       setDriverIcon(
         L.divIcon({
-          html: `<div style="background:#06b6d4;width:18px;height:18px;border-radius:9999px;border:3px solid white;box-shadow:0 0 0 4px rgba(6,182,212,0.18);"></div>`,
+          html: `<div style="background:#111827;width:18px;height:18px;border-radius:9999px;border:3px solid white;box-shadow:0 2px 10px rgba(0,0,0,0.28);"></div>`,
           className: "",
           iconSize: [18, 18],
           iconAnchor: [9, 9],
@@ -257,7 +257,7 @@ export function DriverLeafletMap({
 
       setJobIcon(
         L.divIcon({
-          html: `<div style="background:#f59e0b;width:18px;height:18px;border-radius:9999px;border:3px solid white;box-shadow:0 0 0 4px rgba(245,158,11,0.18);"></div>`,
+          html: `<div style="background:white;width:18px;height:18px;border-radius:9999px;border:4px solid #111827;box-shadow:0 2px 10px rgba(0,0,0,0.22);"></div>`,
           className: "",
           iconSize: [18, 18],
           iconAnchor: [9, 9],
@@ -679,7 +679,7 @@ export function DriverLeafletMap({
   return (
     <div
       ref={mapHostRef}
-      className="relative z-0 h-full min-h-[320px] overflow-hidden rounded-2xl border border-white/10"
+      className="relative z-0 h-full min-h-[320px] overflow-hidden bg-slate-100"
     >
       {destinationError ? (
         <div className="absolute left-3 right-3 top-3 z-30 rounded-xl border border-amber-400/30 bg-amber-500/10 px-3 py-2 text-xs text-amber-100 backdrop-blur-sm">
@@ -763,12 +763,12 @@ export function DriverLeafletMap({
                 routePath && routePath.length > 1 ? (
                   <Polyline
                     positions={routePath}
-                    pathOptions={{ color: "#22d3ee", weight: 4, opacity: 0.9 }}
+                    pathOptions={{ color: "#111827", weight: 5, opacity: 0.9 }}
                   />
                 ) : (
                   <Polyline
                     positions={[resolvedDriverPosition, resolvedDestinationPosition]}
-                    pathOptions={{ color: "#22d3ee", weight: 3, opacity: 0.55, dashArray: "6 6" }}
+                    pathOptions={{ color: "#111827", weight: 4, opacity: 0.5, dashArray: "6 6" }}
                   />
                 )
               ) : null}
