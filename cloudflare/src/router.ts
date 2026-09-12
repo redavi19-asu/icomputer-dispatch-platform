@@ -1,5 +1,6 @@
 import authWorker from "./index";
 import { handleDriverInviteAcceptance } from "./invite-accept";
+import { handleCourierRequest } from "./courier";
 import { handleDriverInviteSeatLimit } from "./invite-seat-limit";
 import { handleDriverPayRequest } from "./driver-pay";
 import { handleOperationsRequest } from "./operations";
@@ -31,6 +32,9 @@ export default {
 
     const workspaceSettingsResponse = await handleWorkspaceSettingsRequest(request.clone(), env);
     if (workspaceSettingsResponse) return workspaceSettingsResponse;
+
+    const courierResponse = await handleCourierRequest(request.clone(), env);
+    if (courierResponse) return courierResponse;
 
     const operationsResponse = await handleOperationsRequest(request, env);
     if (operationsResponse) return operationsResponse;
