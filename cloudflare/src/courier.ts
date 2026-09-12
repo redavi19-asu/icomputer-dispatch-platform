@@ -65,6 +65,10 @@ export async function handleCourierRequest(
       return await updateStop(request, tenant, env.DB, cors);
     }
 
+    if (url.pathname === "/api/courier/load-scan" && request.method === "POST") {
+      return await recordLoadScan(request, tenant, env.DB, cors);
+    }
+
     if (url.pathname === "/api/courier/proofs" && request.method === "POST") {
       return await createProof(request, tenant, env.DB, cors);
     }
@@ -120,6 +124,7 @@ async function ensureCourierTables(db: D1Database) {
         failed_reason TEXT,
         driver_note TEXT,
         delivered_at TEXT,
+        loaded_at TEXT,
         created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
         updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY(route_id) REFERENCES courier_routes(id) ON DELETE CASCADE,
@@ -150,6 +155,11 @@ async function ensureCourierTables(db: D1Database) {
     db.prepare("CREATE INDEX IF NOT EXISTS idx_courier_stops_tracking ON courier_stops(company_id, tracking_code)"),
     db.prepare("CREATE INDEX IF NOT EXISTS idx_courier_proofs_stop ON courier_proofs(stop_id, created_at)")
   ]);
+
+  const stopColumns = await db.prepare("PRAGMA table_info(courier_stops)").all<{ name: string }>();
+  if (!(stopColumns.results || []).some((column) => column.name === "loaded_at")) {
+    await db.prepare("ALTER TABLE courier_stops ADD COLUMN loaded_at TEXT").run();
+  }
 }
 
 async function getRoutes(url: URL, tenant: TenantContext, db: D1Database, cors: HeadersInit) {
@@ -218,7 +228,14 @@ async function getRoutes(url: URL, tenant: TenantContext, db: D1Database, cors: 
 }
 
 async function createRoute(request: Request, tenant: TenantContext, db: D1Database, cors: HeadersInit) {
-  if (!canManage(tenant)) return json({ error: "Dispatcher access required." }, 403, cors);
+  const role = effectiveRole(tenant);
+  const driverCreatingOwnLoad = role === "driver";
+  if (!driverCreatingOwnLoad && !canManage(tenant)) {
+    return json({ error: "Dispatcher access required." }, 403, cors);
+  }
+  if (driverCreatingOwnLoad && !tenant.driverId) {
+    return json({ error: "Driver profile is not linked to this account." }, 403, cors);
+  }
 
   const body = await request.json<Record<string, unknown>>();
   const rawStops = Array.isArray(body.stops) ? (body.stops as CourierStopInput[]) : [];
@@ -234,10 +251,10 @@ async function createRoute(request: Request, tenant: TenantContext, db: D1Databa
   const startLon = numberOrNull(body.startLon);
   const totalDistanceMiles = numberOrNull(body.totalDistanceMiles);
   const estimatedMinutes = integerOrNull(body.estimatedMinutes);
-  const autoAssign = body.autoAssign === true;
-  let driverId = cleanString(body.driverId) || null;
+  const autoAssign = !driverCreatingOwnLoad && body.autoAssign === true;
+  let driverId = driverCreatingOwnLoad ? tenant.driverId : cleanString(body.driverId) || null;
 
-  if (driverId) {
+  if (driverId && !driverCreatingOwnLoad) {
     const driver = await db.prepare("SELECT id FROM drivers WHERE id = ? AND company_id = ?")
       .bind(driverId, tenant.companyId)
       .first<{ id: string }>();
@@ -350,8 +367,8 @@ async function createRoute(request: Request, tenant: TenantContext, db: D1Databa
         INSERT INTO courier_stops (
           id, route_id, company_id, job_id, sequence, tracking_code, customer_name, phone,
           address, lat, lon, package_location, priority, time_window_start, time_window_end,
-          instructions, stop_type, pair_key, status, created_at, updated_at
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'Pending', ?, ?)
+          instructions, stop_type, pair_key, status, loaded_at, created_at, updated_at
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'Pending', ?, ?, ?)
       `).bind(
         stopId,
         routeId,
@@ -371,6 +388,7 @@ async function createRoute(request: Request, tenant: TenantContext, db: D1Databa
         instructions || null,
         stopType,
         pairKey || null,
+        driverCreatingOwnLoad ? now : null,
         now,
         now
       )
@@ -526,6 +544,53 @@ async function updateStop(request: Request, tenant: TenantContext, db: D1Databas
   );
 }
 
+async function recordLoadScan(request: Request, tenant: TenantContext, db: D1Database, cors: HeadersInit) {
+  const role = effectiveRole(tenant);
+  if (role !== "driver" || !tenant.driverId) {
+    return json({ error: "Driver access required." }, 403, cors);
+  }
+
+  const body = await request.json<Record<string, unknown>>();
+  const routeId = cleanString(body.routeId);
+  const trackingCode = normalizeCode(cleanString(body.trackingCode));
+  if (!routeId || !trackingCode) {
+    return json({ error: "Route id and tracking code are required." }, 400, cors);
+  }
+
+  const route = await db.prepare(
+    "SELECT id, driver_id FROM courier_routes WHERE id = ? AND company_id = ?"
+  ).bind(routeId, tenant.companyId).first<Record<string, string | null>>();
+  if (!route || route.driver_id !== tenant.driverId) {
+    return json({ error: "This route is not assigned to this driver." }, 403, cors);
+  }
+
+  const stops = await db.prepare(`
+    SELECT id, tracking_code, loaded_at
+    FROM courier_stops
+    WHERE route_id = ? AND company_id = ?
+  `).bind(routeId, tenant.companyId).all<Record<string, string | null>>();
+
+  const match = (stops.results || []).find(
+    (stop) => normalizeCode(String(stop.tracking_code || "")) === trackingCode
+  );
+  if (!match) {
+    return json({ error: "That package is not on this assigned route." }, 404, cors);
+  }
+
+  if (!match.loaded_at) {
+    await db.prepare(
+      "UPDATE courier_stops SET loaded_at = ?, updated_at = ? WHERE id = ? AND company_id = ?"
+    ).bind(new Date().toISOString(), new Date().toISOString(), match.id, tenant.companyId).run();
+  }
+
+  return await getRoutes(
+    new URL(new URL(request.url).origin + "/api/courier/routes?id=" + encodeURIComponent(routeId)),
+    tenant,
+    db,
+    cors
+  );
+}
+
 async function createProof(request: Request, tenant: TenantContext, db: D1Database, cors: HeadersInit) {
   const body = await request.json<Record<string, unknown>>();
   const stopId = cleanString(body.stopId);
@@ -606,6 +671,7 @@ function toApiStop(row: Record<string, unknown>) {
     failedReason: row.failed_reason,
     driverNote: row.driver_note,
     deliveredAt: row.delivered_at,
+    loadedAt: row.loaded_at,
     proofCount: Number(row.proof_count || 0),
     proofTypes: String(row.proof_types || "").split(",").filter(Boolean),
     createdAt: row.created_at,
