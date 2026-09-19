@@ -55,9 +55,9 @@ export default function DownloadCenterPage() {
       <section className="border-b border-white/10 bg-[radial-gradient(circle_at_20%_0%,rgba(34,211,238,.17),transparent_34%),radial-gradient(circle_at_82%_8%,rgba(16,185,129,.13),transparent_28%)]">
         <div className="mx-auto max-w-7xl px-6 py-12 md:py-16">
           <div className="max-w-4xl">
-            <div className="flex items-center gap-2 text-xs uppercase tracking-[0.24em] text-cyan-300"><Download className="h-4 w-4" /> Urban Carrier OS Download Center</div>
-            <h1 className="mt-4 text-4xl font-semibold tracking-tight md:text-6xl">Install the tools your team actually works from.</h1>
-            <p className="mt-5 text-base leading-7 text-white/60 md:text-lg"><span className="font-semibold text-white">{companyName}</span> is configured. Install Dispatcher on office computers. Drivers can use the mobile web app now; native iPhone and Android apps will be added through the App Store and Google Play.</p>
+            <div className="flex items-center gap-2 text-xs uppercase tracking-[0.24em] text-cyan-300"><Download className="h-4 w-4" /> Urban Carrier OS Access Center</div>
+            <h1 className="mt-4 text-4xl font-semibold tracking-tight md:text-6xl">Choose exactly where you need to work.</h1>
+            <p className="mt-5 text-base leading-7 text-white/60 md:text-lg"><span className="font-semibold text-white">{companyName}</span> is active. Use the buttons below to open the correct web app. Dispatcher and Driver are separate experiences and open in different places.</p>
 
             <div className="mt-7 grid gap-3 sm:grid-cols-3">
               <div className="rounded-2xl border border-cyan-300/20 bg-cyan-500/10 p-4">
@@ -83,20 +83,20 @@ export default function DownloadCenterPage() {
           <article className="rounded-[2rem] border border-cyan-400/20 bg-cyan-500/[0.055] p-7 md:p-9">
             <div className="flex items-center justify-between gap-4"><div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-cyan-400 text-slate-950"><Laptop2 className="h-7 w-7" /></div><span className="rounded-full border border-cyan-300/20 bg-cyan-500/10 px-3 py-1 text-xs font-semibold text-cyan-200">OFFICE / DISPATCH</span></div>
             <h2 className="mt-7 text-2xl font-semibold md:text-3xl">{companyName} Dispatcher</h2>
-            <p className="mt-3 leading-7 text-white/58">The working command center for maps, assignments, job queues, driver status, and live operations. This is where dispatch staff spend their workday.</p>
+            <p className="mt-3 leading-7 text-white/58">For owners, dispatchers, and office staff. Open the Dispatcher web app for maps, assignments, job queues, driver status, and live operations.</p>
             <div className="mt-6 space-y-3 text-sm text-white/65">
               <p className="flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-emerald-300" /> Company identity and preferences already configured</p>
               <p className="flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-emerald-300" /> Licensed for up to {seatLabel(entitlements.maxDispatcherSeats)} dispatcher seat{entitlements.maxDispatcherSeats === 1 ? "" : "s"}</p>
               <p className="flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-emerald-300" /> Driver mileage totals and completed-job pay calculator included</p>
               <p className="flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-emerald-300" /> Launches as an app-style experience</p>
             </div>
-            <Link href="/dashboard/install" className="mt-8 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-cyan-400 px-5 py-4 font-bold text-slate-950 hover:bg-cyan-300"><Download className="h-5 w-5" /> Install Dispatcher <ArrowRight className="h-4 w-4" /></Link>
+            <Link href="/dashboard" className="mt-8 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-cyan-400 px-5 py-4 font-bold text-slate-950 hover:bg-cyan-300"><MonitorSmartphone className="h-5 w-5" /> Open Dispatcher Web App <ArrowRight className="h-4 w-4" /></Link>
           </article>
 
           <article className="rounded-[2rem] border border-emerald-400/20 bg-emerald-500/[0.05] p-7 md:p-9">
             <div className="flex items-center justify-between gap-4"><div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-emerald-400 text-slate-950"><Smartphone className="h-7 w-7" /></div><span className="rounded-full border border-emerald-300/20 bg-emerald-500/10 px-3 py-1 text-xs font-semibold text-emerald-200">DRIVER / FIELD</span></div>
             <h2 className="mt-7 text-2xl font-semibold md:text-3xl">{companyName} Driver</h2>
-            <p className="mt-3 leading-7 text-white/58">The field experience for assigned work, navigation, mission details, job status, and driver workflow. Right now drivers use the secure mobile web app in their phone browser. Native iPhone and Android apps are planned for the App Store and Google Play.</p>
+            <p className="mt-3 leading-7 text-white/58">For drivers and field staff. Open the Driver web app for assigned work, navigation, mission details, job status, and field workflow. This is separate from the Dispatcher web app.</p>
             <div className="mt-6 space-y-3 text-sm text-white/65">
               <p className="flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-emerald-300" /> Connected to the same company workspace</p>
               <p className="flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-emerald-300" /> Licensed for up to {seatLabel(entitlements.maxDrivers)} driver accounts</p>
@@ -126,8 +126,8 @@ export default function DownloadCenterPage() {
 
         <div className="mt-8 grid gap-6 lg:grid-cols-[1.15fr_.85fr]">
           <section className="rounded-3xl border border-white/10 bg-white/[0.03] p-7 md:p-8">
-            <div className="flex items-center gap-3"><MonitorSmartphone className="h-6 w-6 text-cyan-300" /><h2 className="text-xl font-semibold">Install instructions</h2></div>
-            <div className="mt-6 grid gap-4 md:grid-cols-3"><div className="rounded-2xl border border-white/10 bg-black/20 p-5"><p className="text-xs font-semibold uppercase tracking-[.18em] text-cyan-300">Driver on iPhone / iPad</p><p className="mt-3 text-sm leading-6 text-white/55">Use the secure Driver web app in Safari. You may add it to the Home Screen for quick access. A native App Store version will be available later.</p></div><div className="rounded-2xl border border-white/10 bg-black/20 p-5"><p className="text-xs font-semibold uppercase tracking-[.18em] text-cyan-300">Driver on Android</p><p className="mt-3 text-sm leading-6 text-white/55">Use the secure Driver web app in Chrome and optionally add it to the Home Screen. A native Google Play version will be available later.</p></div><div className="rounded-2xl border border-white/10 bg-black/20 p-5"><p className="text-xs font-semibold uppercase tracking-[.18em] text-cyan-300">Dispatcher on Windows / Mac</p><p className="mt-3 text-sm leading-6 text-white/55">Open Dispatcher in Chrome or Edge and use the browser&apos;s <strong className="text-white/80">Install</strong> option for an app-style desktop experience.</p></div></div>
+            <div className="flex items-center gap-3"><MonitorSmartphone className="h-6 w-6 text-cyan-300" /><h2 className="text-xl font-semibold">How to use each app</h2></div>
+            <div className="mt-6 grid gap-4 md:grid-cols-3"><div className="rounded-2xl border border-white/10 bg-black/20 p-5"><p className="text-xs font-semibold uppercase tracking-[.18em] text-cyan-300">Dispatcher Web App</p><p className="mt-3 text-sm leading-6 text-white/55">Office staff should press <strong className="text-white/80">Open Dispatcher Web App</strong>. It opens the dispatch dashboard in its own web experience.</p></div><div className="rounded-2xl border border-white/10 bg-black/20 p-5"><p className="text-xs font-semibold uppercase tracking-[.18em] text-cyan-300">Driver Web App</p><p className="mt-3 text-sm leading-6 text-white/55">Drivers should press <strong className="text-white/80">Open Driver Web App</strong> on their phone. It opens the separate driver experience in Safari or Chrome.</p></div><div className="rounded-2xl border border-white/10 bg-black/20 p-5"><p className="text-xs font-semibold uppercase tracking-[.18em] text-cyan-300">Native Apps Later</p><p className="mt-3 text-sm leading-6 text-white/55">App Store, Google Play, and desktop installer buttons will appear here only when those native apps are actually available.</p></div></div>
           </section>
 
           <section className="rounded-3xl border border-emerald-400/15 bg-emerald-500/[0.045] p-7 md:p-8"><ShieldCheck className="h-7 w-7 text-emerald-300" /><h2 className="mt-5 text-xl font-semibold">Seats are enforced by account access.</h2><p className="mt-3 text-sm leading-6 text-white/55">Installing the shell does not unlock extra capacity. Only authorized company accounts within the paid driver and dispatcher limits can operate the system.</p><Link href="/workspace" className="mt-6 inline-flex items-center gap-2 text-sm font-semibold text-emerald-200 hover:text-emerald-100">Back to company portal <ArrowRight className="h-4 w-4" /></Link></section>
