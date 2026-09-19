@@ -118,7 +118,7 @@ export default function PlansPage() {
                 >
                   Choose {plan.name.replace("Urban Carrier OS ", "")} <ArrowRight className="h-4 w-4" />
                 </Link>
-                <p className="mt-3 text-center text-xs text-white/40">Create your account next. Checkout activation is coming soon.</p>
+                <p className="mt-3 text-center text-xs text-white/40">Create your account next, then complete secure Stripe subscription checkout before workspace access is activated.</p>
               </article>
             );
           })}
