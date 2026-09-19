@@ -3,7 +3,7 @@
 import Link from "next/link";
 import Script from "next/script";
 import { FormEvent, useEffect, useRef, useState } from "react";
-import { ArrowLeft, Building2, LockKeyhole, LogIn, ShieldCheck, Sparkles } from "lucide-react";
+import { ArrowLeft, Building2, LockKeyhole, LogIn, ShieldCheck, Sparkles, UserPlus } from "lucide-react";
 import { authRequest, saveSession, type DispatchOSSession } from "@/lib/dispatchos-auth";
 
 type Mode = "login" | "register";
@@ -29,9 +29,10 @@ declare global {
 }
 
 export default function AuthPage() {
-  const registrationClosed = true;
   const [mode, setMode] = useState<Mode>("login");
   const [plan, setPlan] = useState("basic");
+  const [name, setName] = useState("");
+  const [companyName, setCompanyName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [rememberDevice, setRememberDevice] = useState(true);
@@ -48,7 +49,7 @@ export default function AuthPage() {
     const params = new URLSearchParams(window.location.search);
     const requestedMode = params.get("mode");
     const requestedPlan = params.get("plan");
-    if (!registrationClosed && requestedMode === "register") setMode("register");
+    if (requestedMode === "register") setMode("register");
     if (requestedMode === "login") setMode("login");
     if (requestedPlan === "business" || requestedPlan === "basic") setPlan(requestedPlan);
   }, []);
@@ -83,12 +84,6 @@ export default function AuthPage() {
     event.preventDefault();
     setError("");
 
-    if (registrationClosed && mode === "register") {
-      setMode("login");
-      setError("Public account creation is not open yet.");
-      return;
-    }
-
     if (turnstileEnabled && !turnstileToken) {
       setError("Please complete the security check before continuing.");
       return;
@@ -96,9 +91,14 @@ export default function AuthPage() {
 
     setLoading(true);
     try {
-      const data = await authRequest("/auth/login", {
+      const endpoint = mode === "register" ? "/auth/register" : "/auth/login";
+      const body = mode === "register"
+        ? { name, companyName, email, password, plan, turnstileToken }
+        : { email, password, turnstileToken };
+
+      const data = await authRequest(endpoint, {
         method: "POST",
-        body: JSON.stringify({ email, password, turnstileToken }),
+        body: JSON.stringify(body),
       });
 
       const session = data as DispatchOSSession;
@@ -125,8 +125,8 @@ export default function AuthPage() {
           <Link href="/plans" className="inline-flex items-center gap-2 text-sm text-cyan-200 hover:text-cyan-100"><ArrowLeft className="h-4 w-4" /> Back to Plans</Link>
           <div className="mt-10 max-w-3xl">
             <p className="text-xs uppercase tracking-[0.26em] text-cyan-300">Urban Carrier OS Account</p>
-            <h1 className="mt-4 text-4xl font-semibold tracking-tight md:text-6xl">Welcome back to Urban Carrier OS.</h1>
-            <p className="mt-5 text-base leading-7 text-white/62 md:text-lg">Sign in to manage your company account, settings, drivers, billing, and application downloads.</p>
+            <h1 className="mt-4 text-4xl font-semibold tracking-tight md:text-6xl">{mode === "register" ? "Create your Urban Carrier OS account." : "Welcome back to Urban Carrier OS."}</h1>
+            <p className="mt-5 text-base leading-7 text-white/62 md:text-lg">{mode === "register" ? "Create the company owner account for your selected plan, then continue into your company workspace." : "Sign in to manage your company account, settings, drivers, billing, and application downloads."}</p>
           </div>
         </div>
       </section>
@@ -157,9 +157,20 @@ export default function AuthPage() {
             <div className="flex items-start gap-3"><Sparkles className="mt-0.5 h-5 w-5 shrink-0 text-emerald-300" /><div><p className="font-semibold text-emerald-100">Your company portal is separate from the working apps.</p><p className="mt-2 text-sm leading-6 text-white/58">Use the portal to configure the company and install Urban Carrier OS. Daily dispatching happens inside Dispatcher; field work happens inside Driver.</p></div></div>
           </div>
 
+          <div className="mb-6 grid grid-cols-2 gap-2 rounded-xl border border-white/10 bg-black/20 p-1">
+            <button type="button" onClick={() => { setMode("register"); setError(""); }} className={`rounded-lg px-4 py-3 text-sm font-semibold transition ${mode === "register" ? "bg-emerald-500 text-white" : "text-white/55 hover:bg-white/[0.05]"}`}>Create Account</button>
+            <button type="button" onClick={() => { setMode("login"); setError(""); }} className={`rounded-lg px-4 py-3 text-sm font-semibold transition ${mode === "login" ? "bg-cyan-400 text-slate-950" : "text-white/55 hover:bg-white/[0.05]"}`}>Log In</button>
+          </div>
+
           <form onSubmit={handleSubmit} className="space-y-5">
+            {mode === "register" && (
+              <>
+                <label className="block"><span className="text-sm text-white/70">Your name</span><input type="text" value={name} onChange={(e) => setName(e.target.value)} required autoComplete="name" className="mt-2 w-full rounded-xl border border-white/10 bg-black/25 px-4 py-3 outline-none focus:border-cyan-300/50" placeholder="Your name" /></label>
+                <label className="block"><span className="text-sm text-white/70">Company</span><input type="text" value={companyName} onChange={(e) => setCompanyName(e.target.value)} required autoComplete="organization" className="mt-2 w-full rounded-xl border border-white/10 bg-black/25 px-4 py-3 outline-none focus:border-cyan-300/50" placeholder="Company name" /></label>
+              </>
+            )}
             <label className="block"><span className="text-sm text-white/70">Email</span><input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required autoComplete="email" className="mt-2 w-full rounded-xl border border-white/10 bg-black/25 px-4 py-3 outline-none focus:border-cyan-300/50" placeholder="you@company.com" /></label>
-            <label className="block"><span className="text-sm text-white/70">Password</span><input type="password" value={password} onChange={(e) => setPassword(e.target.value)} required minLength={10} autoComplete="current-password" className="mt-2 w-full rounded-xl border border-white/10 bg-black/25 px-4 py-3 outline-none focus:border-cyan-300/50" placeholder="10+ characters" /></label>
+            <label className="block"><span className="text-sm text-white/70">Password</span><input type="password" value={password} onChange={(e) => setPassword(e.target.value)} required minLength={10} autoComplete={mode === "register" ? "new-password" : "current-password"} className="mt-2 w-full rounded-xl border border-white/10 bg-black/25 px-4 py-3 outline-none focus:border-cyan-300/50" placeholder="10+ characters" /></label>
 
             <label className="flex cursor-pointer items-start gap-3 rounded-xl border border-cyan-400/15 bg-cyan-500/[0.05] px-4 py-3">
               <input type="checkbox" checked={rememberDevice} onChange={(e) => setRememberDevice(e.target.checked)} className="mt-1 h-4 w-4 accent-cyan-400" />
@@ -169,7 +180,7 @@ export default function AuthPage() {
             {turnstileEnabled && <div className="rounded-xl border border-white/10 bg-black/20 p-4"><div className="mb-3 flex items-center gap-2 text-xs text-white/55"><ShieldCheck className="h-4 w-4 text-emerald-300" /> Security verification</div><div ref={turnstileContainerRef} className="min-h-[65px]" /></div>}
             {error && <div className="rounded-xl border border-rose-400/20 bg-rose-500/10 px-4 py-3 text-sm text-rose-200">{error}</div>}
 
-            <button disabled={loading || (turnstileEnabled && !turnstileToken)} className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-cyan-400 px-6 py-4 font-bold text-slate-950 transition hover:bg-cyan-300 disabled:cursor-wait disabled:opacity-60"><LogIn className="h-5 w-5" />{loading ? "Connecting..." : "Log In"}</button>
+            <button disabled={loading || (turnstileEnabled && !turnstileToken)} className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-cyan-400 px-6 py-4 font-bold text-slate-950 transition hover:bg-cyan-300 disabled:cursor-wait disabled:opacity-60">{mode === "register" ? <UserPlus className="h-5 w-5" /> : <LogIn className="h-5 w-5" />}{loading ? "Connecting..." : mode === "register" ? "Create Account" : "Log In"}</button>
           </form>
 
           <div className="mt-6 flex items-start gap-3 text-xs leading-5 text-white/42"><LockKeyhole className="mt-0.5 h-4 w-4 shrink-0 text-emerald-300" />Passwords are sent only to the Urban Carrier OS account API and stored as one-way password hashes.</div>
