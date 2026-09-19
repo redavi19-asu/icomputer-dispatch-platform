@@ -160,7 +160,8 @@ export default function Home() {
         const healthy =
           response.ok &&
           data?.ok === true &&
-          data?.database === "connected";
+          data?.databaseReady === true &&
+          data?.centralDatabaseReady === true;
 
         if (mounted) setSystemHealth(healthy ? "online" : "issue");
       } catch {
@@ -235,6 +236,7 @@ export default function Home() {
             <div className="mt-9 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
               <Link href="/plans" className="inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-500 px-7 py-4 font-bold text-white transition hover:bg-emerald-400">View Plans <ArrowRight className="h-4 w-4" /></Link>
               <Link href="/demo" className="inline-flex items-center justify-center rounded-xl border border-white/20 bg-white/[0.06] px-7 py-4 font-semibold text-white backdrop-blur transition hover:bg-white/[0.1]">Product Tour</Link>
+              <Link href="/auth?mode=register&plan=basic" className="inline-flex items-center justify-center rounded-xl border border-emerald-300/20 bg-emerald-500/[0.08] px-7 py-4 font-semibold text-emerald-100 transition hover:bg-emerald-500/[0.13]">Create Account</Link>
               <Link href="/auth?mode=login" className="inline-flex items-center justify-center rounded-xl border border-cyan-300/20 bg-cyan-500/[0.08] px-7 py-4 font-semibold text-cyan-100 transition hover:bg-cyan-500/[0.13]">Log In</Link>
             </div>
 
