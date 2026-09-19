@@ -104,7 +104,15 @@ export default function AuthPage() {
       const session = data as DispatchOSSession;
       saveSession(session, rememberDevice);
       const base = process.env.NODE_ENV === "production" ? "/icomputer-dispatch-platform" : "";
-      const destination = session.user.role === "admin" ? "/admin" : session.user.role === "driver" ? "/driver" : "/workspace";
+      const subscriptionStatus = session.subscription?.status?.toLowerCase() || "pending";
+      const needsActivation = session.user.role !== "admin" && !["active", "trialing", "grace_period", "comped"].includes(subscriptionStatus);
+      const destination = needsActivation
+        ? "/subscribe"
+        : session.user.role === "admin"
+          ? "/admin"
+          : session.user.role === "driver"
+            ? "/driver"
+            : "/workspace";
       window.location.href = `${base}${destination}`;
     } catch (err) {
       setError(err instanceof Error ? err.message : "Unable to continue.");
@@ -148,7 +156,7 @@ export default function AuthPage() {
           <div className="mt-7 rounded-2xl border border-cyan-400/15 bg-cyan-500/[0.05] p-5">
             <p className="text-xs uppercase tracking-[0.18em] text-cyan-300">Selected plan</p>
             <p className="mt-2 text-xl font-semibold">{plan === "business" ? "Urban Carrier OS Business — $149/mo" : "Urban Carrier OS Basic — $49.99/mo"}</p>
-            <p className="mt-2 text-xs leading-5 text-white/45">Checkout and automatic activation will be connected next.</p>
+            <p className="mt-2 text-xs leading-5 text-white/45">Your account is created as pending. Secure Stripe checkout is required before operational access is activated.</p>
           </div>
         </aside>
 
