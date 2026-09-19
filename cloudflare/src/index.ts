@@ -101,15 +101,11 @@ export default {
           centralDatabaseReady,
           centralUserCount,
           turnstileConfigured: Boolean(clean(env.TURNSTILE_SECRET_KEY)),
-          publicRegistration:
-            clean(env.PUBLIC_REGISTRATION_ENABLED).toLowerCase() === "true",
+          publicRegistration: true,
         }, healthy ? 200 : 503, cors);
       }
 
       if (url.pathname === "/auth/register" && request.method === "POST") {
-        if (clean(env.PUBLIC_REGISTRATION_ENABLED).toLowerCase() !== "true") {
-          return json({ error: "Public company onboarding is not open yet." }, 403, cors);
-        }
         return await register(request, env, cors);
       }
 
