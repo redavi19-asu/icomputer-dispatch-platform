@@ -1,8 +1,8 @@
 "use client";
 
-import { motion } from "framer-motion";
+import { motion, useReducedMotion } from "framer-motion";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { Fragment, useEffect, useState } from "react";
 import DispatchPreviewMap from "@/components/marketing/dispatch-preview-map";
 import CustomVersionModal from "@/components/marketing/custom-version-modal";
 import {
@@ -51,12 +51,98 @@ const toneClasses: Record<string, string> = {
   amber: "border-amber-400/20 bg-amber-500/[0.06] text-amber-300",
 };
 
+
+function UrbanCarrierSplash({ reduceMotion }: { reduceMotion: boolean }) {
+  return (
+    <main
+      className="fixed inset-0 z-[9999] grid min-h-screen place-items-center overflow-hidden bg-[#03070c] px-6 text-white"
+      role="status"
+      aria-live="polite"
+      aria-label="Urban Carrier OS loading"
+    >
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_42%,rgba(34,211,238,.16),transparent_30%),radial-gradient(circle_at_20%_75%,rgba(16,185,129,.09),transparent_32%),linear-gradient(180deg,#03070c_0%,#07111b_55%,#03070c_100%)]" />
+      <div className="absolute inset-0 opacity-25 [background-image:linear-gradient(rgba(255,255,255,.035)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,.035)_1px,transparent_1px)] [background-size:42px_42px]" />
+
+      <div className="relative z-10 flex w-full max-w-2xl flex-col items-center text-center">
+        <p className="mb-5 text-[10px] font-semibold uppercase tracking-[0.48em] text-cyan-200/65">
+          I Computer Anything
+        </p>
+
+        <motion.div
+          className="relative grid h-20 w-20 place-items-center rounded-3xl border border-cyan-300/35 bg-cyan-400/[0.08] shadow-[0_0_55px_rgba(34,211,238,.18)]"
+          animate={reduceMotion ? undefined : { scale: [1, 1.055, 1], boxShadow: ["0 0 25px rgba(34,211,238,.12)", "0 0 60px rgba(34,211,238,.30)", "0 0 25px rgba(34,211,238,.12)"] }}
+          transition={{ duration: 1.35, repeat: reduceMotion ? 0 : Infinity, ease: "easeInOut" }}
+          aria-hidden="true"
+        >
+          <MapPinned className="h-9 w-9 text-cyan-200" />
+          <motion.span
+            className="absolute -right-1 -top-1 h-3 w-3 rounded-full bg-emerald-300 shadow-[0_0_18px_rgba(110,231,183,.95)]"
+            animate={reduceMotion ? undefined : { opacity: [0.4, 1, 0.4], scale: [0.8, 1.25, 0.8] }}
+            transition={{ duration: 1.05, repeat: reduceMotion ? 0 : Infinity, ease: "easeInOut" }}
+          />
+        </motion.div>
+
+        <h1 className="mt-7 text-3xl font-black uppercase tracking-[0.12em] text-white sm:text-5xl">
+          Urban Carrier OS
+        </h1>
+        <p className="mt-3 text-[11px] font-semibold uppercase tracking-[0.27em] text-cyan-200/75 sm:text-xs">
+          Business • Driver • Customer
+        </p>
+
+        <div className="mt-9 flex w-full max-w-md items-center gap-3" aria-hidden="true">
+          {["BUSINESS", "DRIVER", "CUSTOMER"].map((label, index) => (
+            <Fragment key={label}>
+              <motion.div
+                className="grid h-9 min-w-0 flex-1 place-items-center rounded-lg border border-white/10 bg-white/[0.035] px-2 text-[8px] font-black tracking-[0.16em] text-white/65 sm:text-[9px]"
+                animate={reduceMotion ? undefined : { borderColor: ["rgba(255,255,255,.10)", "rgba(34,211,238,.48)", "rgba(255,255,255,.10)"] }}
+                transition={{ duration: 1.25, delay: index * 0.18, repeat: reduceMotion ? 0 : Infinity, ease: "easeInOut" }}
+              >
+                {label}
+              </motion.div>
+              {index < 2 && <ArrowRight className="h-4 w-4 shrink-0 text-cyan-300/55" />}
+            </Fragment>
+          ))}
+        </div>
+
+        <div className="mt-9 w-full max-w-md">
+          <div className="h-[3px] overflow-hidden rounded-full bg-white/10">
+            <motion.div
+              className="h-full rounded-full bg-gradient-to-r from-cyan-400 via-blue-400 to-emerald-400 shadow-[0_0_18px_rgba(34,211,238,.45)]"
+              initial={{ scaleX: 0 }}
+              animate={{ scaleX: 1 }}
+              style={{ transformOrigin: "left" }}
+              transition={{ duration: reduceMotion ? 0.55 : 1.45, ease: "easeInOut" }}
+            />
+          </div>
+          <motion.p
+            className="mt-3 text-[9px] font-bold uppercase tracking-[0.3em] text-white/40"
+            animate={reduceMotion ? undefined : { opacity: [0.35, 0.85, 0.35] }}
+            transition={{ duration: 1.1, repeat: reduceMotion ? 0 : Infinity, ease: "easeInOut" }}
+          >
+            Initializing logistics network
+          </motion.p>
+        </div>
+      </div>
+    </main>
+  );
+}
+
 type SystemHealth = "checking" | "online" | "issue";
 
 export default function Home() {
   const [globeVideoFailed, setGlobeVideoFailed] = useState(false);
   const [customModalOpen, setCustomModalOpen] = useState(false);
   const [systemHealth, setSystemHealth] = useState<SystemHealth>("checking");
+  const [showStartupSplash, setShowStartupSplash] = useState(true);
+  const reduceMotion = useReducedMotion();
+
+  useEffect(() => {
+    const timer = window.setTimeout(
+      () => setShowStartupSplash(false),
+      reduceMotion ? 650 : 1650,
+    );
+    return () => window.clearTimeout(timer);
+  }, [reduceMotion]);
 
   useEffect(() => {
     let mounted = true;
@@ -117,6 +203,10 @@ export default function Home() {
     const normalized = path.startsWith("/") ? path : `/${path}`;
     return `${base}${normalized}`;
   };
+
+  if (showStartupSplash) {
+    return <UrbanCarrierSplash reduceMotion={Boolean(reduceMotion)} />;
+  }
 
   return (
     <main className="min-h-screen overflow-hidden bg-[#05070b] text-white">
