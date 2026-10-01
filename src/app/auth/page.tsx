@@ -8,7 +8,6 @@ import { authRequest, getApiBase, saveSession, type DispatchOSSession } from "@/
 
 type Mode = "login" | "register";
 type RecoveryMode = "none" | "request" | "reset";
-type RecoveryMode = "none" | "request" | "reset";
 
 type TurnstileApi = {
   render: (
@@ -48,12 +47,6 @@ export default function AuthPage() {
   const [socialProviders, setSocialProviders] = useState<Record<string, boolean>>({});
   const [socialOnboardingTicket, setSocialOnboardingTicket] = useState("");
   const [socialProvider, setSocialProvider] = useState("");
-  const [recoveryMode, setRecoveryMode] = useState<RecoveryMode>("none");
-  const [resetToken, setResetToken] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
-  const [socialProviders, setSocialProviders] = useState<Record<string, boolean>>({});
-  const [socialOnboardingTicket, setSocialOnboardingTicket] = useState("");
-  const [socialProvider, setSocialProvider] = useState("");
   const turnstileContainerRef = useRef<HTMLDivElement | null>(null);
   const turnstileWidgetIdRef = useRef<string | null>(null);
   const turnstileSiteKey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY || "";
@@ -63,10 +56,6 @@ export default function AuthPage() {
     const params = new URLSearchParams(window.location.search);
     const requestedMode = params.get("mode");
     const requestedPlan = params.get("plan");
-    const incomingReset = params.get("reset_token") || "";
-    const socialTicket = params.get("social_ticket") || "";
-    const onboardingTicket = params.get("social_onboarding_ticket") || "";
-    const socialError = params.get("social_error") || "";
     const incomingReset = params.get("reset_token") || "";
     const socialTicket = params.get("social_ticket") || "";
     const onboardingTicket = params.get("social_onboarding_ticket") || "";
@@ -195,60 +184,6 @@ export default function AuthPage() {
       setMode("login");
       setPassword("");
       setConfirmPassword("");
-      setError(result.message || "Password updated. Sign in with your new password.");
-      window.history.replaceState(null, "", window.location.pathname + "?mode=login");
-    } catch (cause) {
-      setError(cause instanceof Error ? cause.message : "Password reset failed.");
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  function beginSocial(provider: string) {
-    const api = getApiBase();
-    if (!api) {
-      setError("Urban Carrier OS account service is not connected yet.");
-      return;
-    }
-    const url = new URL(api + "/auth/social/" + provider + "/start");
-    url.searchParams.set("purpose", mode === "register" ? "register" : "login");
-    window.location.assign(url.toString());
-  }
-
-  async function requestRecovery(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    setLoading(true);
-    setError("");
-    try {
-      const result = await authRequest("/auth/password-reset/request", {
-        method: "POST",
-        body: JSON.stringify({ email }),
-      });
-      setError(result.message || "If that account exists, a reset link will be sent.");
-    } catch (cause) {
-      setError(cause instanceof Error ? cause.message : "Password recovery is unavailable.");
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  async function finishRecovery(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    if (password !== confirmPassword) {
-      setError("The passwords do not match.");
-      return;
-    }
-    setLoading(true);
-    setError("");
-    try {
-      const result = await authRequest("/auth/password-reset/confirm", {
-        method: "POST",
-        body: JSON.stringify({ token: resetToken, password }),
-      });
-      setRecoveryMode("none");
-      setPassword("");
-      setConfirmPassword("");
-      setMode("login");
       setError(result.message || "Password updated. Sign in with your new password.");
       window.history.replaceState(null, "", window.location.pathname + "?mode=login");
     } catch (cause) {
