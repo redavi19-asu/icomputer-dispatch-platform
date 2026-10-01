@@ -276,3 +276,59 @@ CREATE INDEX IF NOT EXISTS idx_courier_routes_driver ON courier_routes(company_i
 CREATE INDEX IF NOT EXISTS idx_courier_stops_route ON courier_stops(route_id, sequence);
 CREATE INDEX IF NOT EXISTS idx_courier_stops_tracking ON courier_stops(company_id, tracking_code);
 CREATE INDEX IF NOT EXISTS idx_courier_proofs_stop ON courier_proofs(stop_id, created_at);
+
+
+-- Password recovery and customer social identity support.
+CREATE TABLE IF NOT EXISTS password_reset_tokens (
+  token_hash TEXT PRIMARY KEY,
+  user_id TEXT NOT NULL,
+  expires_at TEXT NOT NULL,
+  used_at TEXT,
+  created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS social_auth_states (
+  state_hash TEXT PRIMARY KEY,
+  provider TEXT NOT NULL,
+  purpose TEXT NOT NULL,
+  code_verifier TEXT NOT NULL,
+  nonce TEXT NOT NULL,
+  expires_at TEXT NOT NULL,
+  created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS social_identities (
+  provider TEXT NOT NULL,
+  provider_subject TEXT NOT NULL,
+  user_id TEXT NOT NULL,
+  email TEXT NOT NULL,
+  created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY(provider, provider_subject),
+  FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS social_login_tickets (
+  ticket_hash TEXT PRIMARY KEY,
+  user_id TEXT NOT NULL,
+  provider TEXT NOT NULL,
+  expires_at TEXT NOT NULL,
+  used_at TEXT,
+  created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS social_onboarding_tickets (
+  ticket_hash TEXT PRIMARY KEY,
+  provider TEXT NOT NULL,
+  provider_subject TEXT NOT NULL,
+  email TEXT NOT NULL,
+  display_name TEXT NOT NULL,
+  expires_at TEXT NOT NULL,
+  used_at TEXT,
+  created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX IF NOT EXISTS idx_password_reset_user ON password_reset_tokens(user_id, expires_at);
+CREATE INDEX IF NOT EXISTS idx_social_identity_user ON social_identities(user_id);

@@ -1,3 +1,5 @@
+import { handlePasswordRecovery } from "./password-recovery";
+import { handleSocialAuth } from "./social-auth";
 interface Env {
   DB: D1Database;
   ICA_DB: D1Database;
@@ -5,6 +7,15 @@ interface Env {
   ADMIN_EMAIL?: string;
   TURNSTILE_SECRET_KEY?: string;
   PUBLIC_REGISTRATION_ENABLED?: string;
+  PUBLIC_APP_ORIGIN?: string;
+  RESEND_API_KEY?: string;
+  ICA_AUTH_FROM_EMAIL?: string;
+  SOCIAL_GOOGLE_CLIENT_ID?: string;
+  SOCIAL_GOOGLE_CLIENT_SECRET?: string;
+  SOCIAL_APPLE_CLIENT_ID?: string;
+  SOCIAL_APPLE_CLIENT_SECRET?: string;
+  SOCIAL_MICROSOFT_CLIENT_ID?: string;
+  SOCIAL_MICROSOFT_CLIENT_SECRET?: string;
 }
 
 type RegisterBody = {
@@ -104,6 +115,12 @@ export default {
           publicRegistration: true,
         }, healthy ? 200 : 503, cors);
       }
+
+      const recoveryResponse = await handlePasswordRecovery(request, env, cors);
+      if (recoveryResponse) return recoveryResponse;
+
+      const socialResponse = await handleSocialAuth(request, env, cors);
+      if (socialResponse) return socialResponse;
 
       if (url.pathname === "/auth/register" && request.method === "POST") {
         return await register(request, env, cors);
