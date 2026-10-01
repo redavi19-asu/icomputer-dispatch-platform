@@ -278,7 +278,7 @@ CREATE INDEX IF NOT EXISTS idx_courier_stops_tracking ON courier_stops(company_i
 CREATE INDEX IF NOT EXISTS idx_courier_proofs_stop ON courier_proofs(stop_id, created_at);
 
 
--- Password recovery and customer social identity support.
+-- Account recovery and customer social identity support.
 CREATE TABLE IF NOT EXISTS password_reset_tokens (
   token_hash TEXT PRIMARY KEY,
   user_id TEXT NOT NULL,
