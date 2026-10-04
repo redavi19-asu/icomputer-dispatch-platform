@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { UrbanCarrierMark } from "@/components/branding/urban-carrier-mark";
 
 const STORAGE_KEY = "dispatchos-cookie-consent";
 
@@ -37,12 +38,13 @@ export function LegalConsent() {
   return (
     <>
       {showCookies && (
-        <div className="fixed inset-x-4 bottom-4 z-[9999] mx-auto flex max-w-5xl flex-wrap items-center justify-between gap-4 rounded-2xl border border-sky-200 bg-white/95 px-5 py-4 text-slate-900 shadow-[0_22px_70px_rgba(6,26,51,.22)] backdrop-blur-xl">
-          <div className="max-w-3xl">
-            <p className="text-sm font-semibold">Urban Carrier OS privacy & cookies</p>
+        <div className="fixed inset-x-4 bottom-4 z-[9999] mx-auto flex max-w-5xl flex-wrap items-center justify-between gap-4 rounded-2xl border border-sky-100 bg-white px-5 py-4 text-slate-900 shadow-[0_18px_55px_rgba(6,26,51,.16)] backdrop-blur-xl">
+          <div className="flex max-w-3xl items-start gap-3">
+            <UrbanCarrierMark href="" size="sm" />
+            <div><p className="text-sm font-semibold text-[#061a33]">Urban Carrier OS privacy & cookies</p>
             <p className="mt-1 text-xs leading-5 text-slate-600">
               Urban Carrier OS uses essential browser storage and session technologies for account sign-in, security, preferences, and core platform functionality. Optional technologies may be used to improve the product experience.
-            </p>
+            </p></div>
           </div>
           <div className="flex flex-wrap gap-2">
             <button type="button" onClick={() => choose("essential-only")} className="rounded-lg border border-sky-200 bg-sky-50 px-4 py-2 text-sm font-semibold text-[#08274f] transition hover:border-sky-300 hover:bg-sky-100">
