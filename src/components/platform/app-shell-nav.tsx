@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Crown, LogOut } from "lucide-react";
 import { getStoredSession, logoutSession } from "@/lib/dispatchos-auth";
+import { UrbanCarrierMark } from "@/components/branding/urban-carrier-mark";
 
 const navItems = [
   { label: "Workspace", href: "/workspace" },
@@ -41,8 +42,8 @@ export function AppShellNav() {
   };
 
   return (
-    <div className="border-b border-white/10 bg-slate-950/90 backdrop-blur">
-      <div className="mx-auto flex max-w-7xl flex-wrap items-center gap-2 px-6 py-3">
+    <div className="border-b border-sky-300/15 bg-[linear-gradient(90deg,rgba(6,26,51,.97),rgba(8,39,79,.96),rgba(10,74,145,.90))] shadow-[0_8px_30px_rgba(0,20,60,.18)] backdrop-blur">
+      <div className="mx-auto flex max-w-7xl flex-wrap items-center gap-2 px-6 py-3"><UrbanCarrierMark href="/" size="sm" showText className="mr-2" />
         {navItems.map((item) => {
           const active = isActivePath(pathname, item.href);
           return (
@@ -51,8 +52,8 @@ export function AppShellNav() {
               href={item.href}
               className={`inline-flex items-center rounded-lg border px-3 py-2 text-sm transition ${
                 active
-                  ? "border-cyan-400/45 bg-cyan-500/15 text-cyan-100"
-                  : "border-white/10 bg-white/[0.04] text-white/80 hover:bg-white/10"
+                  ? "border-orange-300/40 bg-orange-500/18 text-orange-50 shadow-[0_6px_18px_rgba(249,115,22,.12)]"
+                  : "border-white/10 bg-white/[0.04] text-sky-50/80 hover:border-sky-300/25 hover:bg-sky-400/[0.10] hover:text-white"
               }`}
             >
               {item.label}
