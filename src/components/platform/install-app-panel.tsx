@@ -9,6 +9,7 @@ import {
   Share2,
   Smartphone,
 } from "lucide-react";
+import { UrbanCarrierMark } from "@/components/branding/urban-carrier-mark";
 
 interface BeforeInstallPromptEvent extends Event {
   prompt: () => Promise<void>;
@@ -70,39 +71,37 @@ export function InstallAppPanel({ title, description, launchHref, device }: Inst
         "Open this page in Safari.",
         "Tap the Share button at the bottom of Safari.",
         "Choose Add to Home Screen.",
-        "Tap Add. The DispatchOS icon will appear on your Home Screen.",
-        "Tap the new icon anytime to open DispatchOS like an app.",
+        "Tap Add. The Urban Carrier OS icon will appear on your Home Screen.",
+        "Tap the new icon anytime to open Urban Carrier OS like an app.",
       ]
     : isAndroid
       ? [
           "Open this page in Chrome.",
           "Tap Install App when the button is available.",
-          "Approve the install. DispatchOS will be added to your apps and may also appear on your Home Screen.",
+          "Approve the install. Urban Carrier OS will be added to your apps and may also appear on your Home Screen.",
           "If no install button appears, open Chrome's menu and choose Install app or Add to Home screen.",
-          "Tap the DispatchOS icon anytime to open the app.",
+          "Tap the Urban Carrier OS icon anytime to open the app.",
         ]
       : device === "desktop"
         ? [
             "Open this page in Chrome or Edge.",
             "Click Install App when the install option appears.",
-            "Approve the install so DispatchOS can open in its own app window.",
-            "Use the DispatchOS icon or shortcut to launch it later.",
+            "Approve the install so Urban Carrier OS can open in its own app window.",
+            "Use the Urban Carrier OS icon or shortcut to launch it later.",
           ]
         : [
             "Open this page in your browser.",
             "Use Install app or Add to Home screen from the browser menu.",
-            "Confirm the install and look for the DispatchOS icon on your device.",
-            "Tap the icon anytime to launch DispatchOS.",
+            "Confirm the install and look for the Urban Carrier OS icon on your device.",
+            "Tap the icon anytime to launch Urban Carrier OS.",
           ];
 
   return (
-    <section className="mx-auto w-full max-w-2xl rounded-3xl border border-white/10 bg-white/5 p-6 text-white shadow-2xl backdrop-blur md:p-8">
+    <section className="mx-auto w-full max-w-2xl rounded-3xl border border-sky-300/20 bg-[linear-gradient(160deg,rgba(8,39,79,.94),rgba(6,26,51,.98))] p-6 text-white shadow-2xl backdrop-blur md:p-8">
       <div className="flex items-start gap-4">
-        <div className="rounded-2xl border border-cyan-400/30 bg-cyan-500/10 p-3 text-cyan-200">
-          <Icon className="h-7 w-7" />
-        </div>
+        <UrbanCarrierMark href="/" size="lg" />
         <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.22em] text-cyan-300">Install DispatchOS</p>
+          <p className="text-xs font-semibold uppercase tracking-[0.22em] text-orange-200">Install Urban Carrier OS</p>
           <h1 className="mt-2 text-3xl font-semibold">{title}</h1>
           <p className="mt-3 leading-7 text-white/70">{description}</p>
         </div>
@@ -113,7 +112,7 @@ export function InstallAppPanel({ title, description, launchHref, device }: Inst
           <button
             type="button"
             onClick={install}
-            className="inline-flex items-center justify-center gap-2 rounded-xl bg-cyan-400 px-5 py-3 font-semibold text-slate-950 transition hover:bg-cyan-300"
+            className="inline-flex items-center justify-center gap-2 rounded-xl bg-orange-500 px-5 py-3 font-semibold text-white transition hover:bg-orange-400"
           >
             <Download className="h-4 w-4" />
             Install App
@@ -121,7 +120,7 @@ export function InstallAppPanel({ title, description, launchHref, device }: Inst
         ) : (
           <a
             href={launchHref}
-            className="inline-flex items-center justify-center gap-2 rounded-xl bg-cyan-400 px-5 py-3 font-semibold text-slate-950 transition hover:bg-cyan-300"
+            className="inline-flex items-center justify-center gap-2 rounded-xl bg-orange-500 px-5 py-3 font-semibold text-white transition hover:bg-orange-400"
           >
             <ExternalLink className="h-4 w-4" />
             {installed ? "Open Installed App" : "Open App"}
@@ -135,15 +134,15 @@ export function InstallAppPanel({ title, description, launchHref, device }: Inst
         </a>
       </div>
 
-      <div className="mt-7 rounded-2xl border border-cyan-400/15 bg-slate-950/70 p-5">
+      <div className="mt-7 rounded-2xl border border-sky-300/15 bg-[#061a33]/72 p-5">
         <div className="flex items-center gap-3">
-          <div className="rounded-xl bg-cyan-500/10 p-2 text-cyan-300">
+          <div className="rounded-xl bg-cyan-500/10 p-2 text-orange-200">
             {isIos ? <Share2 className="h-5 w-5" /> : <Download className="h-5 w-5" />}
           </div>
           <div>
-            <p className="text-sm font-semibold text-white">Put the DispatchOS icon on this device</p>
+            <p className="text-sm font-semibold text-white">Put the Urban Carrier OS icon on this device</p>
             <p className="mt-1 text-xs text-white/45">
-              Follow these steps once. After that, open DispatchOS from the icon like any other app.
+              Follow these steps once. After that, open Urban Carrier OS from the icon like any other app.
             </p>
           </div>
         </div>
@@ -151,7 +150,7 @@ export function InstallAppPanel({ title, description, launchHref, device }: Inst
         <div className="mt-5 space-y-3">
           {installSteps.map((step, index) => (
             <div key={step} className="flex items-start gap-3">
-              <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-cyan-400/25 bg-cyan-500/10 text-[11px] font-bold text-cyan-200">
+              <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-orange-300/25 bg-orange-500/10 text-[11px] font-bold text-orange-100">
                 {index + 1}
               </div>
               <p className="pt-0.5 text-sm leading-6 text-white/68">{step}</p>
@@ -164,12 +163,12 @@ export function InstallAppPanel({ title, description, launchHref, device }: Inst
         <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-emerald-300" />
         <div>
           <p className="text-sm font-semibold text-emerald-100">
-            {installed ? "DispatchOS is installed on this device." : "What happens after installation"}
+            {installed ? "Urban Carrier OS is installed on this device." : "What happens after installation"}
           </p>
           <p className="mt-1 text-sm leading-6 text-emerald-100/65">
             {installed
-              ? "Use Open Installed App above or launch DispatchOS from the icon on your device."
-              : "You will see a DispatchOS icon on your phone, tablet, or computer. Tap or click that icon to launch the app without coming back through the website each time."}
+              ? "Use Open Installed App above or launch Urban Carrier OS from the icon on your device."
+              : "You will see a Urban Carrier OS icon on your phone, tablet, or computer. Tap or click that icon to launch the app without coming back through the website each time."}
           </p>
         </div>
       </div>
