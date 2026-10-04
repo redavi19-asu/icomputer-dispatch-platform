@@ -10,6 +10,7 @@ import {
   saveSession,
   type DispatchOSSession,
 } from "@/lib/dispatchos-auth";
+import { UrbanCarrierMark } from "@/components/branding/urban-carrier-mark";
 
 type ProtectedRouteProps = {
   children: ReactNode;
@@ -87,10 +88,10 @@ export default function ProtectedRoute({
 
   if (!ready || !allowed) {
     return (
-      <main className="flex min-h-screen items-center justify-center bg-slate-950 px-6 text-white">
-        <div className="max-w-md rounded-3xl border border-cyan-400/15 bg-cyan-500/[0.05] p-8 text-center">
-          <LockKeyhole className="mx-auto h-9 w-9 text-cyan-300" />
-          <p className="mt-5 text-lg font-semibold">Checking DispatchOS access…</p>
+      <main className="flex min-h-screen items-center justify-center bg-[#061a33] px-6 text-white">
+        <div className="max-w-md rounded-3xl border border-sky-300/15 bg-[linear-gradient(160deg,rgba(8,39,79,.94),rgba(6,26,51,.98))] p-8 text-center">
+          <div className="mb-5 flex justify-center"><UrbanCarrierMark href="" size="lg" /></div><LockKeyhole className="mx-auto h-7 w-7 text-orange-200" />
+          <p className="mt-5 text-lg font-semibold">Checking Urban Carrier OS access…</p>
           <p className="mt-2 text-sm text-white/50">
             Company tools require a signed-in account with operating access.
           </p>
