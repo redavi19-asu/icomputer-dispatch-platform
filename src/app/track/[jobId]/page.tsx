@@ -18,6 +18,7 @@ import {
 } from "@/lib/platform/workspace-preferences";
 import { getCompanyBySlug, getDriversByCompany } from "@/lib/platform/selectors";
 import { getTrackingSurfaceConfig } from "@/lib/platform/surface-preferences";
+import { UrbanCarrierMark } from "@/components/branding/urban-carrier-mark";
 
 type TrackJob = {
   id: string;
@@ -184,7 +185,7 @@ export default function TrackJobPage() {
 
   if (isLoading) {
     return (
-      <main className="min-h-screen bg-slate-950 px-4 py-10 text-white">
+      <main className="min-h-screen bg-[#061a33] px-4 py-10 text-white">
         <div className="mx-auto max-w-xl">Loading tracking...</div>
       </main>
     );
@@ -192,7 +193,7 @@ export default function TrackJobPage() {
 
   if (error || !job) {
     return (
-      <main className="min-h-screen bg-slate-950 px-4 py-10 text-white">
+      <main className="min-h-screen bg-[#061a33] px-4 py-10 text-white">
         <div className="mx-auto max-w-xl rounded-2xl border border-white/10 bg-white/5 p-6">
           <h1 className="text-2xl font-semibold">Tracking unavailable</h1>
           <p className="mt-2 text-white/70">{error ?? "Tracking record not found."}</p>
@@ -209,7 +210,7 @@ export default function TrackJobPage() {
 
   if (!companySlug) {
     return (
-      <main className="min-h-screen bg-slate-950 px-4 py-10 text-white">
+      <main className="min-h-screen bg-[#061a33] px-4 py-10 text-white">
         <div className="mx-auto max-w-xl rounded-2xl border border-white/10 bg-white/5 p-6">
           <h1 className="text-2xl font-semibold">Tracking unavailable</h1>
           <p className="mt-2 text-white/70">This tracking record is missing its company identity.</p>
@@ -220,7 +221,7 @@ export default function TrackJobPage() {
 
   if (!trackingSurface.enabled) {
     return (
-      <main className="min-h-screen bg-slate-950 px-4 py-10 text-white">
+      <main className="min-h-screen bg-[#061a33] px-4 py-10 text-white">
         <div className="mx-auto max-w-xl rounded-2xl border border-white/10 bg-white/5 p-6">
           <h1 className="text-2xl font-semibold">Tracking disabled</h1>
           <p className="mt-2 text-white/70">
@@ -232,9 +233,9 @@ export default function TrackJobPage() {
   }
 
   return (
-    <main className="min-h-screen bg-slate-950 text-white">
-      <section className="mx-auto max-w-xl px-4 py-8 sm:px-6 sm:py-10">
-        <p className="text-xs uppercase tracking-[0.2em] text-cyan-300">
+    <main className="min-h-screen bg-[#061a33] text-white">
+      <section className="mx-auto max-w-xl px-4 py-8 sm:px-6 sm:py-10"><div className="mb-5"><UrbanCarrierMark href="/" size="md" showText /></div>
+        <p className="text-xs uppercase tracking-[0.2em] text-sky-300">
           {workspaceSettings.companyName || companySlug} Tracking
         </p>
         <h1 className="mt-2 text-2xl font-semibold">Job {job.id}</h1>
@@ -255,7 +256,7 @@ export default function TrackJobPage() {
             <div className="grid gap-3 text-sm">
               <div className="flex items-center justify-between">
                 <span className="text-white/60">Status</span>
-                <span className="rounded-full border border-cyan-400/35 bg-cyan-500/15 px-3 py-1 text-cyan-100">
+                <span className="rounded-full border border-orange-300/35 bg-orange-500/15 px-3 py-1 text-orange-100">
                   {getDisplayStatusLabel(job.status)}
                 </span>
               </div>
@@ -279,7 +280,7 @@ export default function TrackJobPage() {
 
         <Card className="mt-4 rounded-2xl border border-white/10 bg-white/5 text-white shadow-none">
           <CardContent className="p-5">
-            <p className="text-sm font-semibold text-cyan-200">Progress</p>
+            <p className="text-sm font-semibold text-orange-200">Progress</p>
             <div className="mt-3 space-y-2">
               {workflowStages.map((stage) => {
                 const reached = reachedStageSet.has(stage.status);
@@ -301,10 +302,10 @@ export default function TrackJobPage() {
         {trackingSurface.showTimeline ? (
           <Card className="mt-4 rounded-2xl border border-white/10 bg-white/5 text-white shadow-none">
             <CardContent className="p-5">
-              <p className="text-sm font-semibold text-cyan-200">Timeline</p>
+              <p className="text-sm font-semibold text-orange-200">Timeline</p>
               <div className="mt-3 space-y-3">
                 {timeline.map((event, index) => (
-                  <div key={`${event.at}-${index}`} className="rounded-xl border border-white/10 bg-slate-900/70 p-3">
+                  <div key={`${event.at}-${index}`} className="rounded-xl border border-white/10 bg-[#08274f]/75 p-3">
                     <div className="flex items-center justify-between gap-3">
                       <p className="text-sm font-medium text-white">{event.label}</p>
                       <p className="text-[11px] text-white/50">
@@ -323,7 +324,7 @@ export default function TrackJobPage() {
           <Card className="mt-4 rounded-2xl border border-white/10 bg-white/5 text-white shadow-none">
             <CardContent className="p-5">
               <div className="flex items-start gap-3">
-                <ShieldCheck className="mt-0.5 h-5 w-5 text-cyan-300" />
+                <ShieldCheck className="mt-0.5 h-5 w-5 text-sky-300" />
                 <div>
                   <p className="text-sm font-semibold text-white">Handoff verification</p>
                   <p className="mt-1 text-xs text-white/65">
@@ -331,7 +332,7 @@ export default function TrackJobPage() {
                       ? "Verification checkpoints are active for chain-of-custody handoff."
                       : "Tracking proof and verification controls are active for this workspace."}
                   </p>
-                  <p className="mt-2 text-xs text-cyan-200">
+                  <p className="mt-2 text-xs text-orange-200">
                     {job.handoffVerifiedAt
                       ? `Verified at ${new Date(job.handoffVerifiedAt).toLocaleString()}`
                       : "Pending final verification"}
