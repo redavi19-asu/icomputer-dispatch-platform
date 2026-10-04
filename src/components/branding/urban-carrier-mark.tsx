@@ -1,7 +1,5 @@
 import Link from "next/link";
-
-const appBase = () =>
-  process.env.NODE_ENV === "production" ? "/icomputer-dispatch-platform" : "";
+import { URBAN_CARRIER_ICON_DATA_URI } from "@/lib/urban-carrier-brand";
 
 type UrbanCarrierMarkProps = {
   href?: string;
@@ -26,7 +24,7 @@ export function UrbanCarrierMark({
     <span className={"inline-flex items-center gap-3 " + className}>
       <span className={`${sizeClasses[size]} overflow-hidden border border-white/35 bg-white p-0.5 shadow-lg`}>
         <img
-          src={`${appBase()}/urban-carrier-icon.svg`}
+          src={URBAN_CARRIER_ICON_DATA_URI}
           alt="Urban Carrier OS"
           className="h-full w-full rounded-[inherit] object-cover"
         />
