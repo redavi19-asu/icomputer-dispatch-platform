@@ -1,4 +1,4 @@
-const CACHE_NAME = "urban-carrier-shell-v2";
+const CACHE_NAME = "urban-carrier-shell-v3";
 const APP_BASE = new URL(self.registration.scope).pathname.replace(/\/$/, "");
 const APP_SHELL = [
   APP_BASE + "/",
