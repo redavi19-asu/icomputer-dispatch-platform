@@ -5,6 +5,7 @@ import { Bell, Filter, LayoutDashboard, MapPinned, Search, Users } from "lucide-
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { DispatchMap } from "@/components/platform/dispatch-map";
+import { UrbanCarrierMark } from "@/components/branding/urban-carrier-mark";
 import { companies } from "@/lib/platform/mock-data";
 import { getCompanyBySlug, getDriversByCompany } from "@/lib/platform/selectors";
 
@@ -44,10 +45,10 @@ export default async function CompanyDashboardPage({ params }: CompanyDashboardP
 
   if (process.env.NEXT_OUTPUT_EXPORT === "true") {
     return (
-      <main className="min-h-screen bg-slate-950 text-white">
-        <div className="border-b border-white/10 bg-slate-950/90 backdrop-blur">
+      <main className="min-h-screen bg-[#061a33] text-white">
+        <div className="border-b border-white/10 bg-[#061a33]/90 backdrop-blur">
           <div className="mx-auto max-w-7xl px-6 py-6">
-            <p className="text-xs uppercase tracking-[0.25em] text-cyan-300">Dispatch Platform</p>
+            <p className="text-xs uppercase tracking-[0.25em] text-sky-300">Dispatch Platform</p>
             <h1 className="mt-1 text-2xl font-semibold">{company.name} Dispatch Dashboard</h1>
             <p className="mt-3 max-w-2xl text-sm text-white/65">
               Live dashboard data is available in the full application runtime.
@@ -76,12 +77,12 @@ export default async function CompanyDashboardPage({ params }: CompanyDashboardP
   }
 
   return (
-    <main className="min-h-screen bg-slate-950 text-white">
-      <div className="border-b border-white/10 bg-slate-950/90 backdrop-blur">
+    <main className="min-h-screen bg-[#061a33] text-white">
+      <div className="border-b border-white/10 bg-[#061a33]/90 backdrop-blur">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
-          <div>
-            <p className="text-xs uppercase tracking-[0.25em] text-cyan-300">Dispatch Platform</p>
-            <h1 className="mt-1 text-2xl font-semibold">{company.name} Dispatch Dashboard</h1>
+          <div className="flex items-center gap-4"><UrbanCarrierMark href="/" size="sm" /><div>
+            <p className="text-xs uppercase tracking-[0.25em] text-orange-200">Urban Carrier OS</p>
+            <h1 className="mt-1 text-2xl font-semibold">{company.name} Dispatch Dashboard</h1></div>
           </div>
 
           <div className="flex items-center gap-3">
@@ -89,7 +90,7 @@ export default async function CompanyDashboardPage({ params }: CompanyDashboardP
               <Bell className="mr-2 h-4 w-4" />
               Alerts
             </Button>
-            <Button className="bg-cyan-500 text-slate-950 hover:bg-cyan-400">New Job</Button>
+            <Button className="bg-orange-500 text-white hover:bg-orange-400">New Job</Button>
           </div>
         </div>
       </div>
@@ -98,13 +99,13 @@ export default async function CompanyDashboardPage({ params }: CompanyDashboardP
         <aside className="space-y-6">
           <Card className="rounded-2xl border border-white/10 bg-white/5 text-white shadow-none">
             <CardContent className="p-5">
-              <div className="flex items-center gap-2 text-cyan-300">
+              <div className="flex items-center gap-2 text-sky-300">
                 <LayoutDashboard className="h-5 w-5" />
                 <h2 className="text-sm font-semibold uppercase tracking-[0.2em]">Views</h2>
               </div>
 
               <div className="mt-4 space-y-3 text-sm">
-                <div className="rounded-xl border border-cyan-400/30 bg-cyan-400/10 px-4 py-3">Map View</div>
+                <div className="rounded-xl border border-orange-300/30 bg-orange-500/10 px-4 py-3">Map View</div>
                 <div className="rounded-xl border border-white/10 bg-white/5 px-4 py-3">Table View</div>
                 <div className="rounded-xl border border-white/10 bg-white/5 px-4 py-3">Driver View</div>
                 <div className="rounded-xl border border-white/10 bg-white/5 px-4 py-3">Analytics</div>
@@ -114,17 +115,17 @@ export default async function CompanyDashboardPage({ params }: CompanyDashboardP
 
           <Card className="rounded-2xl border border-white/10 bg-white/5 text-white shadow-none">
             <CardContent className="p-5">
-              <div className="flex items-center gap-2 text-cyan-300">
+              <div className="flex items-center gap-2 text-sky-300">
                 <Users className="h-5 w-5" />
                 <h2 className="text-sm font-semibold uppercase tracking-[0.2em]">Drivers</h2>
               </div>
 
               <div className="mt-4 space-y-3">
                 {companyDrivers.map((driver) => (
-                  <div key={driver.id} className="rounded-xl border border-white/10 bg-slate-900/70 p-4">
+                  <div key={driver.id} className="rounded-xl border border-white/10 bg-[#08274f]/72 p-4">
                     <div className="flex items-center justify-between">
                       <p className="font-medium">{driver.name}</p>
-                      <span className="text-xs capitalize text-cyan-300">{driver.status}</span>
+                      <span className="text-xs capitalize text-sky-300">{driver.status}</span>
                     </div>
                     <p className="mt-2 text-sm text-white/60">{driver.zone}</p>
                   </div>
@@ -162,22 +163,22 @@ export default async function CompanyDashboardPage({ params }: CompanyDashboardP
         <aside>
           <Card className="rounded-2xl border border-white/10 bg-white/5 text-white shadow-none">
             <CardContent className="p-5">
-              <h2 className="text-sm font-semibold uppercase tracking-[0.2em] text-cyan-300">Open Jobs</h2>
+              <h2 className="text-sm font-semibold uppercase tracking-[0.2em] text-sky-300">Open Jobs</h2>
 
               <div className="mt-4 space-y-3">
                 {companyJobs.length === 0 ? (
-                  <div className="rounded-xl border border-white/10 bg-slate-900/70 p-4 text-sm text-white/60">
+                  <div className="rounded-xl border border-white/10 bg-[#08274f]/72 p-4 text-sm text-white/60">
                     No jobs yet for this company.
                   </div>
                 ) : (
                   companyJobs.map((job) => (
-                    <div key={job.id} className="rounded-xl border border-white/10 bg-slate-900/70 p-4">
+                    <div key={job.id} className="rounded-xl border border-white/10 bg-[#08274f]/72 p-4">
                       <div className="flex items-start justify-between gap-3">
                         <div>
                           <p className="font-semibold">{job.id}</p>
                           <p className="mt-1 text-sm text-white/65">{job.name ?? "New Customer Request"}</p>
                         </div>
-                        <span className="rounded-full bg-cyan-400/10 px-2 py-1 text-[11px] capitalize text-cyan-300">
+                        <span className="rounded-full bg-cyan-400/10 px-2 py-1 text-[11px] capitalize text-sky-300">
                           {job.status}
                         </span>
                       </div>
@@ -190,7 +191,7 @@ export default async function CompanyDashboardPage({ params }: CompanyDashboardP
                       </div>
 
                       <div className="mt-4 flex gap-2">
-                        <Button className="flex-1 bg-cyan-500 text-slate-950 hover:bg-cyan-400">Assign</Button>
+                        <Button className="flex-1 bg-orange-500 text-white hover:bg-orange-400">Assign</Button>
                         <Button variant="secondary" className="flex-1 border border-white/10 bg-white/5 text-white hover:bg-white/10">
                           Open
                         </Button>
