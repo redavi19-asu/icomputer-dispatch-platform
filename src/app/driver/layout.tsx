@@ -9,7 +9,7 @@ export const metadata: Metadata = {
   title: "Urban Carrier OS Driver",
   description: "Mobile-first driver mission app for Urban Carrier OS.",
   applicationName: "Urban Carrier OS Driver",
-  manifest: "/driver.webmanifest",
+  manifest: process.env.NODE_ENV === "production" ? "/icomputer-dispatch-platform/driver.webmanifest" : "/driver.webmanifest",
   appleWebApp: {
     capable: true,
     title: "Urban Carrier OS Driver",
@@ -21,7 +21,7 @@ export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   viewportFit: "cover",
-  themeColor: "#020617",
+  themeColor: "#0a4a91",
   colorScheme: "dark",
 };
 
