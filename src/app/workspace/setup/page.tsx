@@ -3,6 +3,7 @@
 import { FormEvent, useEffect, useState } from "react";
 import { ArrowRight, Building2, CheckCircle2, SlidersHorizontal } from "lucide-react";
 import { getStoredSession } from "@/lib/dispatchos-auth";
+import { UrbanCarrierMark } from "@/components/branding/urban-carrier-mark";
 import {
   readWorkspaceSettings,
   writeWorkspaceSettings,
@@ -48,13 +49,13 @@ export default function CompanySetupPage() {
     window.location.href = `${basePath()}/workspace`;
   }
 
-  if (!settings) return <main className="min-h-screen bg-[#05070b]" />;
+  if (!settings) return <main className="min-h-screen bg-[#061a33]" />;
 
   return (
-    <main className="min-h-screen bg-[#05070b] text-white">
-      <section className="border-b border-white/10 bg-[radial-gradient(circle_at_20%_0%,rgba(34,211,238,.16),transparent_34%),radial-gradient(circle_at_80%_10%,rgba(16,185,129,.11),transparent_30%)]">
+    <main className="min-h-screen bg-[#061a33] text-white">
+      <section className="border-b border-white/10 bg-[radial-gradient(circle_at_20%_0%,rgba(56,189,248,.22),transparent_34%),radial-gradient(circle_at_80%_10%,rgba(249,115,22,.15),transparent_30%),linear-gradient(135deg,#061a33,#0a4a91)]">
         <div className="mx-auto max-w-5xl px-6 py-14 md:py-20">
-          <div className="inline-flex items-center gap-2 rounded-full border border-cyan-400/20 bg-cyan-500/10 px-4 py-2 text-xs font-semibold uppercase tracking-[.2em] text-cyan-200">
+          <div className="mb-6"><UrbanCarrierMark href="/" size="lg" /></div><div className="inline-flex items-center gap-2 rounded-full border border-orange-300/25 bg-orange-500/10 px-4 py-2 text-xs font-semibold uppercase tracking-[.2em] text-orange-100">
             <Building2 className="h-4 w-4" /> Company Setup
           </div>
           <h1 className="mt-5 text-4xl font-semibold tracking-tight md:text-6xl">Set up your company before you install the apps.</h1>
@@ -67,7 +68,7 @@ export default function CompanySetupPage() {
       <section className="mx-auto max-w-5xl px-6 py-10 md:py-14">
         <form onSubmit={submit} className="rounded-[2rem] border border-white/10 bg-white/[0.035] p-7 md:p-9">
           <div className="flex items-center gap-3">
-            <SlidersHorizontal className="h-6 w-6 text-cyan-300" />
+            <SlidersHorizontal className="h-6 w-6 text-sky-300" />
             <div>
               <h2 className="text-xl font-semibold">Company identity and operating preferences</h2>
               <p className="mt-1 text-sm text-white/48">You can change these later from Company Settings.</p>
@@ -77,12 +78,12 @@ export default function CompanySetupPage() {
           <div className="mt-7 grid gap-5 md:grid-cols-2">
             <label className="space-y-2">
               <span className="text-sm text-white/75">Company name</span>
-              <input required value={settings.companyName} onChange={(e) => update("companyName", e.target.value)} className="w-full rounded-xl border border-white/10 bg-black/25 px-4 py-3 outline-none focus:border-cyan-300/50" placeholder="Your company name" />
+              <input required value={settings.companyName} onChange={(e) => update("companyName", e.target.value)} className="w-full rounded-xl border border-white/10 bg-black/25 px-4 py-3 outline-none focus:border-orange-300/60" placeholder="Your company name" />
             </label>
 
             <label className="space-y-2">
               <span className="text-sm text-white/75">Industry / use case</span>
-              <input value={settings.industry} onChange={(e) => update("industry", e.target.value)} className="w-full rounded-xl border border-white/10 bg-black/25 px-4 py-3 outline-none focus:border-cyan-300/50" placeholder="Field service, delivery, maintenance..." />
+              <input value={settings.industry} onChange={(e) => update("industry", e.target.value)} className="w-full rounded-xl border border-white/10 bg-black/25 px-4 py-3 outline-none focus:border-orange-300/60" placeholder="Field service, delivery, maintenance..." />
             </label>
 
             <label className="space-y-2">
@@ -118,7 +119,7 @@ export default function CompanySetupPage() {
             <div className="rounded-2xl border border-white/10 bg-black/20 p-4 text-sm text-white/62"><CheckCircle2 className="mb-3 h-5 w-5 text-emerald-300" /> Download apps after setup</div>
           </div>
 
-          <button disabled={saving} className="mt-8 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-cyan-400 px-6 py-4 font-bold text-slate-950 hover:bg-cyan-300 disabled:opacity-60">
+          <button disabled={saving} className="mt-8 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-orange-500 px-6 py-4 font-bold text-white hover:bg-orange-400 disabled:opacity-60">
             {saving ? "Saving..." : "Finish Company Setup"} <ArrowRight className="h-5 w-5" />
           </button>
         </form>
