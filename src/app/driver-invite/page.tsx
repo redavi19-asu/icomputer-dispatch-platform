@@ -4,6 +4,7 @@ import { FormEvent, useEffect, useState } from "react";
 import { CheckCircle2, KeyRound, LockKeyhole, ShieldCheck, Smartphone, UserRound } from "lucide-react";
 
 import { getApiBase, saveSession, type DispatchOSSession } from "@/lib/dispatchos-auth";
+import { UrbanCarrierMark } from "@/components/branding/urban-carrier-mark";
 
 const basePath = () => (process.env.NODE_ENV === "production" ? "/icomputer-dispatch-platform" : "");
 
@@ -103,9 +104,9 @@ export default function DriverInviteAcceptancePage() {
 
   if (complete) {
     return (
-      <main className="flex min-h-screen items-center justify-center bg-slate-950 px-6 text-white">
-        <div className="w-full max-w-lg rounded-[2rem] border border-emerald-400/20 bg-emerald-500/[0.07] p-8 text-center">
-          <CheckCircle2 className="mx-auto h-12 w-12 text-emerald-300" />
+      <main className="flex min-h-screen items-center justify-center bg-[#061a33] px-6 text-white">
+        <div className="w-full max-w-lg rounded-[2rem] border border-sky-300/20 bg-[linear-gradient(160deg,rgba(8,39,79,.94),rgba(6,26,51,.98))] p-8 text-center">
+          <div className="mb-5 flex justify-center"><UrbanCarrierMark href="" size="lg" /></div><CheckCircle2 className="mx-auto h-10 w-10 text-emerald-300" />
           <h1 className="mt-5 text-2xl font-semibold">Driver access activated.</h1>
           <p className="mt-3 text-sm leading-6 text-white/60">
             Your account is bound to {companyName || "this company"}. Opening your Driver app now.
@@ -116,14 +117,12 @@ export default function DriverInviteAcceptancePage() {
   }
 
   return (
-    <main className="min-h-screen bg-slate-950 px-6 py-12 text-white md:py-20">
-      <section className="mx-auto max-w-xl rounded-[2rem] border border-cyan-400/20 bg-[linear-gradient(145deg,rgba(8,47,73,.38),rgba(2,6,23,.98)_70%)] p-7 shadow-2xl md:p-9">
+    <main className="min-h-screen bg-[#061a33] px-6 py-12 text-white md:py-20">
+      <section className="mx-auto max-w-xl rounded-[2rem] border border-sky-300/20 bg-[linear-gradient(145deg,rgba(10,74,145,.34),rgba(6,26,51,.98)_70%)] p-7 shadow-2xl md:p-9">
         <div className="flex items-start gap-4">
-          <div className="rounded-2xl border border-cyan-300/20 bg-cyan-400/10 p-3">
-            <Smartphone className="h-7 w-7 text-cyan-300" />
-          </div>
+          <UrbanCarrierMark href="/" size="lg" />
           <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.22em] text-cyan-300">Urban Carrier OS Driver</p>
+            <p className="text-xs font-semibold uppercase tracking-[0.22em] text-sky-300">Urban Carrier OS Driver</p>
             <h1 className="mt-2 text-3xl font-semibold">Activate your secure driver access</h1>
             <p className="mt-3 text-sm leading-6 text-white/60">
               This invitation can only be used once. Your account will be attached to the company that issued the invite, not to any other Urban Carrier OS workspace.
@@ -141,8 +140,8 @@ export default function DriverInviteAcceptancePage() {
         <form onSubmit={acceptInvite} className="mt-7 space-y-4">
           <label className="block">
             <span className="mb-2 block text-sm font-medium text-white/75">Your name</span>
-            <div className="flex items-center gap-3 rounded-xl border border-white/12 bg-black/25 px-4 py-3 focus-within:border-cyan-400/50">
-              <UserRound className="h-5 w-5 text-cyan-300" />
+            <div className="flex items-center gap-3 rounded-xl border border-white/12 bg-black/25 px-4 py-3 focus-within:border-orange-300/60">
+              <UserRound className="h-5 w-5 text-sky-300" />
               <input
                 required
                 value={name}
@@ -155,8 +154,8 @@ export default function DriverInviteAcceptancePage() {
 
           <label className="block">
             <span className="mb-2 block text-sm font-medium text-white/75">Phone</span>
-            <div className="flex items-center gap-3 rounded-xl border border-white/12 bg-black/25 px-4 py-3 focus-within:border-cyan-400/50">
-              <Smartphone className="h-5 w-5 text-cyan-300" />
+            <div className="flex items-center gap-3 rounded-xl border border-white/12 bg-black/25 px-4 py-3 focus-within:border-orange-300/60">
+              <Smartphone className="h-5 w-5 text-sky-300" />
               <input
                 value={phone}
                 onChange={(event) => setPhone(event.target.value)}
@@ -168,8 +167,8 @@ export default function DriverInviteAcceptancePage() {
 
           <label className="block">
             <span className="mb-2 block text-sm font-medium text-white/75">Create password</span>
-            <div className="flex items-center gap-3 rounded-xl border border-white/12 bg-black/25 px-4 py-3 focus-within:border-cyan-400/50">
-              <KeyRound className="h-5 w-5 text-cyan-300" />
+            <div className="flex items-center gap-3 rounded-xl border border-white/12 bg-black/25 px-4 py-3 focus-within:border-orange-300/60">
+              <KeyRound className="h-5 w-5 text-sky-300" />
               <input
                 type="password"
                 required
@@ -184,8 +183,8 @@ export default function DriverInviteAcceptancePage() {
 
           <label className="block">
             <span className="mb-2 block text-sm font-medium text-white/75">Confirm password</span>
-            <div className="flex items-center gap-3 rounded-xl border border-white/12 bg-black/25 px-4 py-3 focus-within:border-cyan-400/50">
-              <LockKeyhole className="h-5 w-5 text-cyan-300" />
+            <div className="flex items-center gap-3 rounded-xl border border-white/12 bg-black/25 px-4 py-3 focus-within:border-orange-300/60">
+              <LockKeyhole className="h-5 w-5 text-sky-300" />
               <input
                 type="password"
                 required
@@ -207,7 +206,7 @@ export default function DriverInviteAcceptancePage() {
           <button
             type="submit"
             disabled={isSubmitting}
-            className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-cyan-400 px-5 py-3.5 font-bold text-slate-950 transition hover:bg-cyan-300 disabled:cursor-not-allowed disabled:opacity-60"
+            className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-orange-500 px-5 py-3.5 font-bold text-white transition hover:bg-orange-400 disabled:cursor-not-allowed disabled:opacity-60"
           >
             <ShieldCheck className="h-5 w-5" />
             {isSubmitting ? "Activating secure access…" : "Activate Driver Access"}
