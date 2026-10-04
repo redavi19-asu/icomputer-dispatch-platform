@@ -4,6 +4,7 @@ import { ReactNode, useEffect, useMemo, useState } from "react";
 import { LogOut, Power, Radio, ShieldCheck } from "lucide-react";
 
 import { getStoredSession, logoutSession } from "@/lib/dispatchos-auth";
+import { UrbanCarrierMark } from "@/components/branding/urban-carrier-mark";
 
 type DriverAppShellProps = {
   children: ReactNode;
@@ -50,10 +51,12 @@ export function DriverAppShell({ children }: DriverAppShellProps) {
   if (!ready) return null;
 
   return (
-    <div className="min-h-screen bg-slate-950 text-white">
-      <div className="sticky top-0 z-[80] border-b border-white/10 bg-slate-950/95 px-3 py-3 backdrop-blur md:px-5">
+    <div className="min-h-screen bg-[#061a33] text-white">
+      <div className="sticky top-0 z-[80] border-b border-sky-300/15 bg-[linear-gradient(90deg,rgba(6,26,51,.98),rgba(8,39,79,.96),rgba(10,74,145,.90))] px-3 py-3 shadow-[0_8px_26px_rgba(0,20,60,.16)] backdrop-blur md:px-5">
         <div className="mx-auto flex max-w-7xl items-center justify-between gap-3">
-          <div className="min-w-0">
+          <div className="flex min-w-0 items-center gap-3">
+            <UrbanCarrierMark href="/" size="sm" />
+            <div className="min-w-0">
             <div className="flex items-center gap-2">
               <ShieldCheck className="h-4 w-4 shrink-0 text-cyan-300" />
               <p className="truncate text-sm font-semibold">
@@ -63,6 +66,7 @@ export function DriverAppShell({ children }: DriverAppShellProps) {
             <p className="mt-0.5 truncate text-xs text-white/50">
               Signed in as {session?.user.name ?? "Driver"}
             </p>
+            </div>
           </div>
 
           <div className="flex shrink-0 items-center gap-2">
@@ -98,7 +102,7 @@ export function DriverAppShell({ children }: DriverAppShellProps) {
         children
       ) : (
         <main className="flex min-h-[calc(100vh-72px)] items-center justify-center px-6 py-12">
-          <section className="w-full max-w-lg rounded-3xl border border-white/10 bg-white/[0.04] p-7 text-center shadow-2xl md:p-9">
+          <section className="w-full max-w-lg rounded-3xl border border-sky-300/15 bg-[linear-gradient(160deg,rgba(8,39,79,.92),rgba(6,26,51,.96))] p-7 text-center shadow-2xl md:p-9">
             <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl border border-white/10 bg-white/5 text-white/45">
               <Radio className="h-7 w-7" />
             </div>
@@ -112,7 +116,7 @@ export function DriverAppShell({ children }: DriverAppShellProps) {
             <button
               type="button"
               onClick={() => setAvailability(true)}
-              className="mt-7 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-emerald-400 px-5 py-3.5 font-semibold text-slate-950 transition hover:bg-emerald-300"
+              className="mt-7 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-orange-500 px-5 py-3.5 font-semibold text-white transition hover:bg-orange-400"
             >
               <Power className="h-5 w-5" />
               Go Online
