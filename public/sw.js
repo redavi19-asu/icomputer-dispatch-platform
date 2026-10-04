@@ -1,5 +1,12 @@
-const CACHE_NAME = "dispatchos-shell-v1";
-const APP_SHELL = ["/", "/workspace", "/driver", "/dashboard"];
+const CACHE_NAME = "urban-carrier-shell-v2";
+const APP_BASE = new URL(self.registration.scope).pathname.replace(/\/$/, "");
+const APP_SHELL = [
+  APP_BASE + "/",
+  APP_BASE + "/workspace",
+  APP_BASE + "/driver",
+  APP_BASE + "/dashboard",
+  APP_BASE + "/urban-carrier-icon.svg",
+];
 
 self.addEventListener("install", (event) => {
   self.skipWaiting();
