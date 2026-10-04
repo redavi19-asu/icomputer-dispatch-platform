@@ -38,13 +38,13 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
-  title: "Urban Courier OS | Business • Driver • Customer Logistics Software",
+  title: "Urban Carrier OS | Business • Driver • Customer Logistics Software",
   description:
-    "Urban Courier OS connects dispatchers, drivers, packages, routes and customers in one scan-to-route-to-deliver logistics workflow.",
-  applicationName: "Urban Courier OS",
+    "Urban Carrier OS connects dispatchers, drivers, packages, routes and customers in one scan-to-route-to-deliver logistics workflow.",
+  applicationName: "Urban Carrier OS",
   icons: {
-    icon: [{ url: "/driver-app-icon.svg", type: "image/svg+xml" }],
-    shortcut: [{ url: "/driver-app-icon.svg", type: "image/svg+xml" }],
+    icon: [{ url: "/urban-carrier-icon.svg", type: "image/svg+xml" }],
+    shortcut: [{ url: "/urban-carrier-icon.svg", type: "image/svg+xml" }],
   },
 };
 
