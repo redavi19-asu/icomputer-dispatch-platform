@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 
 import { AppShellNav } from "@/components/platform/app-shell-nav";
+import { UrbanCarrierMark } from "@/components/branding/urban-carrier-mark";
 import { Card, CardContent } from "@/components/ui/card";
 import { getStoredSession } from "@/lib/dispatchos-auth";
 
@@ -117,17 +118,17 @@ export default function BillingPage() {
   };
 
   return (
-    <main className="min-h-screen bg-slate-950 text-white">
+    <main className="min-h-screen bg-[#061a33] text-white">
       <AppShellNav />
       <section className="mx-auto max-w-6xl px-6 py-12 md:py-16">
         <div className="mb-8 flex flex-wrap items-center justify-between gap-4">
-          <div>
-            <p className="text-xs uppercase tracking-[0.22em] text-cyan-300">{companyName} Billing</p>
+          <div className="flex items-start gap-4"><UrbanCarrierMark href="/" size="md" /><div>
+            <p className="text-xs uppercase tracking-[0.22em] text-orange-200">{companyName} Billing</p>
             <h1 className="mt-2 text-3xl font-semibold tracking-tight md:text-4xl">Billing & subscription</h1>
             <p className="mt-3 max-w-2xl text-sm text-white/70">
               Manage your current Urban Carrier OS plan here without leaving your company workspace. Plan changes, payment recovery, invoices, and payment methods will stay on this page as Stripe is connected.
             </p>
-          </div>
+          </div></div>
           <Link
             href="/workspace"
             className="inline-flex items-center gap-2 rounded-lg border border-white/15 bg-white/5 px-3 py-2 text-sm text-white/85 hover:bg-white/10"
@@ -163,13 +164,13 @@ export default function BillingPage() {
 
             <div className="shrink-0 rounded-2xl border border-white/10 bg-black/20 px-5 py-4 md:text-right">
               <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-white/40">Current plan</p>
-              <p className="mt-1 text-lg font-semibold capitalize text-cyan-100">{plan}</p>
+              <p className="mt-1 text-lg font-semibold capitalize text-sky-100">{plan}</p>
             </div>
           </div>
         </section>
 
         <div className="mb-6">
-          <div className="flex items-center gap-3 text-cyan-300">
+          <div className="flex items-center gap-3 text-sky-300">
             <CreditCard className="h-5 w-5" />
             <h2 className="text-xl font-semibold text-white">Your plan options</h2>
           </div>
@@ -196,14 +197,14 @@ export default function BillingPage() {
                   isCurrent
                     ? "border border-emerald-300/40 bg-[linear-gradient(145deg,rgba(6,78,59,.28),rgba(2,6,23,.94))] shadow-[0_0_45px_rgba(16,185,129,.09)]"
                     : isBusiness
-                      ? "border border-cyan-300/25 bg-cyan-500/[0.055]"
+                      ? "border border-sky-300/25 bg-sky-500/[0.07]"
                       : "border border-white/10 bg-white/5"
                 }`}
               >
                 <CardContent className="p-6 md:p-8">
                   <div className="flex items-start justify-between gap-4">
-                    <div className={`flex h-12 w-12 items-center justify-center rounded-2xl border ${isCurrent ? "border-emerald-300/25 bg-emerald-400/10" : "border-cyan-300/20 bg-cyan-400/10"}`}>
-                      <Icon className={`h-6 w-6 ${isCurrent ? "text-emerald-300" : "text-cyan-300"}`} />
+                    <div className={`flex h-12 w-12 items-center justify-center rounded-2xl border ${isCurrent ? "border-emerald-300/25 bg-emerald-400/10" : "border-orange-300/25 bg-orange-500/10"}`}>
+                      <Icon className={`h-6 w-6 ${isCurrent ? "text-emerald-300" : "text-sky-300"}`} />
                     </div>
                     {isCurrent ? (
                       <span className="rounded-full border border-emerald-300/30 bg-emerald-400/10 px-3 py-1 text-[11px] font-bold uppercase tracking-[0.16em] text-emerald-200">
@@ -223,7 +224,7 @@ export default function BillingPage() {
                   <div className="mt-6 space-y-3">
                     {option.features.map((feature) => (
                       <div key={feature} className="flex items-start gap-3 text-sm text-white/72">
-                        <Check className={`mt-0.5 h-4 w-4 shrink-0 ${isCurrent ? "text-emerald-300" : "text-cyan-300"}`} />
+                        <Check className={`mt-0.5 h-4 w-4 shrink-0 ${isCurrent ? "text-emerald-300" : "text-sky-300"}`} />
                         <span>{feature}</span>
                       </div>
                     ))}
@@ -240,7 +241,7 @@ export default function BillingPage() {
                         disabled
                         aria-disabled="true"
                         title="Stripe plan switching is being connected"
-                        className="inline-flex w-full cursor-not-allowed items-center justify-center rounded-xl border border-cyan-300/20 bg-cyan-400/15 px-5 py-3 text-sm font-bold text-cyan-100/70"
+                        className="inline-flex w-full cursor-not-allowed items-center justify-center rounded-xl border border-cyan-300/20 bg-cyan-400/15 px-5 py-3 text-sm font-bold text-sky-100/70"
                       >
                         {actionLabel} — Coming Soon
                       </button>
@@ -257,7 +258,7 @@ export default function BillingPage() {
 
         <Card className="mt-6 rounded-3xl border border-white/10 bg-white/5 text-white shadow-none">
           <CardContent className="p-6 md:p-8">
-            <div className="flex items-center gap-3 text-cyan-300">
+            <div className="flex items-center gap-3 text-sky-300">
               <ReceiptText className="h-5 w-5" />
               <h2 className="text-lg font-semibold">Automatic access control</h2>
             </div>
