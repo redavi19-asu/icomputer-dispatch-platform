@@ -5,6 +5,7 @@ import Script from "next/script";
 import { FormEvent, useEffect, useRef, useState } from "react";
 import { ArrowLeft, Building2, LockKeyhole, LogIn, ShieldCheck, Sparkles, UserPlus } from "lucide-react";
 import { authRequest, getApiBase, saveSession, type DispatchOSSession } from "@/lib/dispatchos-auth";
+import { UrbanCarrierMark } from "@/components/branding/urban-carrier-mark";
 
 type Mode = "login" | "register";
 type RecoveryMode = "none" | "request" | "reset";
@@ -240,16 +241,16 @@ export default function AuthPage() {
   }
 
   return (
-    <main className="min-h-screen bg-[#05070b] text-white">
+    <main className="min-h-screen bg-[#061a33] text-white">
       {turnstileEnabled && (
         <Script src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit" strategy="afterInteractive" onLoad={() => setTurnstileReady(true)} />
       )}
 
-      <section className="border-b border-white/10 bg-[radial-gradient(circle_at_30%_0%,rgba(34,211,238,.16),transparent_38%),radial-gradient(circle_at_75%_10%,rgba(16,185,129,.11),transparent_28%)]">
+      <section className="border-b border-white/10 bg-[radial-gradient(circle_at_30%_0%,rgba(56,189,248,.22),transparent_38%),radial-gradient(circle_at_75%_10%,rgba(249,115,22,.16),transparent_28%),linear-gradient(135deg,#061a33,#0a4a91)]">
         <div className="mx-auto max-w-6xl px-6 py-12 md:py-16">
-          <Link href="/plans" className="inline-flex items-center gap-2 text-sm text-cyan-200 hover:text-cyan-100"><ArrowLeft className="h-4 w-4" /> Back to Plans</Link>
-          <div className="mt-10 max-w-3xl">
-            <p className="text-xs uppercase tracking-[0.26em] text-cyan-300">Urban Carrier OS Account</p>
+          <Link href="/plans" className="inline-flex items-center gap-2 text-sm text-sky-200 hover:text-cyan-100"><ArrowLeft className="h-4 w-4" /> Back to Plans</Link>
+          <div className="mt-8 max-w-3xl"><div className="mb-6"><UrbanCarrierMark href="/" size="lg" /></div>
+            <p className="text-xs uppercase tracking-[0.26em] text-sky-300">Urban Carrier OS Account</p>
             <h1 className="mt-4 text-4xl font-semibold tracking-tight md:text-6xl">{mode === "register" ? "Create your Urban Carrier OS account." : "Welcome back to Urban Carrier OS."}</h1>
             <p className="mt-5 text-base leading-7 text-white/62 md:text-lg">{mode === "register" ? "Create the company owner account for your selected plan, then continue into your company workspace." : "Sign in to manage your company account, settings, drivers, billing, and application downloads."}</p>
           </div>
@@ -271,44 +272,44 @@ export default function AuthPage() {
           <h2 className="mt-6 text-2xl font-semibold">One account. One company portal.</h2>
           <p className="mt-4 text-sm leading-6 text-white/58">After sign-in, first-time companies complete Company Setup. Then the account portal provides settings, driver management, billing, downloads, and custom integration access.</p>
           <div className="mt-7 rounded-2xl border border-cyan-400/15 bg-cyan-500/[0.05] p-5">
-            <p className="text-xs uppercase tracking-[0.18em] text-cyan-300">Selected plan</p>
+            <p className="text-xs uppercase tracking-[0.18em] text-sky-300">Selected plan</p>
             <p className="mt-2 text-xl font-semibold">{plan === "business" ? "Urban Carrier OS Business — $149/mo" : "Urban Carrier OS Basic — $49.99/mo"}</p>
             <p className="mt-2 text-xs leading-5 text-white/45">Your account is created as pending. Secure Stripe checkout is required before operational access is activated.</p>
           </div>
         </aside>
 
-        <div className="rounded-[2rem] border border-white/10 bg-slate-950/80 p-7 shadow-2xl md:p-9">
+        <div className="rounded-[2rem] border border-white/10 bg-[#08274f]/88 p-7 shadow-2xl md:p-9">
           <div className="mb-7 rounded-2xl border border-emerald-400/20 bg-emerald-500/[0.07] p-5">
             <div className="flex items-start gap-3"><Sparkles className="mt-0.5 h-5 w-5 shrink-0 text-emerald-300" /><div><p className="font-semibold text-emerald-100">Your company portal is separate from the working apps.</p><p className="mt-2 text-sm leading-6 text-white/58">Use the portal to configure the company and install Urban Carrier OS. Daily dispatching happens inside Dispatcher; field work happens inside Driver.</p></div></div>
           </div>
 
           <div className="mb-6 grid grid-cols-2 gap-2 rounded-xl border border-white/10 bg-black/20 p-1">
-            <button type="button" onClick={() => { setMode("register"); setError(""); }} className={`rounded-lg px-4 py-3 text-sm font-semibold transition ${mode === "register" ? "bg-emerald-500 text-white" : "text-white/55 hover:bg-white/[0.05]"}`}>Create Account</button>
-            <button type="button" onClick={() => { setMode("login"); setError(""); }} className={`rounded-lg px-4 py-3 text-sm font-semibold transition ${mode === "login" ? "bg-cyan-400 text-slate-950" : "text-white/55 hover:bg-white/[0.05]"}`}>Log In</button>
+            <button type="button" onClick={() => { setMode("register"); setError(""); }} className={`rounded-lg px-4 py-3 text-sm font-semibold transition ${mode === "register" ? "bg-orange-500 text-white" : "text-white/55 hover:bg-white/[0.05]"}`}>Create Account</button>
+            <button type="button" onClick={() => { setMode("login"); setError(""); }} className={`rounded-lg px-4 py-3 text-sm font-semibold transition ${mode === "login" ? "bg-sky-400 text-[#061a33]" : "text-white/55 hover:bg-white/[0.05]"}`}>Log In</button>
           </div>
 
           {recoveryMode === "request" ? (
             <form onSubmit={requestRecovery} className="space-y-5">
               <label className="block">
                 <span className="text-sm text-white/70">Account email</span>
-                <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required autoComplete="email" className="mt-2 w-full rounded-xl border border-white/10 bg-black/25 px-4 py-3 outline-none focus:border-cyan-300/50" placeholder="you@company.com" />
+                <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required autoComplete="email" className="mt-2 w-full rounded-xl border border-white/10 bg-black/25 px-4 py-3 outline-none focus:border-orange-300/60" placeholder="you@company.com" />
               </label>
               {error && <div className="rounded-xl border border-cyan-400/20 bg-cyan-500/10 px-4 py-3 text-sm text-cyan-100">{error}</div>}
-              <button disabled={loading} className="w-full rounded-xl bg-cyan-400 px-6 py-4 font-bold text-slate-950">{loading ? "Sending..." : "Send Reset Link"}</button>
+              <button disabled={loading} className="w-full rounded-xl bg-orange-500 px-6 py-4 font-bold text-white">{loading ? "Sending..." : "Send Reset Link"}</button>
               <button type="button" onClick={() => { setRecoveryMode("none"); setError(""); }} className="w-full text-sm text-white/55 hover:text-white">Back to sign in</button>
             </form>
           ) : recoveryMode === "reset" ? (
             <form onSubmit={finishRecovery} className="space-y-5">
               <label className="block">
                 <span className="text-sm text-white/70">New password</span>
-                <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} required minLength={10} autoComplete="new-password" className="mt-2 w-full rounded-xl border border-white/10 bg-black/25 px-4 py-3 outline-none focus:border-cyan-300/50" placeholder="10+ characters" />
+                <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} required minLength={10} autoComplete="new-password" className="mt-2 w-full rounded-xl border border-white/10 bg-black/25 px-4 py-3 outline-none focus:border-orange-300/60" placeholder="10+ characters" />
               </label>
               <label className="block">
                 <span className="text-sm text-white/70">Confirm password</span>
-                <input type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} required minLength={10} autoComplete="new-password" className="mt-2 w-full rounded-xl border border-white/10 bg-black/25 px-4 py-3 outline-none focus:border-cyan-300/50" />
+                <input type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} required minLength={10} autoComplete="new-password" className="mt-2 w-full rounded-xl border border-white/10 bg-black/25 px-4 py-3 outline-none focus:border-orange-300/60" />
               </label>
               {error && <div className="rounded-xl border border-rose-400/20 bg-rose-500/10 px-4 py-3 text-sm text-rose-200">{error}</div>}
-              <button disabled={loading || password.length < 10 || confirmPassword.length < 10} className="w-full rounded-xl bg-cyan-400 px-6 py-4 font-bold text-slate-950">{loading ? "Resetting..." : "Reset Password"}</button>
+              <button disabled={loading || password.length < 10 || confirmPassword.length < 10} className="w-full rounded-xl bg-orange-500 px-6 py-4 font-bold text-white">{loading ? "Resetting..." : "Reset Password"}</button>
             </form>
           ) : (
             <>
@@ -332,27 +333,27 @@ export default function AuthPage() {
               <form onSubmit={handleSubmit} className="space-y-5">
                 {mode === "register" && (
                   <>
-                    {!socialOnboardingTicket && <label className="block"><span className="text-sm text-white/70">Your name</span><input type="text" value={name} onChange={(e) => setName(e.target.value)} required autoComplete="name" className="mt-2 w-full rounded-xl border border-white/10 bg-black/25 px-4 py-3 outline-none focus:border-cyan-300/50" placeholder="Your name" /></label>}
-                    <label className="block"><span className="text-sm text-white/70">Company</span><input type="text" value={companyName} onChange={(e) => setCompanyName(e.target.value)} required autoComplete="organization" className="mt-2 w-full rounded-xl border border-white/10 bg-black/25 px-4 py-3 outline-none focus:border-cyan-300/50" placeholder="Company name" /></label>
+                    {!socialOnboardingTicket && <label className="block"><span className="text-sm text-white/70">Your name</span><input type="text" value={name} onChange={(e) => setName(e.target.value)} required autoComplete="name" className="mt-2 w-full rounded-xl border border-white/10 bg-black/25 px-4 py-3 outline-none focus:border-orange-300/60" placeholder="Your name" /></label>}
+                    <label className="block"><span className="text-sm text-white/70">Company</span><input type="text" value={companyName} onChange={(e) => setCompanyName(e.target.value)} required autoComplete="organization" className="mt-2 w-full rounded-xl border border-white/10 bg-black/25 px-4 py-3 outline-none focus:border-orange-300/60" placeholder="Company name" /></label>
                   </>
                 )}
 
-                <label className="block"><span className="text-sm text-white/70">Email</span><input type="email" value={email} onChange={(e) => setEmail(e.target.value)} readOnly={Boolean(socialOnboardingTicket)} required autoComplete="email" className="mt-2 w-full rounded-xl border border-white/10 bg-black/25 px-4 py-3 outline-none focus:border-cyan-300/50" placeholder="you@company.com" /></label>
+                <label className="block"><span className="text-sm text-white/70">Email</span><input type="email" value={email} onChange={(e) => setEmail(e.target.value)} readOnly={Boolean(socialOnboardingTicket)} required autoComplete="email" className="mt-2 w-full rounded-xl border border-white/10 bg-black/25 px-4 py-3 outline-none focus:border-orange-300/60" placeholder="you@company.com" /></label>
 
                 {!socialOnboardingTicket && (
-                  <label className="block"><span className="text-sm text-white/70">Password</span><input type="password" value={password} onChange={(e) => setPassword(e.target.value)} required minLength={10} autoComplete={mode === "register" ? "new-password" : "current-password"} className="mt-2 w-full rounded-xl border border-white/10 bg-black/25 px-4 py-3 outline-none focus:border-cyan-300/50" placeholder="10+ characters" /></label>
+                  <label className="block"><span className="text-sm text-white/70">Password</span><input type="password" value={password} onChange={(e) => setPassword(e.target.value)} required minLength={10} autoComplete={mode === "register" ? "new-password" : "current-password"} className="mt-2 w-full rounded-xl border border-white/10 bg-black/25 px-4 py-3 outline-none focus:border-orange-300/60" placeholder="10+ characters" /></label>
                 )}
 
                 <label className="flex cursor-pointer items-start gap-3 rounded-xl border border-cyan-400/15 bg-cyan-500/[0.05] px-4 py-3">
-                  <input type="checkbox" checked={rememberDevice} onChange={(e) => setRememberDevice(e.target.checked)} className="mt-1 h-4 w-4 accent-cyan-400" />
+                  <input type="checkbox" checked={rememberDevice} onChange={(e) => setRememberDevice(e.target.checked)} className="mt-1 h-4 w-4 accent-orange-500" />
                   <span><span className="block text-sm font-medium text-cyan-100">Keep me signed in on this device for up to 7 days</span><span className="mt-1 block text-xs leading-5 text-white/45">Uncheck this on a shared device. Closing the installed app will not sign you out while this is enabled.</span></span>
                 </label>
 
                 {turnstileEnabled && !socialOnboardingTicket && <div className="rounded-xl border border-white/10 bg-black/20 p-4"><div className="mb-3 flex items-center gap-2 text-xs text-white/55"><ShieldCheck className="h-4 w-4 text-emerald-300" /> Security verification</div><div ref={turnstileContainerRef} className="min-h-[65px]" /></div>}
                 {error && <div className="rounded-xl border border-rose-400/20 bg-rose-500/10 px-4 py-3 text-sm text-rose-200">{error}</div>}
 
-                <button disabled={loading || (!socialOnboardingTicket && turnstileEnabled && !turnstileToken)} className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-cyan-400 px-6 py-4 font-bold text-slate-950 transition hover:bg-cyan-300 disabled:cursor-wait disabled:opacity-60">{mode === "register" ? <UserPlus className="h-5 w-5" /> : <LogIn className="h-5 w-5" />}{loading ? "Connecting..." : mode === "register" ? "Create Account" : "Log In"}</button>
-                {mode === "login" && <button type="button" onClick={() => { setRecoveryMode("request"); setError(""); }} className="w-full text-sm text-cyan-200 hover:text-cyan-100">Forgot password?</button>}
+                <button disabled={loading || (!socialOnboardingTicket && turnstileEnabled && !turnstileToken)} className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-orange-500 px-6 py-4 font-bold text-white transition hover:bg-orange-400 disabled:cursor-wait disabled:opacity-60">{mode === "register" ? <UserPlus className="h-5 w-5" /> : <LogIn className="h-5 w-5" />}{loading ? "Connecting..." : mode === "register" ? "Create Account" : "Log In"}</button>
+                {mode === "login" && <button type="button" onClick={() => { setRecoveryMode("request"); setError(""); }} className="w-full text-sm text-sky-200 hover:text-cyan-100">Forgot password?</button>}
               </form>
             </>
           )}
