@@ -15,6 +15,7 @@ import {
 
 import { Card, CardContent } from "@/components/ui/card";
 import { AppShellNav } from "@/components/platform/app-shell-nav";
+import { UrbanCarrierMark } from "@/components/branding/urban-carrier-mark";
 import CustomVersionModal from "@/components/marketing/custom-version-modal";
 import IntegrationOptionsModal from "@/components/marketing/integration-options-modal";
 import { getStoredSession, type DispatchOSSession } from "@/lib/dispatchos-auth";
@@ -94,18 +95,16 @@ export default function WorkspacePage() {
     setSettings(current);
   }, []);
 
-  if (!session || !settings) return <main className="min-h-screen bg-slate-950" />;
+  if (!session || !settings) return <main className="min-h-screen bg-[#061a33]" />;
 
   return (
-    <main className="min-h-screen bg-slate-950 text-white">
+    <main className="min-h-screen bg-[#061a33] text-white">
       <AppShellNav />
 
-      <section className="relative overflow-hidden border-b border-white/10">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_15%_20%,rgba(34,211,238,0.2),transparent_30%),radial-gradient(circle_at_80%_60%,rgba(14,165,233,0.16),transparent_36%)]" />
+      <section className="relative overflow-hidden border-b border-sky-300/15 bg-[linear-gradient(135deg,#061a33_0%,#08274f_58%,#0a4a91_100%)]">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_18%_18%,rgba(255,255,255,.14),transparent_28%),radial-gradient(circle_at_84%_68%,rgba(249,115,22,.16),transparent_30%)]" />
         <div className="relative mx-auto max-w-7xl px-6 py-16 md:py-24">
-          <div className="flex items-center gap-2 text-xs uppercase tracking-[0.25em] text-cyan-300">
-            <Building2 className="h-4 w-4" /> Company Account Portal
-          </div>
+          <div className="flex items-center gap-4"><UrbanCarrierMark href="/" size="md" /><div><div className="flex items-center gap-2 text-xs uppercase tracking-[0.25em] text-orange-200"><Building2 className="h-4 w-4" /> Company Account Portal</div><p className="mt-1 text-xs font-semibold text-sky-100/60">Urban Carrier OS</p></div></div>
           <h1 className="mt-4 max-w-4xl text-4xl font-semibold tracking-tight md:text-6xl">
             {settings.companyName} workspace
           </h1>
@@ -117,7 +116,7 @@ export default function WorkspacePage() {
           </p>
 
           <div className="mt-7 flex flex-wrap gap-2 text-xs">
-            <span className="rounded-full border border-cyan-400/30 bg-cyan-500/10 px-3 py-1 text-cyan-200">Plan: {session.subscription?.plan || "Not assigned"}</span>
+            <span className="rounded-full border border-orange-300/30 bg-orange-500/10 px-3 py-1 text-orange-100">Plan: {session.subscription?.plan || "Not assigned"}</span>
             <span className="rounded-full border border-white/20 bg-white/10 px-3 py-1 text-white/75">Dispatch: {settings.dispatchMode}</span>
             {settings.industry ? <span className="rounded-full border border-white/20 bg-white/10 px-3 py-1 text-white/75">{settings.industry}</span> : null}
           </div>
@@ -126,7 +125,7 @@ export default function WorkspacePage() {
 
       <section className="mx-auto max-w-7xl px-6 py-10 md:py-14">
         <div className="mb-7">
-          <p className="text-xs uppercase tracking-[.2em] text-cyan-300">Account controls</p>
+          <p className="text-xs uppercase tracking-[.2em] text-sky-300">Account controls</p>
           <h2 className="mt-2 text-2xl font-semibold md:text-3xl">Everything you need before your team starts working</h2>
         </div>
 
@@ -136,7 +135,7 @@ export default function WorkspacePage() {
               key={entry.title}
               className={`group relative h-full overflow-hidden rounded-3xl text-white shadow-none transition duration-300 hover:-translate-y-1 ${
                 entry.featured
-                  ? "border border-cyan-300/35 bg-[linear-gradient(145deg,rgba(8,47,73,.96),rgba(6,78,59,.78)_55%,rgba(8,47,73,.92))] shadow-[0_0_45px_rgba(34,211,238,.12)]"
+                  ? "border border-orange-300/35 bg-[linear-gradient(145deg,rgba(8,47,73,.98),rgba(10,74,145,.70)_55%,rgba(6,26,51,.95))] shadow-[0_0_45px_rgba(249,115,22,.10)]"
                   : "border border-white/10 bg-white/5 hover:border-cyan-400/20 hover:bg-white/[0.065]"
               }`}
             >
@@ -145,7 +144,7 @@ export default function WorkspacePage() {
               ) : null}
               <CardContent className="relative flex h-full flex-col p-6">
                 <div className={`flex h-12 w-12 items-center justify-center rounded-2xl ${entry.featured ? "border border-cyan-200/30 bg-cyan-300/15" : "bg-cyan-500/10"}`}>
-                  <entry.icon className={`h-7 w-7 ${entry.featured ? "text-cyan-100" : "text-cyan-300"}`} />
+                  <entry.icon className={`h-7 w-7 ${entry.featured ? "text-cyan-100" : "text-sky-300"}`} />
                 </div>
                 {entry.featured ? (
                   <span className="mt-5 w-fit rounded-full border border-emerald-300/25 bg-emerald-400/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[.16em] text-emerald-100">
@@ -167,8 +166,8 @@ export default function WorkspacePage() {
                     href={entry.href || "/workspace"}
                     className={`mt-6 inline-flex items-center justify-center gap-2 rounded-xl px-4 py-3 text-sm font-semibold transition ${
                       entry.featured
-                        ? "border border-cyan-200/20 bg-cyan-300 text-slate-950 shadow-[0_8px_28px_rgba(34,211,238,.18)] hover:bg-cyan-200"
-                        : "border border-cyan-400/35 bg-cyan-500/15 text-cyan-100 hover:bg-cyan-500/25"
+                        ? "border border-orange-200/25 bg-orange-500 text-white shadow-[0_8px_28px_rgba(249,115,22,.18)] hover:bg-orange-400"
+                        : "border border-sky-300/30 bg-sky-500/10 text-sky-100 hover:bg-sky-500/20"
                     }`}
                   >
                     {entry.cta} <ArrowRight className="h-4 w-4" />
