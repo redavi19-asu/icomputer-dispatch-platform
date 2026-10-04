@@ -854,12 +854,12 @@ export default function DashboardPage() {
 
   const isDark = themeMode === "dark";
 
-  const pageBg = isDark ? "bg-slate-950 text-white" : "bg-slate-100 text-slate-950";
+  const pageBg = isDark ? "bg-[#061a33] text-white" : "bg-sky-50 text-slate-950";
   const topBarBg = isDark
-    ? "border-white/10 bg-slate-950/90"
+    ? "border-sky-300/15 bg-[#08274f]/95"
     : "border-slate-300 bg-white/90";
   const cardBg = isDark
-    ? "border-white/10 bg-white/5 text-white shadow-none"
+    ? "border-sky-300/10 bg-[#08274f]/72 text-white shadow-none"
     : "border-slate-300 bg-white text-slate-900 shadow-sm";
   const mutedText = isDark ? "text-white/60" : "text-slate-500";
   const secondaryBtn = isDark
@@ -885,19 +885,19 @@ export default function DashboardPage() {
               {workspaceSettings.companyName} Dispatch Dashboard
             </h1>
             <div className="mt-2 flex flex-wrap gap-2 text-[11px]">
-              <span className="rounded-full border border-cyan-400/30 bg-cyan-500/10 px-2.5 py-1 text-cyan-200">
+              <span className="rounded-full border border-orange-300/30 bg-orange-500/10 px-2.5 py-1 text-orange-100">
                 Intake: {workspaceSettings.jobIntakeSource}
               </span>
-              <span className="rounded-full border border-cyan-400/30 bg-cyan-500/10 px-2.5 py-1 text-cyan-200">
+              <span className="rounded-full border border-orange-300/30 bg-orange-500/10 px-2.5 py-1 text-orange-100">
                 Driver Acceptance: {driverAcceptanceMode}
               </span>
-              <span className="rounded-full border border-cyan-400/30 bg-cyan-500/10 px-2.5 py-1 text-cyan-200">
+              <span className="rounded-full border border-orange-300/30 bg-orange-500/10 px-2.5 py-1 text-orange-100">
                 Dispatch Mode: {dispatchMode}
               </span>
-              <span className="rounded-full border border-cyan-400/30 bg-cyan-500/10 px-2.5 py-1 text-cyan-200">
+              <span className="rounded-full border border-orange-300/30 bg-orange-500/10 px-2.5 py-1 text-orange-100">
                 Workflow: {dashboardSurface.modeLabel}
               </span>
-              <span className="rounded-full border border-cyan-400/30 bg-cyan-500/10 px-2.5 py-1 text-cyan-200">
+              <span className="rounded-full border border-orange-300/30 bg-orange-500/10 px-2.5 py-1 text-orange-100">
                 Route: {dashboardSurface.routeTemplateLabel}
               </span>
             </div>
