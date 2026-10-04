@@ -201,18 +201,18 @@ export default function WorkspaceDriversPage() {
   }, [actionMessage]);
 
   if (!companySlug) {
-    return <main className="min-h-screen bg-slate-950" />;
+    return <main className="min-h-screen bg-[#061a33]" />;
   }
 
   return (
-    <main className="min-h-screen bg-slate-950 text-white">
+    <main className="min-h-screen bg-[#061a33] text-white">
       <AppShellNav />
       <section className="mx-auto max-w-6xl px-6 py-12 md:py-16">
         <div className="mb-8 flex flex-wrap items-center justify-between gap-4">
           <div>
-            <p className="text-xs uppercase tracking-[0.22em] text-cyan-300">Workspace Drivers</p>
+            <p className="text-xs uppercase tracking-[0.22em] text-sky-300">Workspace Drivers</p>
             <h1 className="mt-2 text-3xl font-semibold tracking-tight md:text-4xl">Driver management</h1>
-            <p className="mt-2 text-sm text-cyan-200/75">{companyName || companySlug}</p>
+            <p className="mt-2 text-sm text-sky-200/75">{companyName || companySlug}</p>
             <p className="mt-3 text-sm text-white/70">{enabledDrivers} enabled of {drivers.length} total drivers.</p>
           </div>
 
@@ -223,7 +223,7 @@ export default function WorkspaceDriversPage() {
             <Button variant="secondary" onClick={() => setIsInstallGuideOpen(true)} className="rounded-xl border border-white/10 bg-white/5 px-4 py-2.5 text-sm font-semibold text-white hover:bg-white/10">
               <Smartphone className="h-4 w-4" /> Driver Install Guide
             </Button>
-            <Button onClick={openAddDriver} className="rounded-xl bg-cyan-500 px-4 py-2.5 text-sm font-semibold text-slate-950 hover:bg-cyan-400">
+            <Button onClick={openAddDriver} className="rounded-xl bg-cyan-500 px-4 py-2.5 text-sm font-semibold text-slate-950 hover:bg-orange-500">
               <Plus className="h-4 w-4" /> Add Driver
             </Button>
           </div>
@@ -231,19 +231,19 @@ export default function WorkspaceDriversPage() {
 
         <section className="mb-6 rounded-3xl border border-cyan-400/20 bg-[linear-gradient(145deg,rgba(8,47,73,.35),rgba(2,6,23,.92)_68%)] p-6 md:p-7">
           <div className="flex items-start gap-4">
-            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-cyan-300/20 bg-cyan-400/10">
-              <UserPlus className="h-5 w-5 text-cyan-300" />
+            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-cyan-300/20 bg-orange-500/10">
+              <UserPlus className="h-5 w-5 text-sky-300" />
             </div>
             <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-cyan-300">How to add a driver</p>
+              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-sky-300">How to add a driver</p>
               <h2 className="mt-2 text-xl font-semibold">Add the person first, then give them app access.</h2>
               <p className="mt-2 max-w-3xl text-sm leading-6 text-white/62">
                 Click <strong className="text-white">Add Driver</strong>, enter the driver&apos;s name, phone, zone, and account status, then save. After the driver appears in the roster, use <strong className="text-white">Send Driver Invite</strong> or <strong className="text-white">Copy Driver Link</strong> so they can open the Driver app on their device.
               </p>
               <div className="mt-4 grid gap-3 text-sm sm:grid-cols-3">
-                <div className="rounded-2xl border border-white/10 bg-black/20 p-4"><span className="text-cyan-300">1.</span> Add the driver profile.</div>
-                <div className="rounded-2xl border border-white/10 bg-black/20 p-4"><span className="text-cyan-300">2.</span> Send or copy their invite link.</div>
-                <div className="rounded-2xl border border-white/10 bg-black/20 p-4"><span className="text-cyan-300">3.</span> Driver installs/signs in and goes online.</div>
+                <div className="rounded-2xl border border-white/10 bg-black/20 p-4"><span className="text-sky-300">1.</span> Add the driver profile.</div>
+                <div className="rounded-2xl border border-white/10 bg-black/20 p-4"><span className="text-sky-300">2.</span> Send or copy their invite link.</div>
+                <div className="rounded-2xl border border-white/10 bg-black/20 p-4"><span className="text-sky-300">3.</span> Driver installs/signs in and goes online.</div>
               </div>
               <p className="mt-4 text-xs text-white/45">
                 The Driver Install Guide button is specifically for showing the driver how to put the Driver app on their phone or tablet. It is separate from adding the driver account here.
@@ -254,7 +254,7 @@ export default function WorkspaceDriversPage() {
 
         <Card className="rounded-3xl border border-white/10 bg-white/5 text-white shadow-none">
           <CardContent className="p-0">
-            <div className="grid gap-3 border-b border-white/10 bg-slate-900/70 px-5 py-3 text-[11px] uppercase tracking-[0.14em] text-white/50 md:grid-cols-[1.4fr_1fr_1fr_auto] md:items-center">
+            <div className="grid gap-3 border-b border-white/10 bg-[#08274f]/72 px-5 py-3 text-[11px] uppercase tracking-[0.14em] text-white/50 md:grid-cols-[1.4fr_1fr_1fr_auto] md:items-center">
               <p>Driver</p><p>Zone</p><p>Status</p><p className="md:text-right">Actions</p>
             </div>
             <div className="divide-y divide-white/10">
@@ -273,7 +273,7 @@ export default function WorkspaceDriversPage() {
                       <button onClick={() => toggleAccountStatus(driver.id)} className={`rounded-full border px-3 py-1 text-xs font-semibold transition ${driver.accountStatus === "enabled" ? "border-emerald-400/45 bg-emerald-500/15 text-emerald-200" : "border-white/20 bg-white/5 text-white/70"}`}>
                         {driver.accountStatus === "enabled" ? "Enabled" : "Disabled"}
                       </button>
-                      <span className="rounded-full border border-cyan-400/30 bg-cyan-500/10 px-3 py-1 text-xs text-cyan-200">{getDriverInviteLabel(driver.inviteStatus)}</span>
+                      <span className="rounded-full border border-cyan-400/30 bg-cyan-500/10 px-3 py-1 text-xs text-sky-200">{getDriverInviteLabel(driver.inviteStatus)}</span>
                       <span className="rounded-full border border-white/20 bg-white/10 px-3 py-1 text-xs text-white/75">{getDriverLiveWorkLabel(driver.liveWorkStatus)}</span>
                     </div>
                     <div className="flex flex-wrap items-center gap-2 md:justify-end">
@@ -292,7 +292,7 @@ export default function WorkspaceDriversPage() {
           </CardContent>
         </Card>
 
-        {actionMessage ? <p className="mt-4 text-sm text-cyan-200">{actionMessage}</p> : null}
+        {actionMessage ? <p className="mt-4 text-sm text-sky-200">{actionMessage}</p> : null}
       </section>
 
       <Modal isOpen={isEditorOpen} onClose={() => setIsEditorOpen(false)} title={editingDriverId ? "Edit Driver" : "Add Driver"}>
