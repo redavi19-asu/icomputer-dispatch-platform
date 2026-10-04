@@ -12,7 +12,7 @@ const money = (value: number) => new Intl.NumberFormat("en-US", { style: "curren
 
 const statusClass = (status: DriverEarningRecord["status"]) => {
   if (status === "paid") return "border-emerald-400/35 bg-emerald-500/10 text-emerald-200";
-  if (status === "approved") return "border-cyan-400/35 bg-cyan-500/10 text-cyan-200";
+  if (status === "approved") return "border-cyan-400/35 bg-cyan-500/10 text-sky-200";
   if (status === "needs-review") return "border-amber-400/35 bg-amber-500/10 text-amber-200";
   return "border-white/15 bg-white/5 text-white/65";
 };
@@ -63,31 +63,31 @@ export default function DriverEarningsPage() {
   }, { jobs: 0, miles: 0, total: 0, paid: 0 }), [today]);
 
   return (
-    <main className="min-h-dvh bg-slate-950 text-white">
+    <main className="min-h-dvh bg-[#061a33] text-white">
       <div className="mx-auto w-full max-w-xl px-4 py-6 sm:px-6">
         <div className="flex items-center justify-between gap-3">
           <Link href="/driver" className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-2 text-sm text-white/75 hover:bg-white/10">
             <ArrowLeft className="h-4 w-4" /> Driver App
           </Link>
-          <span className="rounded-full border border-cyan-400/25 bg-cyan-500/10 px-3 py-1 text-[11px] uppercase tracking-[.14em] text-cyan-200">{sourceLabel}</span>
+          <span className="rounded-full border border-cyan-400/25 bg-cyan-500/10 px-3 py-1 text-[11px] uppercase tracking-[.14em] text-sky-200">{sourceLabel}</span>
         </div>
 
         <section className="mt-7 rounded-[28px] border border-cyan-400/20 bg-[radial-gradient(circle_at_10%_10%,rgba(34,211,238,.18),transparent_38%),rgba(15,23,42,.72)] p-6">
-          <p className="text-xs uppercase tracking-[.22em] text-cyan-300">{companyName}</p>
+          <p className="text-xs uppercase tracking-[.22em] text-sky-300">{companyName}</p>
           <h1 className="mt-2 text-3xl font-semibold tracking-tight">My Earnings</h1>
           <p className="mt-3 text-sm leading-6 text-white/60">See what completed jobs earned, how many route miles were counted, and whether the business has approved or paid each amount.</p>
         </section>
 
         <section className="mt-5 grid grid-cols-2 gap-3">
-          <div className="rounded-2xl border border-white/10 bg-white/5 p-4"><CheckCircle2 className="h-4 w-4 text-cyan-300" /><p className="mt-3 text-[10px] uppercase tracking-[.14em] text-white/40">Jobs Today</p><p className="mt-1 text-xl font-semibold">{totals.jobs}</p></div>
-          <div className="rounded-2xl border border-white/10 bg-white/5 p-4"><Route className="h-4 w-4 text-cyan-300" /><p className="mt-3 text-[10px] uppercase tracking-[.14em] text-white/40">Miles Today</p><p className="mt-1 text-xl font-semibold">{totals.miles.toFixed(1)}</p></div>
-          <div className="rounded-2xl border border-white/10 bg-white/5 p-4"><CircleDollarSign className="h-4 w-4 text-cyan-300" /><p className="mt-3 text-[10px] uppercase tracking-[.14em] text-white/40">Earned Today</p><p className="mt-1 text-xl font-semibold">{money(totals.total)}</p></div>
+          <div className="rounded-2xl border border-white/10 bg-white/5 p-4"><CheckCircle2 className="h-4 w-4 text-sky-300" /><p className="mt-3 text-[10px] uppercase tracking-[.14em] text-white/40">Jobs Today</p><p className="mt-1 text-xl font-semibold">{totals.jobs}</p></div>
+          <div className="rounded-2xl border border-white/10 bg-white/5 p-4"><Route className="h-4 w-4 text-sky-300" /><p className="mt-3 text-[10px] uppercase tracking-[.14em] text-white/40">Miles Today</p><p className="mt-1 text-xl font-semibold">{totals.miles.toFixed(1)}</p></div>
+          <div className="rounded-2xl border border-white/10 bg-white/5 p-4"><CircleDollarSign className="h-4 w-4 text-sky-300" /><p className="mt-3 text-[10px] uppercase tracking-[.14em] text-white/40">Earned Today</p><p className="mt-1 text-xl font-semibold">{money(totals.total)}</p></div>
           <div className="rounded-2xl border border-white/10 bg-white/5 p-4"><WalletCards className="h-4 w-4 text-emerald-300" /><p className="mt-3 text-[10px] uppercase tracking-[.14em] text-white/40">Paid Today</p><p className="mt-1 text-xl font-semibold">{money(totals.paid)}</p></div>
         </section>
 
         <section className="mt-5 overflow-hidden rounded-[28px] border border-white/10 bg-white/5">
           <div className="border-b border-white/10 p-5">
-            <div className="flex items-center gap-2"><Clock3 className="h-4 w-4 text-cyan-300" /><h2 className="font-semibold">Recent completed jobs</h2></div>
+            <div className="flex items-center gap-2"><Clock3 className="h-4 w-4 text-sky-300" /><h2 className="font-semibold">Recent completed jobs</h2></div>
           </div>
 
           {loading ? (
@@ -114,7 +114,7 @@ export default function DriverEarningsPage() {
         </section>
 
         <section className="mt-5 rounded-2xl border border-white/10 bg-white/[0.035] p-4">
-          <div className="flex items-start gap-3"><ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-cyan-300" /><p className="text-xs leading-5 text-white/50">This screen shows the company&apos;s Urban Carrier OS earnings ledger. “Calculated” is an estimate based on company pay rules, “Approved” means the business approved it for payout, and “Paid” should only be shown after the company records or confirms actual payment.</p></div>
+          <div className="flex items-start gap-3"><ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-sky-300" /><p className="text-xs leading-5 text-white/50">This screen shows the company&apos;s Urban Carrier OS earnings ledger. “Calculated” is an estimate based on company pay rules, “Approved” means the business approved it for payout, and “Paid” should only be shown after the company records or confirms actual payment.</p></div>
         </section>
       </div>
     </main>
