@@ -60,15 +60,15 @@ export default function WorkspaceSettingsPage() {
     setSaved(true);
   }
 
-  if (!settings) return <main className="min-h-screen bg-slate-950" />;
+  if (!settings) return <main className="min-h-screen bg-[#061a33]" />;
 
   return (
-    <main className="min-h-screen bg-slate-950 text-white">
+    <main className="min-h-screen bg-[#061a33] text-white">
       <AppShellNav />
       <section className="mx-auto max-w-5xl px-6 py-12 md:py-16">
         <div className="mb-8 flex flex-wrap items-center justify-between gap-4">
           <div>
-            <p className="text-xs uppercase tracking-[0.22em] text-cyan-300">
+            <p className="text-xs uppercase tracking-[0.22em] text-sky-300">
               Company Settings
             </p>
             <h1 className="mt-2 text-3xl font-semibold tracking-tight md:text-4xl">
@@ -96,7 +96,7 @@ export default function WorkspaceSettingsPage() {
                 <input
                   value={settings.companyName}
                   onChange={(e) => update("companyName", e.target.value)}
-                  className="w-full rounded-xl border border-white/10 bg-slate-950/80 px-4 py-3 outline-none focus:border-cyan-300/50"
+                  className="w-full rounded-xl border border-white/10 bg-[#061a33]/80 px-4 py-3 outline-none focus:border-orange-300/60"
                 />
               </label>
               <label className="space-y-2">
@@ -104,7 +104,7 @@ export default function WorkspaceSettingsPage() {
                 <input
                   value={settings.industry}
                   onChange={(e) => update("industry", e.target.value)}
-                  className="w-full rounded-xl border border-white/10 bg-slate-950/80 px-4 py-3 outline-none focus:border-cyan-300/50"
+                  className="w-full rounded-xl border border-white/10 bg-[#061a33]/80 px-4 py-3 outline-none focus:border-orange-300/60"
                   placeholder="Field service, delivery, maintenance..."
                 />
               </label>
@@ -124,7 +124,7 @@ export default function WorkspaceSettingsPage() {
                       e.target.value as WorkspaceSettingsState["operationalMode"]
                     )
                   }
-                  className="w-full rounded-xl border border-white/10 bg-slate-950/80 px-4 py-3"
+                  className="w-full rounded-xl border border-white/10 bg-[#061a33]/80 px-4 py-3"
                 >
                   <option value="Direct Service">Direct Service</option>
                   <option value="Pickup Then Deliver">Pickup Then Deliver</option>
@@ -142,7 +142,7 @@ export default function WorkspaceSettingsPage() {
                       e.target.value as WorkspaceSettingsState["dispatchMode"]
                     )
                   }
-                  className="w-full rounded-xl border border-white/10 bg-slate-950/80 px-4 py-3"
+                  className="w-full rounded-xl border border-white/10 bg-[#061a33]/80 px-4 py-3"
                 >
                   <option value="Manual">Manual</option>
                   <option value="Assisted">Assisted</option>
@@ -160,7 +160,7 @@ export default function WorkspaceSettingsPage() {
                       e.target.value as WorkspaceSettingsState["driverAcceptanceMode"]
                     )
                   }
-                  className="w-full rounded-xl border border-white/10 bg-slate-950/80 px-4 py-3"
+                  className="w-full rounded-xl border border-white/10 bg-[#061a33]/80 px-4 py-3"
                 >
                   <option value="manual">Manual</option>
                   <option value="auto">Automatic</option>
@@ -177,7 +177,7 @@ export default function WorkspaceSettingsPage() {
                       e.target.value as WorkspaceSettingsState["jobStructureMode"]
                     )
                   }
-                  className="w-full rounded-xl border border-white/10 bg-slate-950/80 px-4 py-3"
+                  className="w-full rounded-xl border border-white/10 bg-[#061a33]/80 px-4 py-3"
                 >
                   <option value="One-stop job">One-stop job</option>
                   <option value="Two-stop job">Two-stop job</option>
@@ -267,7 +267,7 @@ export default function WorkspaceSettingsPage() {
               <input
                 value={settings.baseAddress}
                 onChange={(e) => update("baseAddress", e.target.value)}
-                className="w-full rounded-xl border border-white/10 bg-slate-950/80 px-4 py-3 outline-none focus:border-cyan-300/50"
+                className="w-full rounded-xl border border-white/10 bg-[#061a33]/80 px-4 py-3 outline-none focus:border-orange-300/60"
                 placeholder="Street address, city, state ZIP"
               />
             </label>
@@ -314,7 +314,7 @@ export default function WorkspaceSettingsPage() {
           <div className="flex flex-wrap items-center gap-3">
             <button
               onClick={save}
-              className="inline-flex items-center gap-2 rounded-xl bg-cyan-400 px-5 py-3 font-bold text-slate-950 hover:bg-cyan-300"
+              className="inline-flex items-center gap-2 rounded-xl bg-orange-500 px-5 py-3 font-bold text-white hover:bg-orange-400"
             >
               <Save className="h-4 w-4" /> Save Preferences
             </button>
