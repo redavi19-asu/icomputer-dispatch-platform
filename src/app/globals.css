@@ -5,6 +5,13 @@
 :root {
   --background: #ffffff;
   --foreground: #0f172a;
+  --urban-carrier-navy: #061a33;
+  --urban-carrier-navy-soft: #08274f;
+  --urban-carrier-blue: #0a4a91;
+  --urban-carrier-sky: #2da7ef;
+  --urban-carrier-orange: #f97316;
+  --urban-carrier-pin: #ff5a2a;
+  --urban-carrier-gold: #fbbf24;
   --font-orbitron: "Orbitron", sans-serif;
 }
 
@@ -557,4 +564,9 @@ body {
 
 .animate-driver-cyan-subtle {
   animation: driver-cyan-subtle 2s ease-in-out infinite;
+}
+
+::selection {
+  background: rgba(249, 115, 22, 0.28);
+  color: #061a33;
 }
