@@ -11,7 +11,7 @@ export function getPlanEntitlements(planValue?: string | null): DispatchPlanEnti
   if (normalized.includes("business")) {
     return {
       id: "business",
-      label: "DispatchOS Business",
+      label: "Urban Carrier OS Business",
       maxDrivers: 30,
       maxDispatcherSeats: 5,
     };
@@ -20,7 +20,7 @@ export function getPlanEntitlements(planValue?: string | null): DispatchPlanEnti
   if (normalized.includes("custom")) {
     return {
       id: "custom",
-      label: "DispatchOS Custom",
+      label: "Urban Carrier OS Custom",
       maxDrivers: null,
       maxDispatcherSeats: null,
     };
@@ -28,7 +28,7 @@ export function getPlanEntitlements(planValue?: string | null): DispatchPlanEnti
 
   return {
     id: "basic",
-    label: "DispatchOS Basic",
+    label: "Urban Carrier OS Basic",
     maxDrivers: 10,
     maxDispatcherSeats: 1,
   };
