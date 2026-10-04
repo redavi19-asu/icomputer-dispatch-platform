@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { usePathname } from "next/navigation";
 import { UrbanCarrierMark } from "@/components/branding/urban-carrier-mark";
 
 const STORAGE_KEY = "dispatchos-cookie-consent";
@@ -8,6 +9,7 @@ const STORAGE_KEY = "dispatchos-cookie-consent";
 type LegalView = "privacy" | "terms" | null;
 
 export function LegalConsent() {
+  const pathname = usePathname();
   const [showCookies, setShowCookies] = useState(false);
   const [legalView, setLegalView] = useState<LegalView>(null);
 
@@ -34,6 +36,8 @@ export function LegalConsent() {
   };
 
   const isPrivacy = legalView === "privacy";
+
+  if (pathname?.includes("/visual/city")) return null;
 
   return (
     <>
