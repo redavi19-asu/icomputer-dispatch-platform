@@ -79,7 +79,7 @@ export default function SecureDriverInvitePage() {
   }
 
   return (
-    <main className="min-h-screen bg-slate-950 text-white">
+    <main className="min-h-screen bg-[#061a33] text-white">
       <AppShellNav />
       <section className="mx-auto max-w-4xl px-6 py-12 md:py-16">
         <Link
@@ -89,13 +89,13 @@ export default function SecureDriverInvitePage() {
           <ArrowLeft className="h-4 w-4" /> Back to Drivers
         </Link>
 
-        <div className="mt-7 rounded-[2rem] border border-cyan-400/20 bg-[linear-gradient(145deg,rgba(8,47,73,.42),rgba(2,6,23,.96)_68%)] p-7 md:p-9">
+        <div className="mt-7 rounded-[2rem] border border-sky-300/20 bg-[linear-gradient(145deg,rgba(10,74,145,.35),rgba(6,26,51,.97)_68%)] p-7 md:p-9">
           <div className="flex items-start gap-4">
-            <div className="rounded-2xl border border-cyan-300/20 bg-cyan-400/10 p-3">
-              <ShieldCheck className="h-7 w-7 text-cyan-300" />
+            <div className="rounded-2xl border border-orange-300/25 bg-orange-500/10 p-3">
+              <ShieldCheck className="h-7 w-7 text-orange-200" />
             </div>
             <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.22em] text-cyan-300">Secure Driver Access</p>
+              <p className="text-xs font-semibold uppercase tracking-[0.22em] text-orange-200">Secure Driver Access</p>
               <h1 className="mt-2 text-3xl font-semibold">Invite a driver to {companyName}</h1>
               <p className="mt-3 max-w-2xl text-sm leading-6 text-white/62">
                 Each link is created for this signed-in company, expires after 72 hours, and can only be accepted once. The driver creates their own password and receives a company-bound Driver session.
@@ -106,8 +106,8 @@ export default function SecureDriverInvitePage() {
           <form onSubmit={createInvite} className="mt-8 space-y-4">
             <label className="block">
               <span className="mb-2 block text-sm font-medium text-white/75">Driver email</span>
-              <div className="flex items-center gap-3 rounded-xl border border-white/12 bg-black/25 px-4 py-3 focus-within:border-cyan-400/50">
-                <Mail className="h-5 w-5 text-cyan-300" />
+              <div className="flex items-center gap-3 rounded-xl border border-white/12 bg-black/25 px-4 py-3 focus-within:border-orange-300/60">
+                <Mail className="h-5 w-5 text-orange-200" />
                 <input
                   type="email"
                   required
@@ -122,7 +122,7 @@ export default function SecureDriverInvitePage() {
             <button
               type="submit"
               disabled={isCreating}
-              className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-cyan-400 px-5 py-3.5 font-bold text-slate-950 transition hover:bg-cyan-300 disabled:cursor-not-allowed disabled:opacity-60"
+              className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-orange-500 px-5 py-3.5 font-bold text-white transition hover:bg-orange-400 disabled:cursor-not-allowed disabled:opacity-60"
             >
               <Send className="h-4 w-4" />
               {isCreating ? "Creating secure invite…" : "Create Secure Driver Invite"}
