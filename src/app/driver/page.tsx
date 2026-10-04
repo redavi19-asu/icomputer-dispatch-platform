@@ -914,13 +914,13 @@ export default function DriverPage() {
   const frameContainerClass = isAppViewport
     ? "flex w-full flex-1 min-h-0"
     : "mx-auto flex w-full max-w-md flex-1 min-h-0 px-4 pt-4 pb-0";
-  const missionFrameClass = `relative h-full w-full overflow-hidden bg-white shadow-[0_8px_32px_rgba(0,0,0,0.12)] ${
+  const missionFrameClass = `relative h-full w-full overflow-hidden bg-white border border-sky-100 shadow-[0_12px_34px_rgba(6,74,145,0.12)] ${
     isAppViewport ? "rounded-none" : "rounded-[28px]"
   }`;
 
   if (isLoading) {
     return (
-      <main className="flex h-dvh flex-col bg-[#f6f6f6] pb-[env(safe-area-inset-bottom)] text-slate-950">
+      <main className="flex h-dvh flex-col bg-[#eef6ff] pb-[env(safe-area-inset-bottom)] text-slate-950">
         <div className="mx-auto max-w-md px-4 py-10">Loading driver console...</div>
       </main>
     );
@@ -928,7 +928,7 @@ export default function DriverPage() {
 
   if (!driverSurface.enabled) {
     return (
-      <main className="flex h-dvh flex-col bg-[#f6f6f6] pb-[env(safe-area-inset-bottom)] text-slate-950">
+      <main className="flex h-dvh flex-col bg-[#eef6ff] pb-[env(safe-area-inset-bottom)] text-slate-950">
         <div className="mx-auto mt-20 w-full max-w-md rounded-2xl border border-white/10 bg-white/5 p-6">
           <h1 className="text-xl font-semibold">Driver app is disabled</h1>
           <p className="mt-2 text-sm text-slate-600">
@@ -950,7 +950,7 @@ export default function DriverPage() {
         <source src={withBasePath("/sounds/broadcast-alert.wav")} type="audio/wav" />
       </audio>
 
-      <main className="flex h-dvh flex-col bg-[#f6f6f6] pb-[env(safe-area-inset-bottom)] text-slate-950">
+      <main className="flex h-dvh flex-col bg-[#eef6ff] pb-[env(safe-area-inset-bottom)] text-slate-950">
         {showBroadcastAlert && broadcastAlerts.length > 0 ? (
           <div className="fixed inset-x-0 top-24 z-50 flex justify-center">
             <div className="max-w-xs w-full rounded-xl border border-yellow-400/30 bg-yellow-900/90 px-3 py-2 shadow-md backdrop-blur flex items-center gap-2">
