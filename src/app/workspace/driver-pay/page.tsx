@@ -40,7 +40,7 @@ const todayKey = () => new Date().toLocaleDateString("en-CA");
 
 const statusStyle = (status: DriverEarningRecord["status"]) => {
   if (status === "paid") return "border-emerald-400/35 bg-emerald-500/10 text-emerald-200";
-  if (status === "approved") return "border-cyan-400/35 bg-cyan-500/10 text-cyan-200";
+  if (status === "approved") return "border-cyan-400/35 bg-cyan-500/10 text-sky-200";
   if (status === "needs-review") return "border-amber-400/35 bg-amber-500/10 text-amber-200";
   return "border-white/15 bg-white/5 text-white/65";
 };
@@ -145,12 +145,12 @@ export default function DriverPayPage() {
     setMessage(status === "paid" ? "Earning marked paid." : "Earning approved for payout.");
   };
 
-  if (!session || !settings) return <main className="min-h-screen bg-slate-950" />;
+  if (!session || !settings) return <main className="min-h-screen bg-[#061a33]" />;
 
   const providerConnected = settings.payoutProvider !== "not-connected";
 
   return (
-    <main className="min-h-screen bg-slate-950 text-white">
+    <main className="min-h-screen bg-[#061a33] text-white">
       <AppShellNav />
 
       <section className="border-b border-white/10 bg-[radial-gradient(circle_at_10%_20%,rgba(34,211,238,.16),transparent_32%),radial-gradient(circle_at_86%_35%,rgba(16,185,129,.12),transparent_34%)]">
@@ -160,13 +160,13 @@ export default function DriverPayPage() {
           </Link>
           <div className="mt-6 flex flex-wrap items-end justify-between gap-5">
             <div>
-              <p className="text-xs uppercase tracking-[0.22em] text-cyan-300">Business Operations</p>
+              <p className="text-xs uppercase tracking-[0.22em] text-sky-300">Business Operations</p>
               <h1 className="mt-2 text-3xl font-semibold tracking-tight md:text-5xl">Driver Pay & Earnings</h1>
               <p className="mt-4 max-w-3xl text-sm leading-6 text-white/68 md:text-base">
                 Calculate what each driver earned from completed jobs, route mileage, and company-defined rates. Approve earnings here, then pay manually or through a connected payout/payroll provider.
               </p>
             </div>
-            <Button onClick={saveSettings} className="rounded-xl bg-cyan-400 px-5 py-3 font-semibold text-slate-950 hover:bg-cyan-300">
+            <Button onClick={saveSettings} className="rounded-xl bg-orange-500 px-5 py-3 font-semibold text-slate-950 hover:bg-orange-400">
               <Save className="h-4 w-4" /> Save Pay Settings
             </Button>
           </div>
@@ -184,7 +184,7 @@ export default function DriverPayPage() {
           ].map((item) => (
             <Card key={item.label} className="rounded-3xl border border-white/10 bg-white/5 text-white shadow-none">
               <CardContent className="p-5">
-                <item.icon className="h-5 w-5 text-cyan-300" />
+                <item.icon className="h-5 w-5 text-sky-300" />
                 <p className="mt-4 text-xs uppercase tracking-[0.16em] text-white/45">{item.label}</p>
                 <p className="mt-2 text-2xl font-semibold">{item.value}</p>
               </CardContent>
@@ -197,10 +197,10 @@ export default function DriverPayPage() {
             <CardContent className="p-6 md:p-7">
               <div className="flex items-start gap-4">
                 <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-cyan-500/10">
-                  <Gauge className="h-5 w-5 text-cyan-300" />
+                  <Gauge className="h-5 w-5 text-sky-300" />
                 </div>
                 <div className="flex-1">
-                  <p className="text-xs uppercase tracking-[0.2em] text-cyan-300">Company Default Pay Rule</p>
+                  <p className="text-xs uppercase tracking-[0.2em] text-sky-300">Company Default Pay Rule</p>
                   <h2 className="mt-2 text-2xl font-semibold">How new driver earnings are calculated</h2>
                 </div>
               </div>
@@ -294,9 +294,9 @@ export default function DriverPayPage() {
           <CardContent className="p-0">
             <div className="border-b border-white/10 p-6">
               <div className="flex items-start gap-3">
-                <Users className="mt-1 h-5 w-5 text-cyan-300" />
+                <Users className="mt-1 h-5 w-5 text-sky-300" />
                 <div>
-                  <p className="text-xs uppercase tracking-[0.2em] text-cyan-300">Individual Driver Rates</p>
+                  <p className="text-xs uppercase tracking-[0.2em] text-sky-300">Individual Driver Rates</p>
                   <h2 className="mt-2 text-2xl font-semibold">Set different pay for different drivers</h2>
                   <p className="mt-2 text-sm text-white/55">Each driver starts with the company default. Change any field below to create a driver-specific pay profile.</p>
                 </div>
@@ -317,7 +317,7 @@ export default function DriverPayPage() {
                       <div>
                         <p className="text-lg font-semibold">{driver.name}</p>
                         <p className="mt-1 text-sm text-white/50">{driver.zone} • {driverToday.length} jobs today • {driverMiles.toFixed(1)} mi • {money(driverPay)}</p>
-                        <p className="mt-2 text-xs text-cyan-200/70">{formatDriverPayMethod(profile.method)}</p>
+                        <p className="mt-2 text-xs text-sky-200/70">{formatDriverPayMethod(profile.method)}</p>
                       </div>
                       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
                         <label><span className="mb-1 block text-[10px] uppercase tracking-[.12em] text-white/40">Method</span><select value={profile.method} onChange={(event) => updateDriverProfile(driver.id, { method: event.target.value as DriverPayMethod })} className="w-full rounded-lg border border-white/10 bg-slate-900 px-3 py-2 text-xs text-white"><option value="job-plus-mile">Job + mi</option><option value="per-job">Per job</option><option value="per-mile">Per mile</option><option value="percentage">Percentage</option></select></label>
@@ -338,7 +338,7 @@ export default function DriverPayPage() {
           <CardContent className="p-0">
             <div className="flex flex-wrap items-center justify-between gap-3 border-b border-white/10 p-6">
               <div>
-                <p className="text-xs uppercase tracking-[0.2em] text-cyan-300">Earnings Ledger</p>
+                <p className="text-xs uppercase tracking-[0.2em] text-sky-300">Earnings Ledger</p>
                 <h2 className="mt-2 text-2xl font-semibold">Completed job pay history</h2>
               </div>
               <span className="rounded-full border border-white/15 bg-white/5 px-3 py-1 text-xs text-white/60">{earnings.length} records</span>
@@ -371,7 +371,7 @@ export default function DriverPayPage() {
 
         <div className="rounded-3xl border border-white/10 bg-white/[0.035] p-6">
           <div className="flex items-start gap-3">
-            <CircleDollarSign className="mt-0.5 h-5 w-5 text-cyan-300" />
+            <CircleDollarSign className="mt-0.5 h-5 w-5 text-sky-300" />
             <div>
               <p className="font-semibold">How the automatic flow will work</p>
               <p className="mt-2 max-w-4xl text-sm leading-6 text-white/58">
