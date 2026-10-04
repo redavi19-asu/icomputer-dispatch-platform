@@ -1,6 +1,8 @@
 import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono, Orbitron } from "next/font/google";
 import "./globals.css";
+
+const appBase = process.env.NODE_ENV === "production" ? "/icomputer-dispatch-platform" : "";
 import { ServiceWorkerRegister } from "@/components/platform/service-worker-register";
 import { TenantStorageIsolation } from "@/components/platform/tenant-storage-isolation";
 import { TenantOperationsSyncV2 } from "@/components/platform/tenant-operations-sync-v2";
@@ -43,8 +45,8 @@ export const metadata: Metadata = {
     "Urban Carrier OS connects dispatchers, drivers, packages, routes and customers in one scan-to-route-to-deliver logistics workflow.",
   applicationName: "Urban Carrier OS",
   icons: {
-    icon: [{ url: "/urban-carrier-icon.svg", type: "image/svg+xml" }],
-    shortcut: [{ url: "/urban-carrier-icon.svg", type: "image/svg+xml" }],
+    icon: [{ url: `${appBase}/urban-carrier-icon.svg`, type: "image/svg+xml" }],
+    shortcut: [{ url: `${appBase}/urban-carrier-icon.svg`, type: "image/svg+xml" }],
   },
 };
 
