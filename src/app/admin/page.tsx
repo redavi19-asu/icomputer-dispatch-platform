@@ -24,6 +24,7 @@ import {
   Users,
 } from "lucide-react";
 import { authRequest, getStoredSession } from "@/lib/dispatchos-auth";
+import { UrbanCarrierMark } from "@/components/branding/urban-carrier-mark";
 
 type CompanyRow = {
   id: string;
@@ -221,8 +222,8 @@ export default function AdminPage() {
   }
 
   return (
-    <main className="min-h-screen bg-[#05070b] text-white">
-      <section className="border-b border-white/10 bg-[radial-gradient(circle_at_20%_0%,rgba(34,211,238,.15),transparent_34%),radial-gradient(circle_at_80%_0%,rgba(16,185,129,.12),transparent_30%)]">
+    <main className="min-h-screen bg-[#061a33] text-white">
+      <section className="border-b border-white/10 bg-[radial-gradient(circle_at_20%_0%,rgba(56,189,248,.20),transparent_34%),radial-gradient(circle_at_80%_0%,rgba(249,115,22,.14),transparent_30%),linear-gradient(135deg,#061a33,#0a4a91)]">
         <div className="mx-auto max-w-7xl px-6 py-8 md:py-12">
           <div className="flex flex-wrap items-center justify-end gap-3 border-b border-white/10 pb-6">
             <button onClick={() => (window.location.href = `${basePath()}/workspace`)} className="inline-flex items-center gap-2 rounded-xl border border-cyan-400/30 bg-cyan-500/10 px-4 py-3 text-sm font-semibold text-cyan-100 hover:bg-cyan-500/15">
@@ -234,13 +235,13 @@ export default function AdminPage() {
             <button onClick={() => void loadCompanies()} className="inline-flex items-center gap-2 rounded-xl border border-white/15 bg-white/5 px-4 py-3 text-sm font-semibold hover:bg-white/10">
               <RefreshCw className="h-4 w-4" /> Refresh
             </button>
-            <button onClick={() => setShowCreate((value) => !value)} className="inline-flex items-center gap-2 rounded-xl bg-cyan-400 px-4 py-3 text-sm font-bold text-slate-950 hover:bg-cyan-300">
+            <button onClick={() => setShowCreate((value) => !value)} className="inline-flex items-center gap-2 rounded-xl bg-orange-500 px-4 py-3 text-sm font-bold text-white hover:bg-orange-400">
               <Plus className="h-4 w-4" /> Onboard Company
             </button>
           </div>
 
-          <div className="pt-8 md:pt-10">
-            <div className="flex items-center gap-2 text-xs uppercase tracking-[0.24em] text-cyan-300">
+          <div className="pt-8 md:pt-10"><div className="mb-5"><UrbanCarrierMark href="/" size="md" showText /></div>
+            <div className="flex items-center gap-2 text-xs uppercase tracking-[0.24em] text-orange-200">
               <ShieldCheck className="h-4 w-4" /> Platform Administrator
             </div>
             <h1 className="mt-4 text-4xl font-semibold tracking-tight md:text-6xl">Urban Carrier OS Command Center</h1>
