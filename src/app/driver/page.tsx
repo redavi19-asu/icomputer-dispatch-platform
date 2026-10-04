@@ -1080,7 +1080,7 @@ export default function DriverPage() {
 
             <div className="text-center">
               <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">
-                Urban Courier
+                Urban Carrier
               </p>
               <h1 className="text-xl font-semibold">
                 {workspaceSettings.companyName || company?.name || "Driver"}
