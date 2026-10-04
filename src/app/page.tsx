@@ -13,7 +13,6 @@ import {
   LayoutDashboard,
   MapPinned,
   MessageSquare,
-  ShieldCheck,
   Smartphone,
   Users,
   WalletCards,
