@@ -190,14 +190,24 @@ function TreeModel({
   return <primitive object={model} position={position} scale={scale} />;
 }
 
-function CameraRig() {
+function CameraRig({ compact = false }: { compact?: boolean }) {
   const { camera } = useThree();
 
   useEffect(() => {
-    camera.position.set(8.8, 5.35, 10.9);
-    camera.lookAt(0, 0.85, -0.65);
+    if (compact) {
+      camera.position.set(5.45, 3.55, 6.25);
+      camera.lookAt(0.55, 0.92, -0.35);
+    } else {
+      camera.position.set(6.35, 4.05, 7.35);
+      camera.lookAt(0.25, 0.95, -0.5);
+    }
+
+    if (camera instanceof THREE.PerspectiveCamera) {
+      camera.fov = compact ? 31 : 34;
+    }
+
     camera.updateProjectionMatrix();
-  }, [camera]);
+  }, [camera, compact]);
 
   return null;
 }
@@ -227,7 +237,7 @@ function BackgroundSkyline() {
   );
 }
 
-function CityWorld() {
+function CityWorld({ compact = false }: { compact?: boolean }) {
   const people = [
     { src: "people/character-female-a.glb", laneZ: -1.95, startX: 0.3, speed: 0.75, direction: 1 as const, scale: 1.5, phase: 0.2 },
     { src: "people/character-female-b.glb", laneZ: -2.15, startX: 5.3, speed: 0.61, direction: -1 as const, scale: 1.42, phase: 1.0 },
@@ -261,7 +271,7 @@ function CityWorld() {
     <>
       <color attach="background" args={["#9bdef9"]} />
       <fog attach="fog" args={["#bfeeff", 17, 34]} />
-      <CameraRig />
+      <CameraRig compact={compact} />
 
       <ambientLight intensity={1.15} />
       <hemisphereLight intensity={1.05} color="#e3f7ff" groundColor="#7890a6" />
@@ -349,7 +359,7 @@ export default function UrbanCarrier3DCity({ compact = false }: { compact?: bool
       }
     >
       <Canvas shadows dpr={[1, 1.35]} gl={{ antialias: true, alpha: false }}>
-        <CityWorld />
+        <CityWorld compact={compact} />
       </Canvas>
       <div className="pointer-events-none absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-[#061a33]/25 to-transparent" />
     </div>
