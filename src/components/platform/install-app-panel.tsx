@@ -5,9 +5,7 @@ import {
   CheckCircle2,
   Download,
   ExternalLink,
-  MonitorDown,
   Share2,
-  Smartphone,
 } from "lucide-react";
 import { UrbanCarrierMark } from "@/components/branding/urban-carrier-mark";
 
@@ -64,7 +62,6 @@ export function InstallAppPanel({ title, description, launchHref, device }: Inst
     setInstallPrompt(null);
   };
 
-  const Icon = device === "mobile" ? Smartphone : MonitorDown;
 
   const installSteps = isIos
     ? [
@@ -168,7 +165,7 @@ export function InstallAppPanel({ title, description, launchHref, device }: Inst
           <p className="mt-1 text-sm leading-6 text-emerald-100/65">
             {installed
               ? "Use Open Installed App above or launch Urban Carrier OS from the icon on your device."
-              : "You will see a Urban Carrier OS icon on your phone, tablet, or computer. Tap or click that icon to launch the app without coming back through the website each time."}
+              : "You will see the Urban Carrier OS icon on your phone, tablet, or computer. Tap or click that icon to launch the app without coming back through the website each time."}
           </p>
         </div>
       </div>
