@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useMemo, useState } from "react";
 import { Check, ShieldCheck, Smartphone, MonitorUp, ArrowLeft, Copy, CreditCard, Crown, Zap } from "lucide-react";
 import CustomVersionModal from "@/components/marketing/custom-version-modal";
+import { UrbanCarrierMark } from "@/components/branding/urban-carrier-mark";
 import { getStoredSession } from "@/lib/dispatchos-auth";
 
 const features = [
