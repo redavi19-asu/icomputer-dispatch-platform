@@ -15,6 +15,7 @@ import {
   Wrench,
 } from "lucide-react";
 import { AppShellNav } from "@/components/platform/app-shell-nav";
+import { UrbanCarrierMark } from "@/components/branding/urban-carrier-mark";
 import CustomVersionModal from "@/components/marketing/custom-version-modal";
 import { getStoredSession, type DispatchOSSession } from "@/lib/dispatchos-auth";
 import { getPlanEntitlements, seatLabel } from "@/lib/platform/plan-entitlements";
@@ -44,18 +45,18 @@ export default function DownloadCenterPage() {
     setSettings(current);
   }, []);
 
-  if (!session || !settings) return <main className="min-h-screen bg-[#05070b]" />;
+  if (!session || !settings) return <main className="min-h-screen bg-[#061a33]" />;
 
   const companyName = settings.companyName || session.company.name;
   const entitlements = getPlanEntitlements(session.subscription?.plan);
 
   return (
-    <main className="min-h-screen bg-[#05070b] text-white">
+    <main className="min-h-screen bg-[#061a33] text-white">
       <AppShellNav />
-      <section className="border-b border-white/10 bg-[radial-gradient(circle_at_20%_0%,rgba(34,211,238,.17),transparent_34%),radial-gradient(circle_at_82%_8%,rgba(16,185,129,.13),transparent_28%)]">
+      <section className="border-b border-sky-300/15 bg-[radial-gradient(circle_at_20%_0%,rgba(56,189,248,.22),transparent_34%),radial-gradient(circle_at_82%_8%,rgba(249,115,22,.17),transparent_28%),linear-gradient(135deg,#061a33,#0a4a91)]">
         <div className="mx-auto max-w-7xl px-6 py-12 md:py-16">
           <div className="max-w-4xl">
-            <div className="flex items-center gap-2 text-xs uppercase tracking-[0.24em] text-cyan-300"><Download className="h-4 w-4" /> Urban Carrier OS Access Center</div>
+            <div className="flex items-center gap-4"><UrbanCarrierMark href="/" size="md" /><div className="flex items-center gap-2 text-xs uppercase tracking-[0.24em] text-orange-200"><Download className="h-4 w-4" /> Urban Carrier OS Access Center</div></div>
             <h1 className="mt-4 text-4xl font-semibold tracking-tight md:text-6xl">Choose exactly where you need to work.</h1>
             <p className="mt-5 text-base leading-7 text-white/60 md:text-lg"><span className="font-semibold text-white">{companyName}</span> is active. Use the buttons below to open the correct web app. Dispatcher and Driver are separate experiences and open in different places.</p>
 
@@ -80,7 +81,7 @@ export default function DownloadCenterPage() {
 
       <section className="mx-auto max-w-7xl px-6 py-10 md:py-14">
         <div className="grid gap-6 lg:grid-cols-2">
-          <article className="rounded-[2rem] border border-cyan-400/20 bg-cyan-500/[0.055] p-7 md:p-9">
+          <article className="rounded-[2rem] border border-sky-300/25 bg-sky-500/[0.07] p-7 md:p-9">
             <div className="flex items-center justify-between gap-4"><div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-cyan-400 text-slate-950"><Laptop2 className="h-7 w-7" /></div><span className="rounded-full border border-cyan-300/20 bg-cyan-500/10 px-3 py-1 text-xs font-semibold text-cyan-200">OFFICE / DISPATCH</span></div>
             <h2 className="mt-7 text-2xl font-semibold md:text-3xl">{companyName} Dispatcher</h2>
             <p className="mt-3 leading-7 text-white/58">For owners, dispatchers, and office staff. Open the Dispatcher web app for maps, assignments, job queues, driver status, and live operations.</p>
@@ -90,11 +91,11 @@ export default function DownloadCenterPage() {
               <p className="flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-emerald-300" /> Driver mileage totals and completed-job pay calculator included</p>
               <p className="flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-emerald-300" /> Launches as an app-style experience</p>
             </div>
-            <Link href="/dashboard" className="mt-8 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-cyan-400 px-5 py-4 font-bold text-slate-950 hover:bg-cyan-300"><MonitorSmartphone className="h-5 w-5" /> Open Dispatcher Web App <ArrowRight className="h-4 w-4" /></Link>
+            <Link href="/dashboard" className="mt-8 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-sky-400 px-5 py-4 font-bold text-[#061a33] hover:bg-sky-300"><MonitorSmartphone className="h-5 w-5" /> Open Dispatcher Web App <ArrowRight className="h-4 w-4" /></Link>
           </article>
 
-          <article className="rounded-[2rem] border border-emerald-400/20 bg-emerald-500/[0.05] p-7 md:p-9">
-            <div className="flex items-center justify-between gap-4"><div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-emerald-400 text-slate-950"><Smartphone className="h-7 w-7" /></div><span className="rounded-full border border-emerald-300/20 bg-emerald-500/10 px-3 py-1 text-xs font-semibold text-emerald-200">DRIVER / FIELD</span></div>
+          <article className="rounded-[2rem] border border-orange-300/25 bg-orange-500/[0.06] p-7 md:p-9">
+            <div className="flex items-center justify-between gap-4"><div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-orange-500 text-white"><Smartphone className="h-7 w-7" /></div><span className="rounded-full border border-emerald-300/20 bg-emerald-500/10 px-3 py-1 text-xs font-semibold text-emerald-200">DRIVER / FIELD</span></div>
             <h2 className="mt-7 text-2xl font-semibold md:text-3xl">{companyName} Driver</h2>
             <p className="mt-3 leading-7 text-white/58">For drivers and field staff. Open the Driver web app for assigned work, navigation, mission details, job status, and field workflow. This is separate from the Dispatcher web app.</p>
             <div className="mt-6 space-y-3 text-sm text-white/65">
@@ -104,7 +105,7 @@ export default function DownloadCenterPage() {
               <p className="flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-emerald-300" /> Driver access is managed from your portal</p>
               <p className="flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-emerald-300" /> Mobile web access available now; App Store and Google Play versions coming later</p>
             </div>
-            <Link href="/driver" className="mt-8 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-emerald-400 px-5 py-4 font-bold text-slate-950 hover:bg-emerald-300"><Smartphone className="h-5 w-5" /> Open Driver Web App <ArrowRight className="h-4 w-4" /></Link>
+            <Link href="/driver" className="mt-8 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-orange-500 px-5 py-4 font-bold text-white hover:bg-orange-400"><Smartphone className="h-5 w-5" /> Open Driver Web App <ArrowRight className="h-4 w-4" /></Link>
           </article>
         </div>
 
