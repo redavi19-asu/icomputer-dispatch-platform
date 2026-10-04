@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { ArrowLeft, ArrowRight, Check, Crown, ShieldCheck, Sparkles, Zap } from "lucide-react";
 import CustomVersionModal from "@/components/marketing/custom-version-modal";
+import { UrbanCarrierMark } from "@/components/branding/urban-carrier-mark";
 
 const plans = [
   {
@@ -55,8 +56,8 @@ export default function PlansPage() {
   const [customModalOpen, setCustomModalOpen] = useState(false);
 
   return (
-    <main className="min-h-screen bg-[#05070b] text-white">
-      <section className="border-b border-white/10 bg-[radial-gradient(circle_at_50%_0%,rgba(34,211,238,0.17),transparent_40%),radial-gradient(circle_at_82%_14%,rgba(16,185,129,0.12),transparent_28%)]">
+    <main className="min-h-screen bg-[#061a33] text-white">
+      <section className="border-b border-white/10 bg-[radial-gradient(circle_at_50%_0%,rgba(56,189,248,.22),transparent_40%),radial-gradient(circle_at_82%_14%,rgba(249,115,22,.16),transparent_28%),linear-gradient(135deg,#061a33,#0a4a91)]">
         <div className="mx-auto max-w-7xl px-6 py-14 md:py-20">
           <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
             <Link href="/" className="inline-flex items-center gap-2 text-sm text-cyan-200 hover:text-cyan-100">
@@ -67,9 +68,9 @@ export default function PlansPage() {
             </Link>
           </div>
 
-          <div className="mx-auto mt-14 max-w-3xl text-center">
-            <p className="text-xs uppercase tracking-[0.26em] text-cyan-300">Urban Carrier OS</p>
-            <p className="mt-3 text-xs font-semibold uppercase tracking-[0.22em] text-emerald-300 sm:text-sm">Business • Driver • Customer Logistics Software</p>
+          <div className="mx-auto mt-10 max-w-3xl text-center"><div className="mb-6 flex justify-center"><UrbanCarrierMark href="/" size="lg" /></div>
+            <p className="text-xs uppercase tracking-[0.26em] text-sky-300">Urban Carrier OS</p>
+            <p className="mt-3 text-xs font-semibold uppercase tracking-[0.22em] text-orange-200 sm:text-sm">Business • Driver • Customer Logistics Software</p>
             <h1 className="mt-4 text-4xl font-semibold tracking-tight md:text-6xl">Pick the operating level your company needs.</h1>
             <p className="mt-5 text-base leading-7 text-white/62 md:text-lg">
               Both plans connect your business operations with the Dispatcher and Driver apps. Upgrade when your team needs more drivers, more dispatcher seats, automation, and deeper reporting.
@@ -86,15 +87,15 @@ export default function PlansPage() {
             return (
               <article
                 key={plan.id}
-                className={`relative overflow-hidden rounded-[2rem] border p-7 md:p-9 ${featured ? "border-emerald-400/35 bg-emerald-500/[0.07] shadow-[0_0_60px_rgba(16,185,129,.10)]" : "border-cyan-400/20 bg-cyan-500/[0.045]"}`}
+                className={`relative overflow-hidden rounded-[2rem] border p-7 md:p-9 ${featured ? "border-orange-300/35 bg-orange-500/[0.08] shadow-[0_0_60px_rgba(249,115,22,.10)]" : "border-cyan-400/20 bg-cyan-500/[0.045]"}`}
               >
                 {featured && (
-                  <div className="absolute right-5 top-5 rounded-full border border-emerald-300/25 bg-emerald-500/15 px-3 py-1 text-[11px] font-bold uppercase tracking-[0.18em] text-emerald-200">
+                  <div className="absolute right-5 top-5 rounded-full border border-orange-300/25 bg-orange-500/15 px-3 py-1 text-[11px] font-bold uppercase tracking-[0.18em] text-orange-100">
                     Most Popular
                   </div>
                 )}
 
-                <Icon className={`h-9 w-9 ${featured ? "text-emerald-300" : "text-cyan-300"}`} />
+                <Icon className={`h-9 w-9 ${featured ? "text-orange-200" : "text-sky-300"}`} />
                 <h2 className="mt-6 text-2xl font-semibold md:text-3xl">{plan.name}</h2>
                 <p className="mt-3 max-w-xl text-sm leading-6 text-white/58">{plan.description}</p>
 
@@ -106,7 +107,7 @@ export default function PlansPage() {
                 <div className="mt-8 grid gap-3 sm:grid-cols-2">
                   {plan.features.map((feature) => (
                     <div key={feature} className="flex items-start gap-3 rounded-xl border border-white/8 bg-black/20 p-3">
-                      <Check className={`mt-0.5 h-4 w-4 shrink-0 ${featured ? "text-emerald-300" : "text-cyan-300"}`} />
+                      <Check className={`mt-0.5 h-4 w-4 shrink-0 ${featured ? "text-orange-200" : "text-sky-300"}`} />
                       <span className="text-sm text-white/78">{feature}</span>
                     </div>
                   ))}
@@ -114,7 +115,7 @@ export default function PlansPage() {
 
                 <Link
                   href={`/auth?mode=register&plan=${plan.id}`}
-                  className={`mt-8 inline-flex w-full items-center justify-center gap-2 rounded-xl px-6 py-4 font-bold transition ${featured ? "bg-emerald-500 text-white hover:bg-emerald-400" : "bg-cyan-400 text-slate-950 hover:bg-cyan-300"}`}
+                  className={`mt-8 inline-flex w-full items-center justify-center gap-2 rounded-xl px-6 py-4 font-bold transition ${featured ? "bg-orange-500 text-white hover:bg-orange-400" : "bg-sky-400 text-[#061a33] hover:bg-sky-300"}`}
                 >
                   Choose {plan.name.replace("Urban Carrier OS ", "")} <ArrowRight className="h-4 w-4" />
                 </Link>
@@ -149,7 +150,7 @@ export default function PlansPage() {
         </div>
 
         <div className="mt-10 flex items-start gap-3 rounded-2xl border border-emerald-400/15 bg-emerald-500/[0.05] p-5 text-sm text-emerald-100/80">
-          <ShieldCheck className="mt-0.5 h-5 w-5 shrink-0 text-emerald-300" />
+          <ShieldCheck className="mt-0.5 h-5 w-5 shrink-0 text-orange-200" />
           Your subscription controls your company capacity and platform access. Custom website, booking, and system integration is always scoped and quoted separately.
         </div>
       </section>
