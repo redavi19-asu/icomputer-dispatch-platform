@@ -5,7 +5,7 @@ import Link from "next/link";
 import { Fragment, useEffect, useState } from "react";
 import DispatchPreviewMap from "@/components/marketing/dispatch-preview-map";
 import CustomVersionModal from "@/components/marketing/custom-version-modal";
-import UrbanCarrierCityScene from "@/components/branding/urban-carrier-city-scene";
+import UrbanCarrier3DCity from "@/components/branding/urban-carrier-3d-city";
 import { URBAN_CARRIER_ICON_DATA_URI } from "@/lib/urban-carrier-brand";
 import {
   ArrowRight,
@@ -183,7 +183,7 @@ export default function Home() {
           <motion.div initial={{ opacity: 0, scale: 0.96, y: 18 }} animate={{ opacity: 1, scale: 1, y: 0 }} transition={{ duration: 0.6 }} className="relative">
             <div className="absolute -inset-8 rounded-full bg-white/15 blur-3xl" />
             <div className="relative mx-auto max-w-[620px] overflow-hidden rounded-[2.25rem] border border-white/45 bg-white/10 p-2 shadow-[0_38px_90px_rgba(0,20,60,.38)] backdrop-blur">
-              <UrbanCarrierCityScene />
+              <UrbanCarrier3DCity />
               <div className="pointer-events-none absolute left-5 top-5 rounded-full border border-white/30 bg-[#061a33]/82 px-4 py-2 text-[10px] font-black uppercase tracking-[0.18em] text-white backdrop-blur">
                 Live City Network
               </div>
