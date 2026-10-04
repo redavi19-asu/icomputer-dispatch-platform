@@ -22,7 +22,7 @@ export default function CourierOperationsPage() {
               </div>
               <div>
                 <p className="text-xs font-bold uppercase tracking-[0.25em] text-cyan-300">
-                  Urban Courier OS
+                  Urban Carrier OS
                 </p>
                 <h1 className="text-3xl font-black tracking-tight md:text-4xl">
                   Courier Operations
