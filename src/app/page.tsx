@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Fragment, useEffect, useState } from "react";
 import DispatchPreviewMap from "@/components/marketing/dispatch-preview-map";
 import CustomVersionModal from "@/components/marketing/custom-version-modal";
+import { URBAN_CARRIER_ICON_DATA_URI } from "@/lib/urban-carrier-brand";
 import {
   ArrowRight,
   Building2,
@@ -67,7 +68,7 @@ function UrbanCarrierSplash({ reduceMotion }: { reduceMotion: boolean }) {
           animate={reduceMotion ? undefined : { scale: [1, 1.035, 1] }}
           transition={{ duration: 1.35, repeat: reduceMotion ? 0 : Infinity, ease: "easeInOut" }}
         >
-          <img src={assetPath("/urban-carrier-icon.svg")} alt="" className="h-full w-full rounded-[1.65rem] object-cover" />
+          <img src={URBAN_CARRIER_ICON_DATA_URI} alt="" className="h-full w-full rounded-[1.65rem] object-cover" />
           <motion.span
             className="absolute right-3 top-3 h-3.5 w-3.5 rounded-full bg-orange-400 shadow-[0_0_20px_rgba(251,146,60,.95)]"
             animate={reduceMotion ? undefined : { opacity: [0.45, 1, 0.45], scale: [0.8, 1.2, 0.8] }}
@@ -142,7 +143,7 @@ export default function Home() {
         <div className="relative z-10 mx-auto max-w-7xl px-6 pt-6">
           <nav className="flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-white/15 bg-[#061a33]/55 px-4 py-3 backdrop-blur-xl sm:px-5">
             <a href="https://redavi19-asu.github.io/icomuteranythingV3/" className="inline-flex items-center gap-3 font-bold text-white">
-              <span className="h-9 w-9 overflow-hidden rounded-xl border border-white/35 bg-white p-0.5"><img src={assetPath("/urban-carrier-icon.svg")} alt="" className="h-full w-full rounded-[10px] object-cover" /></span>
+              <span className="h-9 w-9 overflow-hidden rounded-xl border border-white/35 bg-white p-0.5"><img src={URBAN_CARRIER_ICON_DATA_URI} alt="" className="h-full w-full rounded-[10px] object-cover" /></span>
               <span><span className="block text-[10px] uppercase tracking-[0.22em] text-sky-100/65">I Computer Anything</span>Urban Carrier OS</span>
             </a>
             <div className="hidden items-center gap-5 text-sm font-semibold text-white/80 md:flex">
@@ -181,7 +182,7 @@ export default function Home() {
           <motion.div initial={{ opacity: 0, scale: 0.96, y: 18 }} animate={{ opacity: 1, scale: 1, y: 0 }} transition={{ duration: 0.6 }} className="relative">
             <div className="absolute -inset-8 rounded-full bg-white/15 blur-3xl" />
             <div className="relative mx-auto max-w-[520px] overflow-hidden rounded-[2.6rem] border border-white/55 bg-white p-2 shadow-[0_38px_90px_rgba(0,20,60,.38)]">
-              <img src={assetPath("/urban-carrier-icon.svg")} alt="Urban Carrier OS courier icon" className="block aspect-square w-full rounded-[2.2rem] object-cover" />
+              <img src={URBAN_CARRIER_ICON_DATA_URI} alt="Urban Carrier OS courier icon" className="block aspect-square w-full rounded-[2.2rem] object-cover" />
             </div>
           </motion.div>
         </div>
@@ -190,7 +191,7 @@ export default function Home() {
           <div className="overflow-hidden rounded-[2rem] border border-sky-200/40 bg-white shadow-[0_35px_90px_rgba(0,21,55,.35)]">
             <div className="flex flex-wrap items-center justify-between gap-4 border-b border-slate-200 bg-white px-5 py-4 text-slate-900 sm:px-7">
               <div className="flex items-center gap-3">
-                <img src={assetPath("/urban-carrier-icon.svg")} alt="" className="h-11 w-11 rounded-xl object-cover shadow-sm" />
+                <img src={URBAN_CARRIER_ICON_DATA_URI} alt="" className="h-11 w-11 rounded-xl object-cover shadow-sm" />
                 <div><p className="text-[10px] font-black uppercase tracking-[0.2em] text-orange-500">Urban Carrier OS</p><p className="font-black">Dispatch Command</p></div>
               </div>
               <span className={"inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-xs font-bold " + healthBadgeClass} aria-live="polite">
@@ -271,7 +272,7 @@ export default function Home() {
         </div>
       </section>
 
-      <footer className="border-t border-white/10 bg-[#041326]"><div className="mx-auto flex max-w-7xl flex-col gap-3 px-6 py-8 text-sm text-sky-100/55 md:flex-row md:items-center md:justify-between"><a href="https://redavi19-asu.github.io/icomuteranythingV3/" className="inline-flex items-center gap-2 font-bold text-white"><img src={assetPath("/urban-carrier-icon.svg")} alt="" className="h-8 w-8 rounded-lg object-cover" /> Built by I Computer Anything</a><p className="text-xs">Urban Carrier OS — Business • Driver • Customer Logistics Software</p></div></footer>
+      <footer className="border-t border-white/10 bg-[#041326]"><div className="mx-auto flex max-w-7xl flex-col gap-3 px-6 py-8 text-sm text-sky-100/55 md:flex-row md:items-center md:justify-between"><a href="https://redavi19-asu.github.io/icomuteranythingV3/" className="inline-flex items-center gap-2 font-bold text-white"><img src={URBAN_CARRIER_ICON_DATA_URI} alt="" className="h-8 w-8 rounded-lg object-cover" /> Built by I Computer Anything</a><p className="text-xs">Urban Carrier OS — Business • Driver • Customer Logistics Software</p></div></footer>
 
       <CustomVersionModal open={customModalOpen} onClose={() => setCustomModalOpen(false)} />
     </main>
