@@ -1,10 +1,10 @@
 {
-  "id": "/dashboard",
+  "id": "./dashboard",
   "name": "Urban Carrier OS Dispatcher",
   "short_name": "Urban Carrier OS",
   "description": "Installable Urban Carrier OS dispatcher dashboard for desktop operations.",
-  "start_url": "/dashboard",
-  "scope": "/dashboard",
+  "start_url": "./dashboard",
+  "scope": "./dashboard",
   "display": "standalone",
   "background_color": "#061a33",
   "theme_color": "#061a33",
