@@ -1,4 +1,5 @@
 import type { MetadataRoute } from "next";
+import { URBAN_CARRIER_ICON_DATA_URI } from "@/lib/urban-carrier-brand";
 
 export const dynamic = "force-static";
 export const revalidate = false;
@@ -20,15 +21,15 @@ export default function manifest(): MetadataRoute.Manifest {
     categories: ["business", "productivity", "navigation"],
     icons: [
       {
-        src: "urban-carrier-icon.svg",
-        sizes: "any",
-        type: "image/svg+xml",
+        src: URBAN_CARRIER_ICON_DATA_URI,
+        sizes: "256x256",
+        type: "image/jpeg",
         purpose: "any",
       },
       {
-        src: "urban-carrier-icon.svg",
-        sizes: "any",
-        type: "image/svg+xml",
+        src: URBAN_CARRIER_ICON_DATA_URI,
+        sizes: "256x256",
+        type: "image/jpeg",
         purpose: "maskable",
       },
     ],
