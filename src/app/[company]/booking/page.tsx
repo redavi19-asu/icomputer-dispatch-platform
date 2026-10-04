@@ -5,6 +5,7 @@ import { useParams } from "next/navigation";
 import { ArrowRight, Building2, Clock3, MapPin, ShieldCheck } from "lucide-react";
 
 import { AppShellNav } from "@/components/platform/app-shell-nav";
+import { UrbanCarrierMark } from "@/components/branding/urban-carrier-mark";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { BookingRequestForm } from "@/components/platform/booking-request-form";
@@ -67,7 +68,7 @@ export default function CompanyBookingPage() {
 
   if (!company || !bookingConfig) {
     return (
-      <main className="min-h-screen bg-slate-950 text-white">
+      <main className="min-h-screen bg-[#061a33] text-white">
         <section className="mx-auto max-w-7xl px-6 py-16 md:py-24">
           <p className="text-white/70">Booking page not found.</p>
         </section>
@@ -79,7 +80,7 @@ export default function CompanyBookingPage() {
 
   if (!bookingSurface.enabled) {
     return (
-      <main className="min-h-screen bg-slate-950 text-white">
+      <main className="min-h-screen bg-[#061a33] text-white">
         <AppShellNav />
         <section className="mx-auto max-w-4xl px-6 py-16 md:py-24">
           <Card className="rounded-2xl border border-white/10 bg-white/5 text-white shadow-none">
@@ -97,9 +98,9 @@ export default function CompanyBookingPage() {
   }
 
   return (
-    <main className="min-h-screen scroll-smooth bg-slate-950 text-white">
+    <main className="min-h-screen scroll-smooth bg-[#061a33] text-white">
       <AppShellNav />
-      <section className="relative overflow-hidden border-b border-white/10">
+      <section className="relative overflow-hidden border-b border-sky-300/15 bg-[linear-gradient(135deg,#061a33,#0a4a91)]">
         <div
           className="pointer-events-none absolute inset-0 opacity-20"
           style={{
@@ -107,8 +108,8 @@ export default function CompanyBookingPage() {
           }}
         />
         <div className="relative z-10 mx-auto max-w-7xl px-6 py-16 md:py-24">
-          <div className="max-w-4xl">
-            <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm text-white/80">
+          <div className="max-w-4xl"><div className="mb-6"><UrbanCarrierMark href="/" size="lg" /></div>
+            <div className="inline-flex items-center gap-2 rounded-full border border-orange-200/25 bg-orange-400/10 px-4 py-2 text-sm text-orange-100">
               <Building2 className="h-4 w-4" />
               {workspaceSettings.companyName} Booking Page
             </div>
@@ -122,10 +123,10 @@ export default function CompanyBookingPage() {
             </p>
 
             <div className="mt-4 flex flex-wrap gap-2 text-xs">
-              <span className="rounded-full border border-cyan-400/30 bg-cyan-500/10 px-3 py-1 text-cyan-100">
+              <span className="rounded-full border border-sky-300/30 bg-sky-500/10 px-3 py-1 text-sky-100">
                 Mode: {bookingSurface.modeLabel}
               </span>
-              <span className="rounded-full border border-cyan-400/30 bg-cyan-500/10 px-3 py-1 text-cyan-100">
+              <span className="rounded-full border border-sky-300/30 bg-sky-500/10 px-3 py-1 text-sky-100">
                 Route template: {bookingSurface.routeTemplateLabel}
               </span>
               <span className="rounded-full border border-white/20 bg-white/10 px-3 py-1 text-white/75">
@@ -134,7 +135,7 @@ export default function CompanyBookingPage() {
             </div>
 
             {bookingSurface.verificationLanguage ? (
-              <p className="mt-4 max-w-2xl rounded-xl border border-cyan-500/35 bg-cyan-500/10 px-4 py-3 text-sm text-cyan-100">
+              <p className="mt-4 max-w-2xl rounded-xl border border-orange-300/35 bg-orange-500/10 px-4 py-3 text-sm text-orange-100">
                 {bookingSurface.verificationLanguage}
               </p>
             ) : null}
