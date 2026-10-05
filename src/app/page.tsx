@@ -188,6 +188,17 @@ export default function Home() {
                 Live City Network
               </div>
             </div>
+            <div className="relative mx-auto mt-3 grid max-w-[620px] grid-cols-2 gap-3">
+              {[
+                ["Dispatch", "Live jobs + assignments"],
+                ["Driver", "Routes + field updates"],
+              ].map(([title, label]) => (
+                <div key={title} className="rounded-2xl border border-white/25 bg-[#061a33]/80 px-4 py-4 backdrop-blur">
+                  <strong className="block text-sm text-orange-200">{title}</strong>
+                  <span className="mt-1 block text-xs text-white/70">{label}</span>
+                </div>
+              ))}
+            </div>
           </motion.div>
         </div>
 
