@@ -22,6 +22,7 @@ type TurnstileApi = {
     }
   ) => string;
   reset: (widgetId?: string) => void;
+  getResponse?: (widgetId?: string) => string;
 };
 
 declare global {
@@ -50,6 +51,7 @@ export default function AuthPage() {
   const [socialProvider, setSocialProvider] = useState("");
   const turnstileContainerRef = useRef<HTMLDivElement | null>(null);
   const turnstileWidgetIdRef = useRef<string | null>(null);
+  const turnstileResponsePollRef = useRef<number | null>(null);
   const turnstileSiteKey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY || "";
   const turnstileEnabled = Boolean(turnstileSiteKey);
 
@@ -118,6 +120,25 @@ export default function AuthPage() {
     if (!turnstileEnabled || !turnstileReady || !window.turnstile || !turnstileContainerRef.current) return;
     if (turnstileWidgetIdRef.current) return;
 
+    const recoverSolvedTurnstile = () => {
+      let token = "";
+      if (turnstileWidgetIdRef.current && window.turnstile?.getResponse) {
+        try {
+          token = String(window.turnstile.getResponse(turnstileWidgetIdRef.current) || "");
+        } catch {}
+      }
+      if (!token) {
+        const responseField =
+          turnstileContainerRef.current?.querySelector<HTMLInputElement>('input[name="cf-turnstile-response"]') ||
+          turnstileContainerRef.current?.closest("form")?.querySelector<HTMLInputElement>('input[name="cf-turnstile-response"]');
+        token = String(responseField?.value || "");
+      }
+      if (!token) return false;
+      setTurnstileToken(token);
+      setError("");
+      return true;
+    };
+
     turnstileWidgetIdRef.current = window.turnstile.render(turnstileContainerRef.current, {
       sitekey: turnstileSiteKey,
       theme: "dark",
@@ -127,10 +148,22 @@ export default function AuthPage() {
       },
       "expired-callback": () => setTurnstileToken(""),
       "error-callback": () => {
-        setTurnstileToken("");
-        setError("Security check could not load. Please try again.");
+        if (!recoverSolvedTurnstile()) {
+          setTurnstileToken("");
+          setError("Security check could not load. Please try again.");
+        }
       },
     });
+
+    recoverSolvedTurnstile();
+    turnstileResponsePollRef.current = window.setInterval(recoverSolvedTurnstile, 250);
+
+    return () => {
+      if (turnstileResponsePollRef.current !== null) {
+        window.clearInterval(turnstileResponsePollRef.current);
+        turnstileResponsePollRef.current = null;
+      }
+    };
   }, [turnstileEnabled, turnstileReady, turnstileSiteKey]);
 
   function resetTurnstile() {
