@@ -311,7 +311,7 @@ async function callback(request: Request, env: SocialAuthEnv, provider: SocialPr
   if (!subject || !/^\S+@\S+\.\S+$/.test(email)) {
     throw new Error("Identity provider did not return a usable email.");
   }
-  if (provider === "google" && claims.email_verified === false) {
+  if (provider === "google" && claims.email_verified !== true) {
     throw new Error("Google did not verify this email.");
   }
 
@@ -346,7 +346,12 @@ async function callback(request: Request, env: SocialAuthEnv, provider: SocialPr
     .first<{ id: string; email: string; role: string }>();
 
   if (!user) throw new Error("No Urban Carrier OS account is connected to this identity yet.");
-  if (user.role === "admin") throw new Error("Platform administrator accounts must use ICA master password sign-in.");
+  if (user.role === "admin") {
+    const adminEmail = clean(env.ADMIN_EMAIL).toLowerCase();
+    if (provider !== "google" || !adminEmail || email !== adminEmail) {
+      throw new Error("Urban Carrier platform-admin social sign-in requires the verified Google account assigned to ICA Master.");
+    }
+  }
 
   await env.DB.prepare(
     "INSERT INTO social_identities " +
@@ -370,12 +375,18 @@ async function exchangeTicket(request: Request, env: SocialAuthEnv, cors: Header
   const tokenHash = await sha256(clean(body.ticket));
 
   const row = await env.DB.prepare(
-    "SELECT t.user_id,u.role FROM social_login_tickets t JOIN users u ON u.id=t.user_id " +
+    "SELECT t.user_id,t.provider,u.role,u.email FROM social_login_tickets t JOIN users u ON u.id=t.user_id " +
     "WHERE t.ticket_hash=? AND t.used_at IS NULL AND t.expires_at>CURRENT_TIMESTAMP LIMIT 1"
-  ).bind(tokenHash).first<{ user_id: string; role: string }>();
+  ).bind(tokenHash).first<{ user_id: string; provider: string; role: string; email: string }>();
 
-  if (!row || row.role === "admin") {
+  if (!row) {
     return json({ error: "Social sign-in ticket is invalid or expired." }, 401, cors);
+  }
+  if (row.role === "admin") {
+    const adminEmail = clean(env.ADMIN_EMAIL).toLowerCase();
+    if (row.provider !== "google" || !adminEmail || clean(row.email).toLowerCase() !== adminEmail) {
+      return json({ error: "Platform-admin Google sign-in is unavailable for this account." }, 403, cors);
+    }
   }
 
   const consumed = await env.DB.prepare(
