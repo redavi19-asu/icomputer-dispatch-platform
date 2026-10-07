@@ -16,6 +16,7 @@ type TurnstileApi = {
     options: {
       sitekey: string;
       theme?: "light" | "dark" | "auto";
+      action?: string;
       callback?: (token: string) => void;
       "expired-callback"?: () => void;
       "error-callback"?: () => void;
@@ -142,6 +143,7 @@ export default function AuthPage() {
     turnstileWidgetIdRef.current = window.turnstile.render(turnstileContainerRef.current, {
       sitekey: turnstileSiteKey,
       theme: "dark",
+      action: "urban_carrier_auth",
       callback: (token) => {
         setTurnstileToken(token);
         setError("");
