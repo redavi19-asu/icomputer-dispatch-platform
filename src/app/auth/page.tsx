@@ -92,9 +92,11 @@ export default function AuthPage() {
           const needsActivation = session.user.role !== "admin" && !["active", "trialing", "grace_period", "comped"].includes(subscriptionStatus);
           const destination = needsActivation
             ? "/subscribe"
-            : session.user.role === "driver"
-              ? "/driver"
-              : "/workspace";
+            : session.user.role === "admin"
+              ? "/admin"
+              : session.user.role === "driver"
+                ? "/driver"
+                : "/workspace";
           window.location.href = base + destination;
         })
         .catch((cause) => setError(cause instanceof Error ? cause.message : "Social sign-in failed."))
@@ -297,7 +299,7 @@ export default function AuthPage() {
           href="https://icomputeranything.com/master"
           className="inline-flex items-center rounded-xl border border-cyan-300/20 bg-cyan-400/[0.06] px-4 py-2 text-xs font-semibold uppercase tracking-[0.16em] text-cyan-100 hover:bg-cyan-400/[0.1]"
         >
-          ICA Master Owner → Open Super Platform
+          ICA Master Owner → Open ICA Master
         </a>
       </div>
 
@@ -393,7 +395,7 @@ export default function AuthPage() {
             </>
           )}
 
-          <div className="mt-6 flex items-start gap-3 text-xs leading-5 text-white/42"><LockKeyhole className="mt-0.5 h-4 w-4 shrink-0 text-emerald-300" />Passwords are stored as one-way hashes. Social sign-in never grants platform-admin access.</div>
+          <div className="mt-6 flex items-start gap-3 text-xs leading-5 text-white/42"><LockKeyhole className="mt-0.5 h-4 w-4 shrink-0 text-emerald-300" />Passwords are stored as one-way hashes. Verified Google sign-in preserves an existing ICA Master platform-admin role; social sign-in never creates platform-admin access.</div>
         </div>
       </section>
     </main>
