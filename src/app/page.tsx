@@ -287,7 +287,7 @@ export default function Home() {
         </div>
       </section>
 
-      <footer className="border-t border-white/10 bg-[#041326]"><div className="mx-auto flex max-w-7xl flex-col gap-3 px-6 py-8 text-sm text-sky-100/55 md:flex-row md:items-center md:justify-between"><a href="https://redavi19-asu.github.io/icomuteranythingV3/" className="inline-flex items-center gap-2 font-bold text-white"><img src={URBAN_CARRIER_ICON_DATA_URI} alt="" className="h-8 w-8 rounded-lg object-cover" /> Built by I Computer Anything</a><p className="text-xs">Urban Carrier OS — Business • Driver • Customer Logistics Software</p></div></footer>
+      <footer className="border-t border-white/10 bg-[#041326]"><div className="mx-auto flex max-w-7xl flex-col gap-3 px-6 py-8 text-sm text-sky-100/55 md:flex-row md:items-center md:justify-between"><a href="https://redavi19-asu.github.io/icomuteranythingV3/" className="inline-flex items-center gap-2 font-bold text-white"><img src={URBAN_CARRIER_ICON_DATA_URI} alt="" className="h-8 w-8 rounded-lg object-cover" /> Built by I Computer Anything</a><div className="flex flex-col gap-1 text-xs md:items-end"><p>Urban Carrier OS — Business • Driver • Customer Logistics Software</p><a href="mailto:ryanedavis@gmail.com?subject=Urban%20Carrier%20OS%20Support" className="font-semibold text-sky-200 hover:text-white">Support · ryanedavis@gmail.com</a></div></div></footer>
 
       <CustomVersionModal open={customModalOpen} onClose={() => setCustomModalOpen(false)} />
     </main>
