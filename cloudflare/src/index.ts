@@ -173,7 +173,7 @@ export default {
 
 async function register(request: Request, env: Env, cors: HeadersInit) {
   const body = (await request.json()) as RegisterBody;
-  const turnstileError = await turnstileGuard(request, env, body.turnstileToken, cors);
+  const turnstileError = await turnstileGuard(request, env, body.turnstileToken, cors, "urban_carrier_auth");
   if (turnstileError) return turnstileError;
 
   const name = clean(body.name);
@@ -222,7 +222,7 @@ async function register(request: Request, env: Env, cors: HeadersInit) {
 
 async function login(request: Request, env: Env, cors: HeadersInit) {
   const body = (await request.json()) as LoginBody;
-  const turnstileError = await turnstileGuard(request, env, body.turnstileToken, cors);
+  const turnstileError = await turnstileGuard(request, env, body.turnstileToken, cors, "urban_carrier_auth");
   if (turnstileError) return turnstileError;
 
   const email = clean(body.email).toLowerCase();
@@ -589,9 +589,18 @@ async function adminRemoveCompany(request: Request, env: Env, cors: HeadersInit,
   return json({ ok: true, companyId, removed: company.name }, 200, cors);
 }
 
-async function turnstileGuard(request: Request, env: Env, token: string | undefined, cors: HeadersInit) {
+async function turnstileGuard(
+  request: Request,
+  env: Env,
+  token: string | undefined,
+  cors: HeadersInit,
+  expectedAction = ""
+) {
   const secret = clean(env.TURNSTILE_SECRET_KEY);
-  if (!secret) return null;
+  if (!secret) {
+    console.error("Turnstile is required for auth but TURNSTILE_SECRET_KEY is not configured.");
+    return json({ error: "Security verification is not configured. Please contact support." }, 503, cors);
+  }
 
   const responseToken = clean(token);
   if (!responseToken) {
@@ -615,8 +624,33 @@ async function turnstileGuard(request: Request, env: Env, token: string | undefi
     }
 
     const result = (await verification.json()) as TurnstileResult;
-    if (!result.success) {
-      console.warn("Turnstile verification failed", result["error-codes"] || []);
+    const hostname = clean(result.hostname).toLowerCase();
+    const action = clean(result.action);
+    const allowedHostnames = new Set(
+      clean(env.ALLOWED_ORIGINS)
+        .split(",")
+        .map((value) => value.trim())
+        .filter(Boolean)
+        .map((value) => {
+          try {
+            return new URL(value).hostname.toLowerCase();
+          } catch {
+            return "";
+          }
+        })
+        .filter(Boolean)
+    );
+    const hostnameValid = Boolean(hostname && allowedHostnames.has(hostname));
+    const actionValid = Boolean(action && (!expectedAction || action === expectedAction));
+
+    if (!result.success || !hostnameValid || !actionValid) {
+      console.warn("Turnstile verification failed", {
+        errors: result["error-codes"] || [],
+        hostname,
+        action,
+        hostnameValid,
+        actionValid,
+      });
       return json({ error: "Security verification failed. Please try again." }, 403, cors);
     }
 
