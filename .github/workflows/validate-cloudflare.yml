@@ -24,6 +24,9 @@ jobs:
         with:
           node-version: 22
 
+      - name: Test social sign-in access controls
+        run: node --experimental-strip-types --test cloudflare/tests/*.test.mjs
+
       - name: Build Worker dry run
         run: npx --yes wrangler@latest deploy --dry-run --config cloudflare/wrangler.toml --outdir /tmp/dispatchos-worker
 
