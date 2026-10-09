@@ -256,7 +256,10 @@ async function start(request: Request, env: SocialAuthEnv, provider: SocialProvi
   target.searchParams.set("code_challenge", b64url(new Uint8Array(challenge)));
   target.searchParams.set("code_challenge_method", "S256");
 
-  if (provider === "google") target.searchParams.set("access_type", "online");
+  if (provider === "google") {
+    target.searchParams.set("access_type", "online");
+    target.searchParams.set("prompt", "select_account");
+  }
   if (provider === "microsoft") target.searchParams.set("response_mode", "query");
   if (provider === "apple") target.searchParams.set("response_mode", "form_post");
 
