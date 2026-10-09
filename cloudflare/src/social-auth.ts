@@ -349,10 +349,14 @@ async function callback(request: Request, env: SocialAuthEnv, provider: SocialPr
     .first<{ id: string; email: string; role: string }>();
 
   if (!user) throw new Error("No Urban Carrier OS account is connected to this identity yet.");
+  if (user.role === "admin" && provider === "microsoft") {
+    const linked = await env.DB.prepare("SELECT user_id FROM social_identities WHERE provider=? AND provider_subject=? LIMIT 1").bind(provider, subject).first<{ user_id: string }>();
+    if (!linked || linked.user_id !== user.id) throw new Error("This Microsoft identity is not linked to the ICA Master account.");
+  }
   if (user.role === "admin") {
     const adminEmail = clean(env.ADMIN_EMAIL).toLowerCase();
-    if (provider !== "google" || !adminEmail || email !== adminEmail) {
-      throw new Error("Urban Carrier platform-admin social sign-in requires the verified Google account assigned to ICA Master.");
+    if (!["google", "apple", "microsoft"].includes(provider) || !adminEmail || email !== adminEmail) {
+      throw new Error("Urban Carrier platform-admin social sign-in requires the identity assigned to ICA Master.");
     }
   }
 
@@ -387,8 +391,8 @@ async function exchangeTicket(request: Request, env: SocialAuthEnv, cors: Header
   }
   if (row.role === "admin") {
     const adminEmail = clean(env.ADMIN_EMAIL).toLowerCase();
-    if (row.provider !== "google" || !adminEmail || clean(row.email).toLowerCase() !== adminEmail) {
-      return json({ error: "Platform-admin Google sign-in is unavailable for this account." }, 403, cors);
+    if (!["google", "apple", "microsoft"].includes(row.provider) || !adminEmail || clean(row.email).toLowerCase() !== adminEmail) {
+      return json({ error: "Platform-admin social sign-in is unavailable for this account." }, 403, cors);
     }
   }
 
@@ -509,10 +513,10 @@ export async function handleSocialAuth(
 
   try {
     if (action === "start" && request.method === "GET") {
-      return start(request, env, provider);
+      return await start(request, env, provider);
     }
     if (action === "callback" && (request.method === "GET" || request.method === "POST")) {
-      return callback(request, env, provider);
+      return await callback(request, env, provider);
     }
   } catch (error) {
     const publicOrigin = appOrigin(env);

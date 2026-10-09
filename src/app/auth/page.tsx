@@ -395,7 +395,7 @@ export default function AuthPage() {
             </>
           )}
 
-          <div className="mt-6 flex items-start gap-3 text-xs leading-5 text-white/42"><LockKeyhole className="mt-0.5 h-4 w-4 shrink-0 text-emerald-300" />Passwords are stored as one-way hashes. Verified Google sign-in preserves an existing ICA Master platform-admin role; social sign-in never creates platform-admin access.</div>
+          <div className="mt-6 flex items-start gap-3 text-xs leading-5 text-white/42"><LockKeyhole className="mt-0.5 h-4 w-4 shrink-0 text-emerald-300" />Passwords are stored as one-way hashes. Linked Google, Apple or Microsoft sign-in preserves an existing ICA Master platform-admin role; social sign-in never creates platform-admin access.</div>
         </div>
       </section>
     </main>
