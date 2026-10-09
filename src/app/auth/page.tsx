@@ -7,6 +7,8 @@ import { ArrowLeft, Building2, LockKeyhole, LogIn, ShieldCheck, Sparkles, UserPl
 import { authRequest, getApiBase, saveSession, type DispatchOSSession } from "@/lib/dispatchos-auth";
 import { UrbanCarrierMark } from "@/components/branding/urban-carrier-mark";
 
+import { SocialProviderIcon } from "@/components/social-provider-icon";
+
 type Mode = "login" | "register";
 type RecoveryMode = "none" | "request" | "reset";
 
@@ -48,6 +50,7 @@ export default function AuthPage() {
   const [resetToken, setResetToken] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [socialProviders, setSocialProviders] = useState<Record<string, boolean>>({});
+  const [socialProviderStatus, setSocialProviderStatus] = useState<"loading" | "ready" | "error">("loading");
   const [socialOnboardingTicket, setSocialOnboardingTicket] = useState("");
   const [socialProvider, setSocialProvider] = useState("");
   const turnstileContainerRef = useRef<HTMLDivElement | null>(null);
@@ -75,8 +78,8 @@ export default function AuthPage() {
     if (socialError) setError(socialError);
 
     authRequest("/auth/social/status")
-      .then((result) => setSocialProviders(result.providers || {}))
-      .catch(() => setSocialProviders({}));
+      .then((result) => { setSocialProviders(result.providers || {}); setSocialProviderStatus("ready"); })
+      .catch(() => { setSocialProviders({}); setSocialProviderStatus("error"); });
 
     if (socialTicket) {
       setLoading(true);
@@ -350,16 +353,20 @@ export default function AuthPage() {
             </form>
           ) : (
             <>
-              {Object.values(socialProviders).some(Boolean) && (
-                <div className="mb-5 grid gap-2">
-                  <p className="text-xs font-semibold uppercase tracking-[0.16em] text-white/45">{mode === "register" ? "Create with" : "Continue with"}</p>
-                  <div className="grid gap-2 sm:grid-cols-3">
-                    {socialProviders.google && <button type="button" onClick={() => beginSocial("google")} className="rounded-xl border border-white/10 bg-white/[0.05] px-4 py-3 text-sm font-semibold hover:bg-white/[0.08]">Google</button>}
-                    {socialProviders.apple && <button type="button" onClick={() => beginSocial("apple")} className="rounded-xl border border-white/10 bg-white/[0.05] px-4 py-3 text-sm font-semibold hover:bg-white/[0.08]">Apple</button>}
-                    {socialProviders.microsoft && <button type="button" onClick={() => beginSocial("microsoft")} className="rounded-xl border border-white/10 bg-white/[0.05] px-4 py-3 text-sm font-semibold hover:bg-white/[0.08]">Microsoft</button>}
-                  </div>
+              <div className="mb-5 grid gap-2">
+                <p className="text-xs font-semibold uppercase tracking-[0.16em] text-white/45">{mode === "register" ? "Create with" : "Continue with"}</p>
+                <div className="grid grid-cols-3 gap-2">
+                  {(["google", "apple", "microsoft"] as const).map((provider) => (
+                    <button key={provider} type="button" disabled={!socialProviders[provider]} onClick={() => beginSocial(provider)} aria-describedby={!socialProviders[provider] ? "social-provider-availability" : undefined} className="inline-flex min-h-[74px] flex-col items-center justify-center gap-1.5 rounded-xl border border-white/10 bg-white/[0.05] px-2 py-3 text-sm font-semibold transition hover:bg-white/[0.08] disabled:cursor-not-allowed disabled:opacity-60">
+                      <SocialProviderIcon provider={provider} />
+                      <span>{provider === "google" ? "Google" : provider === "apple" ? "Apple" : "Microsoft"}</span>
+                    </button>
+                  ))}
                 </div>
-              )}
+                <p id="social-provider-availability" role="status" className="text-xs text-white/60">
+                  {socialProviderStatus === "loading" ? "Checking sign-in availability…" : socialProviderStatus === "error" ? "Social sign-in is temporarily unavailable. Please try again later." : !socialProviders.google && !socialProviders.apple && socialProviders.microsoft ? "Google and Apple sign-in setup is still pending. Microsoft is available." : "Use the provider already linked to your ICA Software email."}
+                </p>
+              </div>
 
               {socialProvider && (
                 <div className="mb-5 rounded-xl border border-emerald-400/20 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-100">
