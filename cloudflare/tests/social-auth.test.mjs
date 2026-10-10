@@ -1,6 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { handleSocialAuth } from '../src/social-auth.ts';
+import { pathToFileURL } from 'node:url';
+const {default: router} = await import(pathToFileURL(process.env.CARRIER_GATEWAY_BUNDLE || '/tmp/dispatchos-worker/router.js').href);
 const origin='https://accounts.example.com';
 const master='master@example.com';
 const pair=await crypto.subtle.generateKey({name:'RSASSA-PKCS1-v1_5',modulusLength:2048,publicExponent:new Uint8Array([1,0,1]),hash:'SHA-256'},true,['sign','verify']);
@@ -59,4 +61,13 @@ test('registered Google API callback exchanges the same redirect URI',async()=>{
  const f=fixture();const jwt=await signed('google');const original=globalThis.fetch;let redirect;
  globalThis.fetch=async (url,options)=>{if(String(url).includes('token'))redirect=options.body.get('redirect_uri');return new Response(JSON.stringify(String(url).includes('certs')?{keys:[jwk]}:{id_token:jwt}));};
  try{const r=await handleSocialAuth(new Request(`${origin}/api/auth/social/google/callback?code=test&state=test`),f.env,{});assert.equal(r.status,302);assert.equal(redirect,`${origin}/api/auth/social/google/callback`);assert.ok(r.headers.get('location').includes('social_ticket='));}finally{globalThis.fetch=original;}
+});
+
+test('Google callback reaches authentication through the full gateway',async()=>{
+ const f=fixture();const jwt=await signed('google');const original=globalThis.fetch;
+ globalThis.fetch=async url=>new Response(JSON.stringify(String(url).includes('certs')?{keys:[jwk]}:{id_token:jwt}));
+ try{const r=await router.fetch(new Request(`${origin}/api/auth/social/google/callback?code=test&state=test`),f.env);assert.equal(r.status,302);assert.ok(r.headers.get('location').includes('social_ticket='));}finally{globalThis.fetch=original;}
+});
+test('operations still reject requests without a session',async()=>{
+ const f=fixture();const r=await router.fetch(new Request(`${origin}/api/jobs`),f.env);assert.equal(r.status,401);assert.equal((await r.json()).error,'Unauthorized.');
 });
