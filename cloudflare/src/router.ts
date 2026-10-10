@@ -18,6 +18,10 @@ interface Env {
 
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
+    if (new URL(request.url).pathname === "/api/auth/social/google/callback") {
+      return authWorker.fetch(request, env);
+    }
+
     const inviteSeatLimitResponse = await handleDriverInviteSeatLimit(request.clone(), env);
     if (inviteSeatLimitResponse) return inviteSeatLimitResponse;
 
