@@ -46,3 +46,17 @@ test('Microsoft cannot obtain master access through an email match alone',async(
  const f=fixture({linked:false});const jwt=await signed('microsoft');const original=globalThis.fetch;globalThis.fetch=async url=>new Response(JSON.stringify(String(url).includes('keys')?{keys:[jwk]}:{id_token:jwt}));
  try{const r=await handleSocialAuth(new Request(`${origin}/auth/social/microsoft/callback?code=test&state=test`),f.env,{});assert.equal(r.status,302);assert.match(new URL(r.headers.get('location')).searchParams.get('social_error'),/not linked/);assert.ok(!f.writes.some(w=>w.sql.startsWith('INSERT INTO social_login_tickets')));}finally{globalThis.fetch=original;}
 });
+
+for (const provider of ['google','microsoft']) test(`${provider} start uses its registered callback`,async()=>{
+ const f=fixture(); f.env.DB.prepare=sql=>({run:async()=>({}),bind:(...args)=>({run:async()=>({})})});
+ const r=await handleSocialAuth(new Request(`${origin}/auth/social/${provider}/start`),f.env,{});
+ assert.equal(r.status,302);
+ const target=new URL(r.headers.get('location'));
+ assert.equal(target.searchParams.get('redirect_uri'),`${origin}/${provider==='google'?'api/':''}auth/social/${provider}/callback`);
+ assert.equal(target.searchParams.get('code_challenge_method'),'S256');
+});
+test('registered Google API callback exchanges the same redirect URI',async()=>{
+ const f=fixture();const jwt=await signed('google');const original=globalThis.fetch;let redirect;
+ globalThis.fetch=async (url,options)=>{if(String(url).includes('token'))redirect=options.body.get('redirect_uri');return new Response(JSON.stringify(String(url).includes('certs')?{keys:[jwk]}:{id_token:jwt}));};
+ try{const r=await handleSocialAuth(new Request(`${origin}/api/auth/social/google/callback?code=test&state=test`),f.env,{});assert.equal(r.status,302);assert.equal(redirect,`${origin}/api/auth/social/google/callback`);assert.ok(r.headers.get('location').includes('social_ticket='));}finally{globalThis.fetch=original;}
+});

@@ -228,6 +228,11 @@ async function callbackParams(request: Request) {
   return Object.fromEntries(new URL(request.url).searchParams.entries());
 }
 
+function callbackUrl(request: Request, provider: SocialProvider) {
+  const prefix = provider === "google" ? "/api" : "";
+  return new URL(request.url).origin + prefix + "/auth/social/" + provider + "/callback";
+}
+
 async function start(request: Request, env: SocialAuthEnv, provider: SocialProvider) {
   const config = providerConfig(env, provider);
   if (!config.ready) return json({ error: config.label + " sign-in is not configured yet." }, 503);
@@ -246,7 +251,7 @@ async function start(request: Request, env: SocialAuthEnv, provider: SocialProvi
 
   const target = new URL(config.authorize);
   target.searchParams.set("client_id", config.clientId);
-  target.searchParams.set("redirect_uri", new URL(request.url).origin + "/auth/social/" + provider + "/callback");
+  target.searchParams.set("redirect_uri", callbackUrl(request, provider));
   target.searchParams.set("response_type", "code");
   target.searchParams.set("scope", config.scope);
   target.searchParams.set("state", state);
@@ -284,7 +289,7 @@ async function callback(request: Request, env: SocialAuthEnv, provider: SocialPr
     code: String(params.code || ""),
     client_id: config.clientId,
     client_secret: config.clientSecret,
-    redirect_uri: new URL(request.url).origin + "/auth/social/" + provider + "/callback",
+    redirect_uri: callbackUrl(request, provider),
     code_verifier: state.code_verifier,
   });
 
@@ -481,7 +486,7 @@ export async function handleSocialAuth(
   cors: HeadersInit
 ): Promise<Response | null> {
   const url = new URL(request.url);
-  if (!url.pathname.startsWith("/auth/social/") && url.pathname !== "/auth/social/status") return null;
+  if (!url.pathname.startsWith("/auth/social/") && url.pathname !== "/api/auth/social/google/callback") return null;
 
   await ensureTables(env.DB);
 
@@ -505,7 +510,7 @@ export async function handleSocialAuth(
     return register(request, env, cors);
   }
 
-  const match = url.pathname.match(/^\/auth\/social\/(google|apple|microsoft)\/(start|callback)$/);
+  const match = url.pathname.replace(/^\/api(?=\/auth\/social\/google\/callback$)/, "").match(/^\/auth\/social\/(google|apple|microsoft)\/(start|callback)$/);
   if (!match) return null;
 
   const provider = match[1] as SocialProvider;
