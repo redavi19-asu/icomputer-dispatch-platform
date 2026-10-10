@@ -1,3 +1,4 @@
+import { appleSigningConfigured, appleClientSecret } from "./apple-client-secret.js";
 interface SocialAuthEnv {
   DB: D1Database;
   ALLOWED_ORIGINS?: string;
@@ -7,6 +8,9 @@ interface SocialAuthEnv {
   SOCIAL_GOOGLE_CLIENT_SECRET?: string;
   SOCIAL_APPLE_CLIENT_ID?: string;
   SOCIAL_APPLE_CLIENT_SECRET?: string;
+  SOCIAL_APPLE_TEAM_ID?: string;
+  SOCIAL_APPLE_KEY_ID?: string;
+  SOCIAL_APPLE_PRIVATE_KEY?: string;
   SOCIAL_MICROSOFT_CLIENT_ID?: string;
   SOCIAL_MICROSOFT_CLIENT_SECRET?: string;
 }
@@ -114,7 +118,7 @@ function providerConfig(env: SocialAuthEnv, provider: SocialProvider) {
   const source = env as unknown as Record<string, unknown>;
   const clientId = clean(String(source["SOCIAL_" + upper + "_CLIENT_ID"] || ""));
   const clientSecret = clean(String(source["SOCIAL_" + upper + "_CLIENT_SECRET"] || ""));
-  return { ...PROVIDERS[provider], provider, clientId, clientSecret, ready: Boolean(clientId && clientSecret) };
+  return { ...PROVIDERS[provider], provider, clientId, clientSecret, ready: Boolean(clientId && (clientSecret || (provider === "apple" && appleSigningConfigured(env)))) };
 }
 
 async function ensureTables(db: D1Database) {
@@ -288,7 +292,7 @@ async function callback(request: Request, env: SocialAuthEnv, provider: SocialPr
     grant_type: "authorization_code",
     code: String(params.code || ""),
     client_id: config.clientId,
-    client_secret: config.clientSecret,
+    client_secret: provider === "apple" && appleSigningConfigured(env) ? await appleClientSecret(env, config.clientId) : config.clientSecret,
     redirect_uri: callbackUrl(request, provider),
     code_verifier: state.code_verifier,
   });

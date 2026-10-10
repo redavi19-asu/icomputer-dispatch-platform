@@ -71,3 +71,14 @@ test('Google callback reaches authentication through the full gateway',async()=>
 test('operations still reject requests without a session',async()=>{
  const f=fixture();const r=await router.fetch(new Request(`${origin}/api/jobs`),f.env);assert.equal(r.status,401);assert.equal((await r.json()).error,'Unauthorized.');
 });
+
+test('Apple signing credentials enable status and sign the token exchange',async()=>{
+ const f=fixture();delete f.env.SOCIAL_APPLE_CLIENT_SECRET;
+ const keyPair=await crypto.subtle.generateKey({name:'ECDSA',namedCurve:'P-256'},true,['sign','verify']);
+ const privateKey=await crypto.subtle.exportKey('pkcs8',keyPair.privateKey);
+ Object.assign(f.env,{SOCIAL_APPLE_TEAM_ID:'TESTTEAM',SOCIAL_APPLE_KEY_ID:'TESTKEY',SOCIAL_APPLE_PRIVATE_KEY:'-----BEGIN PRIVATE KEY-----\n'+Buffer.from(privateKey).toString('base64')+'\n-----END PRIVATE KEY-----'});
+ const status=await handleSocialAuth(new Request(`${origin}/auth/social/status`),f.env,{});assert.equal((await status.json()).providers.apple,true);
+ const jwt=await signed('apple');const original=globalThis.fetch;let assertion;
+ globalThis.fetch=async (url,options)=>{if(String(url).includes('/token'))assertion=options.body.get('client_secret');return new Response(JSON.stringify(String(url).includes('keys')?{keys:[jwk]}:{id_token:jwt}));};
+ try{const r=await router.fetch(new Request(`${origin}/auth/social/apple/callback?code=test&state=test`),f.env);assert.equal(r.status,302);assert.ok(r.headers.get('location').includes('social_ticket='));const parts=assertion.split('.');assert.equal(JSON.parse(Buffer.from(parts[0],'base64url')).alg,'ES256');assert.equal(JSON.parse(Buffer.from(parts[1],'base64url')).sub,'test-client');assert.equal(await crypto.subtle.verify({name:'ECDSA',hash:'SHA-256'},keyPair.publicKey,Buffer.from(parts[2],'base64url'),Buffer.from(parts.slice(0,2).join('.'))),true);}finally{globalThis.fetch=original;}
+});
