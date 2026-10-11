@@ -36,6 +36,8 @@ export default function DownloadCenterPage() {
   const [customModalOpen, setCustomModalOpen] = useState(false);
 
   useEffect(() => {
+    // Hydrate browser-only device information after the static export mounts.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setDevice(detectCarrierDevice(navigator.userAgent, navigator.maxTouchPoints));
     const stored = getStoredSession();
     if (!stored) {
