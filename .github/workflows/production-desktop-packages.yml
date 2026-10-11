@@ -57,8 +57,8 @@ jobs:
             echo "apple_ready=false" >> "$GITHUB_OUTPUT"
             echo "::notice::Apple Developer ID signing/notarization credentials are not configured yet."
           fi
-          if [ "${{ inputs.platform }}" != "macos" ] && [ -z "$AZURE_CLIENT_ID" ]; then echo "::error::Configure Carrier Azure signing credentials before building Windows."; exit 1; fi
-          if [ "${{ inputs.platform }}" != "windows" ] && { [ -z "$APPLE_CERTIFICATE" ] || [ "$apple_notary_ready" != true ]; }; then echo "::error::Configure Carrier Developer ID signing and notarization before building Mac."; exit 1; fi
+          if [ "${{ inputs.platform }}" != "macos" ] && { [ -z "$AZURE_CLIENT_ID" ] || [ -z "$AZURE_CLIENT_SECRET" ] || [ -z "$AZURE_TENANT_ID" ]; }; then echo "::error::Configure Carrier Azure signing credentials before building Windows."; exit 1; fi
+          if [ "${{ inputs.platform }}" != "windows" ] && { [ -z "$APPLE_CERTIFICATE" ] || [ -z "$APPLE_CERTIFICATE_PASSWORD" ] || [ "$apple_notary_ready" != true ]; }; then echo "::error::Configure Carrier Developer ID signing and notarization before building Mac."; exit 1; fi
 
   windows:
     needs: signing-preflight
