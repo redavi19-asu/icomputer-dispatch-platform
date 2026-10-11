@@ -315,9 +315,9 @@ async function updateJob(request: Request, tenant: TenantContext, db: D1Database
     });
   }
 
-  let pickupVerifiedAt: string | null | undefined = undefined;
-  let deliveryVerifiedAt: string | null | undefined = undefined;
-  let handoffVerifiedAt: string | null | undefined = undefined;
+  let pickupVerifiedAt: string | null = null;
+  let deliveryVerifiedAt: string | null = null;
+  let handoffVerifiedAt: string | null = null;
   const verificationAction = cleanString(body.verificationAction);
   const suppliedToken = cleanString(body.verificationToken);
 
