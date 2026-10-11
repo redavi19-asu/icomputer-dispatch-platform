@@ -371,8 +371,8 @@ async function deleteJob(url: URL, tenant: TenantContext, db: D1Database, cors: 
     const result = await db.prepare("DELETE FROM jobs WHERE id = ? AND company_id = ?")
       .bind(id, tenant.companyId)
       .run();
-    return result.changes
-      ? json({ success: true, cleared: result.changes }, 200, cors)
+    return result.meta.changes
+      ? json({ success: true, cleared: result.meta.changes }, 200, cors)
       : json({ error: "Job not found." }, 404, cors);
   }
 
@@ -381,7 +381,7 @@ async function deleteJob(url: URL, tenant: TenantContext, db: D1Database, cors: 
       DELETE FROM jobs
       WHERE company_id = ? AND lower(status) IN ('completed','cancelled','canceled')
     `).bind(tenant.companyId).run();
-    return json({ success: true, cleared: result.changes }, 200, cors);
+    return json({ success: true, cleared: result.meta.changes }, 200, cors);
   }
 
   return json({ error: "Provide id or clearCompleted=1." }, 400, cors);
@@ -461,7 +461,7 @@ async function deleteDriver(url: URL, tenant: TenantContext, db: D1Database, cor
   const result = await db.prepare("DELETE FROM drivers WHERE id = ? AND company_id = ?")
     .bind(id, tenant.companyId)
     .run();
-  return result.changes
+  return result.meta.changes
     ? json({ success: true }, 200, cors)
     : json({ error: "Driver not found." }, 404, cors);
 }
@@ -513,7 +513,7 @@ async function revokeDriverInvite(url: URL, tenant: TenantContext, db: D1Databas
   const result = await db.prepare("DELETE FROM driver_invites WHERE id = ? AND company_id = ?")
     .bind(id, tenant.companyId)
     .run();
-  return result.changes
+  return result.meta.changes
     ? json({ success: true }, 200, cors)
     : json({ error: "Invite not found." }, 404, cors);
 }

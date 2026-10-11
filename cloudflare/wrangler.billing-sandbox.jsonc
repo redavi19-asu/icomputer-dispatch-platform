@@ -1,0 +1,22 @@
+{
+  "name": "carrier-billing-sandbox",
+  "main": "src/router.ts",
+  "compatibility_date": "2026-10-10",
+  "vars": {
+    "ALLOWED_ORIGINS": "https://carrier-billing-sandbox.ryanedavis.workers.dev",
+    "BILLING_APP_URL": "https://carrier-billing-sandbox.ryanedavis.workers.dev",
+    "STRIPE_BASIC_PRICE_ID": "price_1UP9w2GzgYAIrLjGDe94xdFz",
+    "STRIPE_BUSINESS_PRICE_ID": "price_1UP9w2GzgYAIrLjGpOHeP0UE",
+    "STRIPE_PORTAL_CONFIGURATION_ID": "bpc_1UPDGoGzgYAIrLjGrzCPpJlB"
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "carrier-billing-sandbox",
+      "database_id": "14c124e5-9dc9-4f12-aa1a-8051bc8b98ee"
+    }
+  ],
+  "observability": {
+    "enabled": true
+  }
+}
