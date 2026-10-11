@@ -1,6 +1,9 @@
 name: Validate and Deploy Cloudflare Worker
 
 on:
+  pull_request:
+    branches: [main]
+    paths: ["cloudflare/**", ".github/workflows/validate-cloudflare.yml"]
   push:
     branches:
       - main
@@ -25,14 +28,19 @@ jobs:
           node-version: 22
 
       - name: Build Worker dry run
-        run: npx --yes wrangler@latest deploy --dry-run --config cloudflare/wrangler.toml --outdir /tmp/dispatchos-worker
+        run: |
+          npm ci --prefix cloudflare
+          npm run typecheck --prefix cloudflare
+          npm run build:test --prefix cloudflare
+          npx --yes wrangler@latest deploy --dry-run --config cloudflare/wrangler.toml
 
       - name: Test social sign-in access controls and full gateway
         env:
-          CARRIER_GATEWAY_BUNDLE: /tmp/dispatchos-worker/router.js
-        run: node --experimental-strip-types --test cloudflare/tests/*.test.mjs
+          CARRIER_GATEWAY_BUNDLE: ${{ github.workspace }}/cloudflare/build/router.js
+        run: npm test --prefix cloudflare
 
       - name: Deploy Dispatch OS Worker
+        if: github.event_name != 'pull_request'
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}

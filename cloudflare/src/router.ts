@@ -6,6 +6,7 @@ import { handleDriverPayRequest } from "./driver-pay";
 import { handleOperationsRequest } from "./operations";
 import { handlePlanLimitRequest } from "./plan-limits";
 import { handleWorkspaceSettingsRequest } from "./workspace-settings";
+import { handleCarrierBilling } from "./stripe-billing";
 
 interface Env {
   DB: D1Database;
@@ -14,10 +15,18 @@ interface Env {
   ADMIN_EMAIL?: string;
   TURNSTILE_SECRET_KEY?: string;
   PUBLIC_REGISTRATION_ENABLED?: string;
+  BILLING_APP_URL?: string;
+  STRIPE_SECRET_KEY?: string;
+  STRIPE_WEBHOOK_SECRET?: string;
+  STRIPE_BASIC_PRICE_ID?: string;
+  STRIPE_BUSINESS_PRICE_ID?: string;
+  STRIPE_PORTAL_CONFIGURATION_ID?: string;
 }
 
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
+    const billingResponse = await handleCarrierBilling(request, env);
+    if (billingResponse) return billingResponse;
     if (new URL(request.url).pathname === "/api/auth/social/google/callback") {
       return authWorker.fetch(request, env);
     }

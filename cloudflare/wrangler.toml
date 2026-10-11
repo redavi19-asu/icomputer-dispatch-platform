@@ -5,6 +5,7 @@ compatibility_date = "2026-08-01"
 [vars]
 ALLOWED_ORIGINS = "https://redavi19-asu.github.io,http://localhost:3000"
 ADMIN_EMAIL = "Ryanedavis@gmail.com"
+BILLING_APP_URL = "https://redavi19-asu.github.io/icomputer-dispatch-platform"
 
 [[d1_databases]]
 binding = "DB"

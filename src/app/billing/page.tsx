@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo } from "react";
+import { useEffect, useState } from "react";
 import {
   AlertTriangle,
   ArrowLeft,
@@ -17,7 +17,7 @@ import {
 import { AppShellNav } from "@/components/platform/app-shell-nav";
 import { UrbanCarrierMark } from "@/components/branding/urban-carrier-mark";
 import { Card, CardContent } from "@/components/ui/card";
-import { getStoredSession } from "@/lib/dispatchos-auth";
+import { authRequest, getStoredSession, saveSession, type DispatchOSSession } from "@/lib/dispatchos-auth";
 
 const statusCopy: Record<string, { label: string; message: string; operating: boolean }> = {
   active: {
@@ -37,7 +37,7 @@ const statusCopy: Record<string, { label: string; message: string; operating: bo
   },
   past_due: {
     label: "Past Due",
-    message: "Payment is past due. Stripe payment recovery will restore access automatically once billing is connected.",
+    message: "Payment is past due. Use Manage Billing to update your payment method.",
     operating: false,
   },
   unpaid: {
@@ -47,7 +47,7 @@ const statusCopy: Record<string, { label: string; message: string; operating: bo
   },
   suspended: {
     label: "Suspended",
-    message: "Operational access is suspended. Billing recovery will be handled directly from this page when Stripe is connected.",
+    message: "Operational access is suspended. Use Manage Billing or contact support to restore access.",
     operating: false,
   },
   canceled: {
@@ -106,7 +106,43 @@ function normalizePlanId(plan: string) {
 }
 
 export default function BillingPage() {
-  const session = useMemo(() => getStoredSession(), []);
+  const [session, setSession] = useState<DispatchOSSession | null>(null);
+  const [billingReady, setBillingReady] = useState(false);
+  const [portalReady, setPortalReady] = useState(false);
+  const [hasCustomer, setHasCustomer] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [billingError, setBillingError] = useState("");
+  useEffect(() => {
+    const stored = getStoredSession();
+    let alive = true;
+    authRequest("/api/billing/stripe/config").then((config) => {
+      if (alive) { setSession(current => current || stored); setBillingReady(config.ready === true); setPortalReady(config.portalReady === true); }
+    }).catch(() => { if (alive) { setSession(current => current || stored); setBillingError("Billing is currently unavailable. Please contact support."); } });
+    if (stored) authRequest(`/api/billing/stripe/status?companyId=${encodeURIComponent(stored.company.id)}`).then((status) => {
+      if (!alive) return;
+      const refreshed = { ...stored, subscription: { plan: status.plan, status: status.status } };
+      saveSession(refreshed);
+      setSession(refreshed);
+      setHasCustomer(status.hasCustomer === true);
+    }).catch((error) => { if (alive) setBillingError(error instanceof Error ? error.message : "Unable to refresh billing."); });
+    return () => { alive = false; };
+  }, []);
+  async function openBilling(planId?: string) {
+    if (!session || busy) return;
+    setBusy(true); setBillingError("");
+    try {
+      const usePortal = !planId || hasCustomer && ["active", "trialing", "past_due", "unpaid", "incomplete", "paused"].includes(session.subscription?.status || "");
+      const data = await authRequest(`/api/billing/stripe/${usePortal ? "portal" : "checkout"}`, {
+        method: "POST", body: JSON.stringify({ companyId: session.company.id, plan: planId }),
+      });
+      const destination = new URL(data.url);
+      if (destination.protocol !== "https:" || !["checkout.stripe.com", "billing.stripe.com"].includes(destination.hostname)) throw new Error("Invalid billing destination.");
+      window.location.assign(destination.toString());
+    } catch (error) {
+      setBillingError(error instanceof Error ? error.message : "Billing could not complete.");
+      setBusy(false);
+    }
+  }
   const companyName = session?.company.name ?? "Your company";
   const plan = session?.subscription?.plan ?? "Not assigned";
   const currentPlanId = normalizePlanId(plan);
@@ -126,7 +162,7 @@ export default function BillingPage() {
             <p className="text-xs uppercase tracking-[0.22em] text-orange-200">{companyName} Billing</p>
             <h1 className="mt-2 text-3xl font-semibold tracking-tight md:text-4xl">Billing & subscription</h1>
             <p className="mt-3 max-w-2xl text-sm text-white/70">
-              Manage your current Urban Carrier OS plan here without leaving your company workspace. Plan changes, payment recovery, invoices, and payment methods will stay on this page as Stripe is connected.
+              Choose a plan or open secure billing to manage payments, invoices, and your subscription.
             </p>
           </div></div>
           <Link
@@ -175,14 +211,17 @@ export default function BillingPage() {
             <h2 className="text-xl font-semibold text-white">Your plan options</h2>
           </div>
           <p className="mt-2 max-w-3xl text-sm leading-6 text-white/60">
-            Your current plan stays highlighted here. If you want the other plan, the switch will start securely from this Billing page once Stripe checkout is connected—no trip back to the public plans page and no second login.
+            Choose Basic or Business below. Existing subscribers can change plans through Manage Billing.
           </p>
         </div>
+        {billingError && <p role="alert" className="mb-4 text-sm text-amber-200">{billingError}</p>}
+        <button type="button" disabled={!portalReady || !hasCustomer || busy} onClick={() => void openBilling()}
+          className="mb-6 rounded-xl border border-sky-300/30 px-5 py-3 font-semibold disabled:opacity-40">Manage Billing</button>
 
         <div className="grid gap-6 lg:grid-cols-2">
           {planOptions.map((option) => {
             const Icon = option.icon;
-            const isCurrent = currentPlanId === option.id;
+            const isCurrent = currentPlanId === option.id && currentStatus.operating;
             const isBusiness = option.id === "business";
             const actionLabel = currentPlanId
               ? isBusiness
@@ -238,15 +277,14 @@ export default function BillingPage() {
                     <div className="mt-7">
                       <button
                         type="button"
-                        disabled
-                        aria-disabled="true"
-                        title="Stripe plan switching is being connected"
-                        className="inline-flex w-full cursor-not-allowed items-center justify-center rounded-xl border border-cyan-300/20 bg-cyan-400/15 px-5 py-3 text-sm font-bold text-sky-100/70"
+                        disabled={!billingReady || !session || busy}
+                        onClick={() => void openBilling(option.id)}
+                        className="inline-flex w-full items-center justify-center rounded-xl border border-cyan-300/20 bg-cyan-400/15 px-5 py-3 text-sm font-bold text-sky-100/70 disabled:cursor-not-allowed disabled:opacity-40"
                       >
-                        {actionLabel} — Coming Soon
+                        {busy ? "Opening secure billing…" : actionLabel}
                       </button>
                       <p className="mt-2 text-center text-xs text-white/40">
-                        This button will launch secure Stripe plan switching here inside Billing.
+                        {billingReady ? "Continue securely with Stripe." : "Online billing is being configured. Contact support for access."}
                       </p>
                     </div>
                   )}
@@ -272,7 +310,7 @@ export default function BillingPage() {
             </div>
             <div className="mt-6 flex items-start gap-3 rounded-2xl border border-amber-300/15 bg-amber-400/[0.05] p-4 text-sm text-amber-100/80">
               <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
-              <p>Stripe checkout and webhook processing are still the next backend step. Plan switching is shown here now, but it stays disabled until the real payment connection is ready.</p>
+              <p>{billingReady ? "Billing changes appear here after Stripe confirms them. Contact support if your payment status does not update." : "Online billing is being configured. Existing administrator-granted access remains available."}</p>
             </div>
           </CardContent>
         </Card>

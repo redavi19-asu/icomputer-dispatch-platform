@@ -1,0 +1,19 @@
+{
+  "name": "urban-carrier-worker",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build:test": "esbuild src/router.ts --bundle --platform=browser --format=esm --outfile=build/router.js",
+    "test": "node --experimental-strip-types --test tests/*.test.mjs",
+    "typecheck": "tsc --noEmit --skipLibCheck --target ES2022 --module ESNext --moduleResolution Bundler --lib ES2022 worker-configuration.d.ts src/stripe-billing.ts",
+    "build": "npm run typecheck && npm run build:test"
+  },
+  "dependencies": {
+    "stripe": "22.6.0"
+  },
+  "devDependencies": {
+    "esbuild": "0.28.1",
+    "typescript": "5.9.3",
+    "@cloudflare/workers-types": "5.20261011.1"
+  }
+}
