@@ -30,7 +30,8 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
-      - run: npx eslint src/app/billing/page.tsx
+      - run: node --experimental-strip-types --test tests/*.test.mjs
+      - run: npx eslint src/app/billing/page.tsx src/app/download/page.tsx
       - run: npm run build:export
         env:
           GITHUB_PAGES: true
