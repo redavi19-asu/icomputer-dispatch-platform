@@ -138,3 +138,30 @@ test('Webhook preserves administrator-granted access without a linked subscripti
   assert.equal(f.sqlite.prepare("SELECT status FROM subscriptions WHERE company_id='c1'").get().status, 'active');
   f.sqlite.close();
 });
+
+test('Assigned driver completes dispatch lifecycle; tenant and assignment boundaries hold', async () => {
+  const f = fixture();
+  try {
+    f.sqlite.exec("UPDATE subscriptions SET status='active' WHERE company_id='c1'; INSERT INTO drivers(id,company_id,user_id,name) VALUES ('d1','c1','driver','Driver'),('foreign','c2',NULL,'Other');");
+    const send = (method, body, user='owner') => handleOperationsRequest(new Request('https://api.example.com/api/jobs', {method, headers:{Authorization:`Bearer ${user}`,Origin:'https://carrier.example.com'}, body:method==='GET'?undefined:JSON.stringify(body)}), f.env);
+    const created = await send('POST',{name:'Synthetic QC customer',service:'Delivery'});
+    assert.equal(created.status,200);
+    const {job} = await created.json();
+    assert.equal(job.status,'Awaiting Dispatch');
+    assert.equal((await (await send('GET',null,'driver')).json()).jobs.length,0);
+    assert.equal((await send('POST',{name:'Unauthorized'},'driver')).status,403);
+    assert.equal((await send('PATCH',{id:job.id,status:'Completed'},'driver')).status,403);
+    assert.equal((await send('PATCH',{id:job.id,driverId:'foreign'})).status,400);
+    assert.equal((await send('PATCH',{id:job.id,driverId:'d1',status:'Assigned'})).status,200);
+    assert.equal((await send('PATCH',{id:job.id,driverId:null},'driver')).status,403);
+    assert.equal((await send('PATCH',{id:job.id,status:'invalid'},'driver')).status,400);
+    assert.equal((await send('PATCH',{id:job.id,verificationAction:'confirm-delivery',verificationToken:'incorrect'},'driver')).status,403);
+    for(const status of ['En Route','Arrived','In Progress','Completed']) {
+      const response=await send('PATCH',{id:job.id,status},'driver');
+      assert.equal(response.status,200);
+      assert.equal((await response.json()).job.status,status);
+    }
+    const saved=f.sqlite.prepare('SELECT status_history FROM jobs WHERE id=?').get(job.id);
+    assert.deepEqual(JSON.parse(saved.status_history).map(x=>x.status),['Awaiting Dispatch','Assigned','En Route','Arrived','In Progress','Completed']);
+  } finally {f.sqlite.close();}
+});
