@@ -87,6 +87,7 @@ export default function WorkspaceSettingsPage() {
           </Link>
         </div>
 
+        <Link href="/workspace/integrations" className="block text-sky-300 underline">API keys and webhooks →</Link>
         <div className="space-y-6">
           <section className="rounded-3xl border border-white/10 bg-white/5 p-6 md:p-8">
             <h2 className="text-xl font-semibold">Company identity</h2>

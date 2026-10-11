@@ -1,3 +1,4 @@
+import { handleDeveloperRequest } from './developer-api';
 import authWorker from "./index";
 import { handleDriverInviteAcceptance } from "./invite-accept";
 import { handleCourierRequest } from "./courier";
@@ -25,6 +26,8 @@ interface Env {
 
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
+    const developerResponse = await handleDeveloperRequest(request, env);
+    if (developerResponse) return developerResponse;
     const billingResponse = await handleCarrierBilling(request, env);
     if (billingResponse) return billingResponse;
     if (new URL(request.url).pathname === "/api/auth/social/google/callback") {

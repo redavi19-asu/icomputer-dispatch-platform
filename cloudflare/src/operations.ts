@@ -1,3 +1,4 @@
+import { recordCarrierEvent, deliverCarrierEvent } from './developer-api';
 interface OperationsEnv {
   DB: D1Database;
   ALLOWED_ORIGINS: string;
@@ -257,6 +258,7 @@ async function createJob(request: Request, tenant: TenantContext, db: D1Database
     ),
   ]);
 
+  try { const event = await recordCarrierEvent(db, tenant.companyId, 'job.created', { jobId, status }); await deliverCarrierEvent(db, tenant.companyId, event); } catch { console.error('CARRIER_JOB_EVENT_FAILED'); }
   return await getJobs(new URL(`${new URL(request.url).origin}/api/jobs?id=${encodeURIComponent(jobId)}`), tenant, db, cors);
 }
 
@@ -358,6 +360,7 @@ async function updateJob(request: Request, tenant: TenantContext, db: D1Database
     tenant.companyId
   ).run();
 
+  try { const event = await recordCarrierEvent(db, tenant.companyId, 'job.updated', { jobId: id, status }); await deliverCarrierEvent(db, tenant.companyId, event); } catch { console.error('CARRIER_JOB_EVENT_FAILED'); }
   return await getJobs(new URL(`${new URL(request.url).origin}/api/jobs?id=${encodeURIComponent(id)}`), tenant, db, cors);
 }
 

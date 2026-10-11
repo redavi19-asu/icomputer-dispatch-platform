@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { handleSocialAuth } from '../src/social-auth.ts';
 import { pathToFileURL } from 'node:url';
-const {default: router} = await import(pathToFileURL(process.env.CARRIER_GATEWAY_BUNDLE || '/tmp/dispatchos-worker/router.js').href);
+const {default: router} = await import(pathToFileURL(process.env.CARRIER_GATEWAY_BUNDLE || new URL('../build/router.js',import.meta.url).pathname).href);
 const origin='https://accounts.example.com';
 const master='master@example.com';
 const pair=await crypto.subtle.generateKey({name:'RSASSA-PKCS1-v1_5',modulusLength:2048,publicExponent:new Uint8Array([1,0,1]),hash:'SHA-256'},true,['sign','verify']);
