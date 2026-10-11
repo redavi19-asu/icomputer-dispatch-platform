@@ -54,7 +54,7 @@ test('Checkout pricing and return URL are server-controlled, and retries are sta
   const first = await (await f.send('checkout')).json();
   assert.deepEqual(await (await f.send('checkout')).json(), first);
   assert.equal(f.calls[0].params.line_items[0].price, 'price_basic');
-  assert.equal(f.calls[0].params.success_url, 'https://carrier.example.com/app/billing/?checkout=success');
+  assert.equal(f.calls[0].params.success_url, 'https://carrier.example.com/app/billing?checkout=success');
   f.setSubscriptions([subscription('canceled')]);
   assert.notEqual((await (await f.send('checkout')).json()).url, first.url);
   f.setSubscriptions([subscription('past_due')]);
@@ -68,7 +68,7 @@ test('Incorrect prices and administrator-granted access cannot create a checkout
 });
 test('The billing portal uses the authenticated company and its dedicated configuration', async () => {
   const f = fixture(); assert.equal((await f.send('portal')).status, 200);
-  assert.deepEqual(f.calls[0], { customer: 'cus_one', configuration: 'bpc_carrier', return_url: 'https://carrier.example.com/app/billing/' }); f.sqlite.close();
+  assert.deepEqual(f.calls[0], { customer: 'cus_one', configuration: 'bpc_carrier', return_url: 'https://carrier.example.com/app/billing' }); f.sqlite.close();
 });
 test('Signed webhooks apply current state once and delayed events cannot revive canceled access', async () => {
   const f = fixture(); assert.equal((await f.event('evt1')).status, 200);

@@ -101,7 +101,7 @@ export async function handleCarrierBilling(request: Request, env: BillingEnv, ov
     if (!row) return json({ error: "Company subscription not found." }, 404, cors);
     if (path.endsWith("/status") && request.method === "GET") return json({ plan: row.plan, status: row.status, hasCustomer: Boolean(row.stripe_customer_id) }, 200, cors);
     if (request.method !== "POST") return json({ error: "Method not allowed." }, 405, cors);
-    const returnUrl = `${env.BILLING_APP_URL!.replace(/\/$/, "")}/billing/`;
+    const returnUrl = `${env.BILLING_APP_URL!.replace(/\/$/, "")}/billing`;
     if (path.endsWith("/portal")) {
       if (!row.stripe_customer_id) return json({ error: "No Stripe subscription is linked to this company." }, 404, cors);
       if (!env.STRIPE_PORTAL_CONFIGURATION_ID) return json({ error: "Billing portal is being configured." }, 503, cors);
