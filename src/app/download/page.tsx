@@ -6,6 +6,7 @@ import {
   ArrowRight,
   CheckCircle2,
   Download,
+  Info,
   Laptop2,
   MonitorSmartphone,
   Route,
@@ -21,14 +22,23 @@ import { getStoredSession, type DispatchOSSession } from "@/lib/dispatchos-auth"
 import { getPlanEntitlements, seatLabel } from "@/lib/platform/plan-entitlements";
 import { readWorkspaceSettings, type WorkspaceSettingsState } from "@/lib/platform/workspace-preferences";
 
+import { detectCarrierDevice, carrierDeviceAdvice, type CarrierDevice } from "@/lib/platform/device-install";
+
+import { CARRIER_RELEASE_API, verifiedReleaseLinks, type CarrierReleases } from "@/lib/platform/carrier-releases";
+
 const basePath = () => (process.env.NODE_ENV === "production" ? "/icomputer-dispatch-platform" : "");
 
 export default function DownloadCenterPage() {
   const [session, setSession] = useState<DispatchOSSession | null>(null);
   const [settings, setSettings] = useState<WorkspaceSettingsState | null>(null);
+  const [releases, setReleases] = useState<CarrierReleases>({});
+  const [device, setDevice] = useState<CarrierDevice>("unknown");
   const [customModalOpen, setCustomModalOpen] = useState(false);
 
   useEffect(() => {
+    // Hydrate browser-only device information after the static export mounts.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setDevice(detectCarrierDevice(navigator.userAgent, navigator.maxTouchPoints));
     const stored = getStoredSession();
     if (!stored) {
       window.location.href = `${basePath()}/auth?mode=login`;
@@ -36,13 +46,16 @@ export default function DownloadCenterPage() {
     }
 
     const current = readWorkspaceSettings(stored.company.slug);
-    if (!current.setupComplete) {
+    if (!current.setupComplete && stored.user.role !== "driver") {
       window.location.href = `${basePath()}/workspace/setup`;
       return;
     }
 
+    let active = true;
+    fetch(CARRIER_RELEASE_API).then(response => response.ok ? response.json() : null).then(data => { if (active) setReleases(verifiedReleaseLinks(data)); }).catch(() => {});
     setSession(stored);
     setSettings(current);
+    return () => { active = false; };
   }, []);
 
   if (!session || !settings) return <main className="min-h-screen bg-[#061a33]" />;
@@ -58,7 +71,7 @@ export default function DownloadCenterPage() {
           <div className="max-w-4xl">
             <div className="flex items-center gap-4"><UrbanCarrierMark href="/" size="md" /><div className="flex items-center gap-2 text-xs uppercase tracking-[0.24em] text-orange-200"><Download className="h-4 w-4" /> Urban Carrier OS Access Center</div></div>
             <h1 className="mt-4 text-4xl font-semibold tracking-tight md:text-6xl">Choose exactly where you need to work.</h1>
-            <p className="mt-5 text-base leading-7 text-white/60 md:text-lg"><span className="font-semibold text-white">{companyName}</span> is active. Use the buttons below to open the correct web app. Dispatcher and Driver are separate experiences and open in different places.</p>
+            <p className="mt-5 text-base leading-7 text-white/60 md:text-lg"><span className="font-semibold text-white">{companyName}</span> is your company workspace. Use the buttons below to open the correct web app. Dispatcher and Driver are separate experiences and open in different places.</p>
 
             <div className="mt-7 grid gap-3 sm:grid-cols-3">
               <div className="rounded-2xl border border-cyan-300/20 bg-cyan-500/10 p-4">
@@ -80,6 +93,17 @@ export default function DownloadCenterPage() {
       </section>
 
       <section className="mx-auto max-w-7xl px-6 py-10 md:py-14">
+        <section aria-label="Install Carrier on this device" className="mb-8 rounded-3xl border border-cyan-300/25 bg-cyan-500/10 p-6">
+          <div className="flex items-center gap-3"><Info className="h-5 w-5 text-cyan-200" /><h2 className="text-xl font-semibold">Carrier on this device</h2></div>
+          <p className="mt-3 leading-7 text-white/75">{carrierDeviceAdvice[device]}</p>
+          <div className="mt-4 flex flex-wrap gap-3">
+            {([["windows", "Download for Windows"], ["macArm", "Download for Mac · Apple Silicon"], ["macIntel", "Download for Mac · Intel"]] as const).map(([platform, label]) => releases[platform] ? <a key={platform} href={releases[platform]} className="rounded-xl bg-cyan-300 px-4 py-3 font-semibold text-slate-950">{label}</a> : null)}
+          </div>
+          <p className="mt-3 text-sm leading-6 text-white/60">Dispatcher and Driver use the same company account. Your role controls access. Device detection recommends an option; it never installs software automatically.</p>
+          <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            {[["Windows", releases.windows ? "Signed installer available" : "Signed installer pending"], ["Mac", releases.macArm && releases.macIntel ? "Apple Silicon + Intel available" : releases.macArm || releases.macIntel ? "See available Mac downloads above" : "Apple Silicon + Intel pending"], ["Linux", "Browser access available"], ["Android / iPhone", "Driver web app available"]].map(([label, status]) => <div key={label} className="rounded-xl border border-white/10 bg-black/15 p-4"><p className="font-semibold">{label}</p><p className="mt-2 text-sm text-white/60">{status}</p></div>)}
+          </div>
+        </section>
         <div className="grid gap-6 lg:grid-cols-2">
           <article className="rounded-[2rem] border border-sky-300/25 bg-sky-500/[0.07] p-7 md:p-9">
             <div className="flex items-center justify-between gap-4"><div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-cyan-400 text-slate-950"><Laptop2 className="h-7 w-7" /></div><span className="rounded-full border border-cyan-300/20 bg-cyan-500/10 px-3 py-1 text-xs font-semibold text-cyan-200">OFFICE / DISPATCH</span></div>

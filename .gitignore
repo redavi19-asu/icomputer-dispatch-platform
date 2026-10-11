@@ -5,3 +5,9 @@ node_modules/
 
 triplecccnew-main/
 out/
+
+# Native Carrier build outputs
+desktop/src-tauri/target/
+desktop/src-tauri/icons/
+desktop/src-tauri/tauri.windows.conf.json
+release/
