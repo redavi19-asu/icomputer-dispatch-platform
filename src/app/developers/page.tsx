@@ -92,9 +92,7 @@ export default function Developers() {
           status appears in Integrations; 0 means delivery could not complete.
         </p>
         <p>
-          These customer credentials are separate from Stripe payment keys. API
-          access is included with operating subscription access; metered API
-          billing is not enabled.
+          These customer credentials are separate from Stripe payment keys. Separate API subscriptions and company-wide usage allowances are being prepared. No separate API charge or automatic overage fee is enabled yet. Paid API access, once launched, will be an additional subscription alongside operating software access. Owners/admins will manage it in Integrations.
         </p>
       </article>
     </main>

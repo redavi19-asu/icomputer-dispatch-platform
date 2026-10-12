@@ -6,6 +6,16 @@ import {
   getStoredSession,
   getApiBase,
 } from "@/lib/dispatchos-auth";
+type ApiPlan = {
+  companyName: string;
+  mode: string;
+  entitled: boolean;
+  subscriptionStatus: string;
+  periodEnd: number;
+  used: number;
+  allowance: number | null;
+  pricing: { ready: boolean; amount: number | null; allowance: number | null };
+};
 type Key = {
   id: string;
   name: string;
@@ -16,16 +26,20 @@ type Key = {
 };
 type Hook = { id: string; url: string; last_status: number | null };
 export default function Integrations() {
+  const [plan, setPlan] = useState<ApiPlan | null>(null);
+  const [cancelConfirmed, setCancelConfirmed] = useState(false);
   const [keys, setKeys] = useState<Key[]>([]),
     [hooks, setHooks] = useState<Hook[]>([]),
     [message, setMessage] = useState(""),
     [secret, setSecret] = useState(""),
     [busy, setBusy] = useState(false);
   async function load() {
-    const [k, h] = await Promise.all([
+    const [k, h, p] = await Promise.all([
       authRequest("/api/integrations/keys"),
       authRequest("/api/integrations/webhooks"),
+      authRequest("/api/integrations/api-plan").catch(()=>null),
     ]);
+    if(p)setPlan(p);
     setKeys(k.keys || []);
     setHooks((h.webhooks || []).filter((x: { active: number }) => x.active));
   }
@@ -76,6 +90,90 @@ export default function Integrations() {
             />
             <button onClick={() => setSecret("")}>I saved it — hide</button>
           </div>
+        )}
+        {plan && (
+          <section
+            aria-label="API plan and usage"
+            className="space-y-3 rounded-xl border border-sky-700 p-5"
+          >
+            <h2 className="text-2xl">API plan and usage</h2>
+            <p>Company: {plan.companyName}</p>
+            <p>
+              {plan.mode === "PREPARATION"
+                ? "Separate API billing is being prepared. No API fee is active yet."
+                : `Separate API subscription: ${plan.subscriptionStatus}. Software billing is separate.`}
+            </p>
+            <p>
+              {plan.used.toLocaleString()} requests across all company keys
+              {plan.allowance !== null
+                ? ` / ${plan.allowance.toLocaleString()} included`
+                : ""}
+              . Period ends {new Date(plan.periodEnd).toLocaleDateString()}.
+            </p>
+            <p>
+              Requests that pass key, permission, subscription and rate checks
+              count, including retries and invalid payloads. Server failures are
+              released. No automatic overage charges are enabled.
+            </p>
+            {plan.pricing.ready && (
+              <p>
+                ${((plan.pricing.amount || 0) / 100).toFixed(2)}/month for{" "}
+                {plan.pricing.allowance?.toLocaleString()} requests.
+              </p>
+            )}
+            <button
+              disabled={busy || !plan.pricing.ready || plan.entitled}
+              onClick={() =>
+                void act(async () => {
+                  const result = await authRequest(
+                    "/api/integrations/api-plan",
+                    {
+                      method: "POST",
+                      body: JSON.stringify({ action: "CHECKOUT" }),
+                    },
+                  );
+                  if (result.checkoutUrl)
+                    window.location.assign(result.checkoutUrl);
+                })
+              }
+            >
+              Start separate API subscription
+            </button>
+            {plan.entitled && (
+              <div>
+                <label>
+                  <input
+                    type="checkbox"
+                    checked={cancelConfirmed}
+                    onChange={(e) => setCancelConfirmed(e.target.checked)}
+                  />{" "}
+                  Cancel only API renewal; keep software subscription.
+                </label>
+                <button
+                  disabled={busy || !cancelConfirmed}
+                  onClick={() =>
+                    void act(async () => {
+                      const result = await authRequest(
+                        "/api/integrations/api-plan",
+                        {
+                          method: "POST",
+                          body: JSON.stringify({
+                            action: "CANCEL_API_RENEWAL",
+                            confirmation: "CANCEL API",
+                          }),
+                        },
+                      );
+                      setMessage(
+                        `API access ends ${new Date(result.endsAt).toLocaleDateString()}. Software subscription unchanged.`,
+                      );
+                    })
+                  }
+                >
+                  Cancel API renewal
+                </button>
+              </div>
+            )}
+          </section>
         )}
         <h2 className="text-2xl">API keys</h2>
         <form
@@ -130,7 +228,9 @@ export default function Integrations() {
             </label>
           ))}
           <button
-            disabled={busy}
+            disabled={
+              busy || (plan?.mode === "PAID_API_REQUIRED" && !plan.entitled)
+            }
             className="block rounded bg-sky-500 px-5 py-2"
           >
             Create key

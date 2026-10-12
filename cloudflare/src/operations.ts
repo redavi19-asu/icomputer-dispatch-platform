@@ -1,8 +1,6 @@
 import { recordCarrierEvent, deliverCarrierEvent } from './developer-api';
-interface OperationsEnv {
-  DB: D1Database;
-  ALLOWED_ORIGINS: string;
-}
+import {apiRevenueRequired} from './api-revenue';
+type OperationsEnv = Pick<CarrierWorkerEnv,'DB'|'ALLOWED_ORIGINS'> & Partial<Pick<CarrierWorkerEnv,'API_PAID_ACCESS_REQUIRED'>>;
 
 type TenantContext = {
   userId: string;
@@ -55,8 +53,8 @@ export async function handleOperationsRequest(
 
     if (url.pathname === "/api/jobs") {
       if (request.method === "GET") return await getJobs(url, tenant, env.DB, cors);
-      if (request.method === "POST") return await createJob(request, tenant, env.DB, cors);
-      if (request.method === "PATCH") return await updateJob(request, tenant, env.DB, cors);
+      if (request.method === "POST") return await createJob(request, tenant, env.DB, cors,apiRevenueRequired(env.API_PAID_ACCESS_REQUIRED));
+      if (request.method === "PATCH") return await updateJob(request, tenant, env.DB, cors,apiRevenueRequired(env.API_PAID_ACCESS_REQUIRED));
       if (request.method === "DELETE") return await deleteJob(url, tenant, env.DB, cors);
     }
 
@@ -193,7 +191,7 @@ async function getJobs(url: URL, tenant: TenantContext, db: D1Database, cors: He
   return json({ success: true, jobs }, 200, cors);
 }
 
-async function createJob(request: Request, tenant: TenantContext, db: D1Database, cors: HeadersInit) {
+async function createJob(request: Request, tenant: TenantContext, db: D1Database, cors: HeadersInit,requireApiPlan=false) {
   if (!canManage(tenant)) return json({ error: "Dispatcher access required." }, 403, cors);
 
   const body = await request.json<Record<string, unknown>>();
@@ -258,11 +256,11 @@ async function createJob(request: Request, tenant: TenantContext, db: D1Database
     ),
   ]);
 
-  try { const event = await recordCarrierEvent(db, tenant.companyId, 'job.created', { jobId, status }); await deliverCarrierEvent(db, tenant.companyId, event); } catch { console.error('CARRIER_JOB_EVENT_FAILED'); }
+  try { const event = await recordCarrierEvent(db, tenant.companyId, 'job.created', { jobId, status }); await deliverCarrierEvent(db, tenant.companyId, event,requireApiPlan); } catch { console.error('CARRIER_JOB_EVENT_FAILED'); }
   return await getJobs(new URL(`${new URL(request.url).origin}/api/jobs?id=${encodeURIComponent(jobId)}`), tenant, db, cors);
 }
 
-async function updateJob(request: Request, tenant: TenantContext, db: D1Database, cors: HeadersInit) {
+async function updateJob(request: Request, tenant: TenantContext, db: D1Database, cors: HeadersInit,requireApiPlan=false) {
   const body = await request.json<Record<string, unknown>>();
   const id = cleanString(body.id);
   if (!id) return json({ error: "Job id is required." }, 400, cors);
@@ -360,7 +358,7 @@ async function updateJob(request: Request, tenant: TenantContext, db: D1Database
     tenant.companyId
   ).run();
 
-  try { const event = await recordCarrierEvent(db, tenant.companyId, 'job.updated', { jobId: id, status }); await deliverCarrierEvent(db, tenant.companyId, event); } catch { console.error('CARRIER_JOB_EVENT_FAILED'); }
+  try { const event = await recordCarrierEvent(db, tenant.companyId, 'job.updated', { jobId: id, status }); await deliverCarrierEvent(db, tenant.companyId, event,requireApiPlan); } catch { console.error('CARRIER_JOB_EVENT_FAILED'); }
   return await getJobs(new URL(`${new URL(request.url).origin}/api/jobs?id=${encodeURIComponent(id)}`), tenant, db, cors);
 }
 
