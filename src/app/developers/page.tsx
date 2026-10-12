@@ -92,9 +92,7 @@ export default function Developers() {
           status appears in Integrations; 0 means delivery could not complete.
         </p>
         <p>
-          These customer credentials are separate from Stripe payment keys. API
-          access is included with operating subscription access; metered API
-          billing is not enabled.
+          These customer credentials are separate from Stripe payment keys. The separate API launch plan is $49/month for 50,000 requests per company per billing period. Billing is not active yet; no automatic overage charges apply. Paid API access, once launched, will be an additional subscription alongside operating software access. Owners/admins will manage it in Integrations.
         </p>
       </article>
     </main>

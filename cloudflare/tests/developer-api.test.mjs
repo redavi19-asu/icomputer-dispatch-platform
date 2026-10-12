@@ -39,8 +39,9 @@ function fixture() {
           const results = [];
           for (const s of statements)
             results.push({
+              results:sqlite.prepare(s.sql).all(...s.values),
               meta: {
-                changes: Number(sqlite.prepare(s.sql).run(...s.values).changes),
+                changes: Number(sqlite.prepare('SELECT changes() n').get().n),
               },
             });
           sqlite.exec("COMMIT");
