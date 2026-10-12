@@ -1,6 +1,6 @@
 # Separate API revenue preparation
 
-A separate monthly API subscription and company-wide request allowance are prepared, alongside the operating software subscription. The API plan is not active yet: monthly amount, request allowance and matching Stripe price need owner approval/configuration. API_PAID_ACCESS_REQUIRED remains false. No automatic overage charges are supported; exhausted allowance blocks requests with 429.
+A separate monthly API subscription and company-wide request allowance are prepared, alongside the operating software subscription. The API plan is not active yet: the owner delegated pricing on October 12, 2026. The launch offer is $49/month with 50,000 requests per company per billing period. The matching live Stripe price is configured; sandbox end-to-end validation is still required before activation. API_PAID_ACCESS_REQUIRED remains false. No automatic overage charges are supported; exhausted allowance blocks requests with 429.
 
 Owners/admins use Integrations to see company-wide usage, start a separate subscription once enabled and cancel API renewal without cancelling software. Active software access is required before selling an API plan. Existing API subscription prices and allowances are preserved during renewal; changing an offer does not rewrite existing contracts.
 

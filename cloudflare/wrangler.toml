@@ -4,9 +4,9 @@ compatibility_date = "2026-08-01"
 
 [vars]
 API_PAID_ACCESS_REQUIRED = "false"
-STRIPE_API_PRICE_ID = ""
-API_MONTHLY_AMOUNT_CENTS = ""
-API_MONTHLY_REQUEST_ALLOWANCE = ""
+STRIPE_API_PRICE_ID = "price_1UPjQeGzgYAIrLjGX5TdsAqj"
+API_MONTHLY_AMOUNT_CENTS = "4900"
+API_MONTHLY_REQUEST_ALLOWANCE = "50000"
 ALLOWED_ORIGINS = "https://redavi19-asu.github.io,http://localhost:3000"
 ADMIN_EMAIL = "Ryanedavis@gmail.com"
 BILLING_APP_URL = "https://redavi19-asu.github.io/icomputer-dispatch-platform"
