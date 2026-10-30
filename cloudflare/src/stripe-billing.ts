@@ -1,8 +1,9 @@
+import { applyCarrierDeveloperStripeSubscription, type DeveloperBillingEnv } from "./developer-billing";
 import Stripe from "stripe";
 
 type BillingEnv = Pick<CarrierWorkerEnv, "DB" | "ALLOWED_ORIGINS"> & Partial<Pick<CarrierWorkerEnv,
   "BILLING_APP_URL" | "STRIPE_SECRET_KEY" | "STRIPE_WEBHOOK_SECRET" | "STRIPE_BASIC_PRICE_ID" |
-  "STRIPE_BUSINESS_PRICE_ID" | "STRIPE_PORTAL_CONFIGURATION_ID">>;
+  "STRIPE_BUSINESS_PRICE_ID" | "STRIPE_PORTAL_CONFIGURATION_ID">> & DeveloperBillingEnv;
 type BillingRow = { company_id: string; plan: string; status: string; stripe_customer_id: string | null; stripe_subscription_id: string | null };
 const blockedDuplicates = new Set(["active", "trialing", "past_due", "unpaid", "incomplete", "paused"]);
 const amounts = { basic: 4999, business: 14900 } as const;
@@ -56,6 +57,10 @@ async function webhook(request: Request, env: BillingEnv, stripe: Stripe, cors: 
   if (subscriptionId) {
     // Read current provider state so delayed events cannot restore stale access.
     const subscription = await stripe.subscriptions.retrieve(subscriptionId);
+    if (await applyCarrierDeveloperStripeSubscription(subscription, env)) {
+      await env.DB.prepare("INSERT OR IGNORE INTO carrier_stripe_events(id) VALUES (?)").bind(event.id).run();
+      return json({ received: true }, 200, cors);
+    }
     const plan = pricePlan(env, subscription);
     const customer = typeof subscription.customer === "string" ? subscription.customer : subscription.customer.id;
     const row = await env.DB.prepare("SELECT company_id,plan,status,stripe_customer_id,stripe_subscription_id FROM subscriptions WHERE stripe_customer_id=?").bind(customer).first<BillingRow>();
