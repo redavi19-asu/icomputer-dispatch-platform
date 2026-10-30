@@ -62,6 +62,14 @@ export default function Developers() {
           cannot read another company’s jobs or change drivers, subscriptions,
           or account permissions.
         </p>
+        <h2 className="text-2xl">Developer API plans (preview)</h2>
+        <p>
+          Developer Starter ($29/month, 25,000 requests) and Developer Pro ($99/month,
+          150,000 requests) are proposed separate add-ons. They are not yet accepting
+          purchases. Company owners/admins can view activation status and included
+          API usage in Workspace → Developer integrations. No overage fees are charged.
+          Existing API access and operating subscriptions remain unchanged.
+        </p>
         <h2 className="text-2xl">Signed webhooks</h2>
         <p>
           Register a public HTTPS receiver in Integrations. Copy its signing

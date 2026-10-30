@@ -1,5 +1,6 @@
+import { consumeCarrierDeveloperQuota } from './developer-billing';
 // Customer credentials are separate from account sessions and Stripe credentials.
-type Env = { DB: D1Database; ALLOWED_ORIGINS: string };
+type Env = { DB: D1Database; ALLOWED_ORIGINS: string; DEVELOPER_BILLING_ENABLED?: string; DEVELOPER_BILLING_ENFORCE_FROM?: string };
 const enc = new TextEncoder();
 const scopes = ["jobs:read", "jobs:write", "events:read"];
 const operating = ["active", "trialing", "grace_period", "comped"];
@@ -437,6 +438,7 @@ export async function handleDeveloperRequest(
         company_id: string;
         scopes: string;
         status: string;
+        created_at: string;
       }>();
     if (!credential)
       return json({ error: "Invalid, expired, or revoked key." }, 401, headers);
@@ -465,6 +467,18 @@ export async function handleDeveloperRequest(
         ...headers,
         "Retry-After": "60",
       });
+    const effectiveLaunch = Date.parse(env.DEVELOPER_BILLING_ENFORCE_FROM || "");
+    const created = Date.parse(String(credential.created_at || "").replace(" ", "T") + "Z");
+    const enforcementConfigured = Number.isFinite(effectiveLaunch);
+    // Keys created before rollout retain their contract and never consume paid credits.
+    const grandfathered = !enforcementConfigured || (Number.isFinite(created) && created < effectiveLaunch);
+    const developerQuota = await consumeCarrierDeveloperQuota(
+      env.DB, credential.company_id, env.DEVELOPER_BILLING_ENABLED === "true" && enforcementConfigured,
+      grandfathered,
+    );
+    if (!developerQuota.allowed)
+      return json({ error: "Developer API subscription inactive or monthly allowance exhausted. No overage charge was made." },
+        developerQuota.limit ? 429 : 402, { ...headers, "Retry-After": "3600" });
     await env.DB.prepare("DELETE FROM carrier_api_limits WHERE slot<?")
       .bind(slot - 60)
       .run();
