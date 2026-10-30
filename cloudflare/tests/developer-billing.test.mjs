@@ -58,7 +58,7 @@ test("developer quotas use atomic limits, preserve legacy access and block expir
     assert.equal((await consumeCarrierDeveloperQuota(db, "one", true, false)).allowed, false);
     assert.equal((await consumeCarrierDeveloperQuota(db, "two", true, false)).allowed, false);
     sqlite.exec("UPDATE carrier_developer_subscriptions SET status='canceled' WHERE company_id='one'");
-    assert.equal((await consumeCarrierDeveloperQuota(db, "one", true)).allowed, false);
+    assert.equal((await consumeCarrierDeveloperQuota(db, "one", true, false)).allowed, false);
     assert.equal((await consumeCarrierDeveloperQuota(db, "one", false, false)).allowed, true);
   } finally { sqlite.close(); }
 });
