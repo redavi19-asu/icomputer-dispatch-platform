@@ -36,6 +36,7 @@ test("developer billing requires explicit activation and configured Stripe price
     DEVELOPER_BILLING_ENABLED: "false",
     STRIPE_SECRET_KEY: "sk_test_demo",
     STRIPE_WEBHOOK_SECRET: "whsec_demo",
+    DEVELOPER_BILLING_ENFORCE_FROM: "2026-11-01T00:00:00Z",
     STRIPE_DEVELOPER_STARTER_PRICE_ID: "price_a",
     STRIPE_DEVELOPER_PRO_PRICE_ID: "price_b",
     BILLING_APP_URL: "https://example.test",
@@ -47,6 +48,7 @@ test("developer quotas use atomic limits, preserve legacy access and block expir
   try {
     await ensureCarrierDeveloperBillingTables(db);
     assert.deepEqual(await consumeCarrierDeveloperQuota(db, "one", true), { allowed: true });
+    assert.deepEqual(await consumeCarrierDeveloperQuota(db, "one", true, false), { allowed: false });
     const now = Math.floor(Date.now() / 1000);
     sqlite.prepare("INSERT INTO carrier_developer_subscriptions(company_id,stripe_customer_id,stripe_subscription_id,plan,status,period_start,period_end) VALUES ('one','cus_dev','sub_dev','starter','active',?,?)").run(now - 100, now + 1000);
     sqlite.prepare("INSERT INTO carrier_developer_usage(company_id,period_start,used) VALUES ('one',?,24999)").run(now - 100);
@@ -54,9 +56,9 @@ test("developer quotas use atomic limits, preserve legacy access and block expir
     assert.equal(allowed.allowed, true);
     assert.equal(allowed.used, 25000);
     assert.equal((await consumeCarrierDeveloperQuota(db, "one", true)).allowed, false);
-    assert.equal((await consumeCarrierDeveloperQuota(db, "two", true)).allowed, true);
+    assert.equal((await consumeCarrierDeveloperQuota(db, "two", true, false)).allowed, true);
     sqlite.exec("UPDATE carrier_developer_subscriptions SET status='canceled' WHERE company_id='one'");
     assert.equal((await consumeCarrierDeveloperQuota(db, "one", true)).allowed, false);
-    assert.equal((await consumeCarrierDeveloperQuota(db, "one", false)).allowed, true);
+    assert.equal((await consumeCarrierDeveloperQuota(db, "one", false, false)).allowed, true);
   } finally { sqlite.close(); }
 });
