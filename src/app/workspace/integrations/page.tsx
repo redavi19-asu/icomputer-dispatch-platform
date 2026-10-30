@@ -1,5 +1,6 @@
 "use client";
 import Link from "next/link";
+import CarrierDeveloperBilling from "@/components/developer-billing/carrier-developer-billing";
 import { useEffect, useState } from "react";
 import {
   authRequest,
@@ -77,6 +78,7 @@ export default function Integrations() {
             <button onClick={() => setSecret("")}>I saved it — hide</button>
           </div>
         )}
+        <CarrierDeveloperBilling />
         <h2 className="text-2xl">API keys</h2>
         <form
           className="space-y-4"
