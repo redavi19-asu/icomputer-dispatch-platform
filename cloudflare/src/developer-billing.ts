@@ -10,6 +10,7 @@ export type DeveloperBillingEnv = {
   STRIPE_WEBHOOK_SECRET?: string;
   STRIPE_PORTAL_CONFIGURATION_ID?: string;
   DEVELOPER_BILLING_ENABLED?: string;
+  DEVELOPER_BILLING_ENFORCE_FROM?: string;
   STRIPE_DEVELOPER_STARTER_PRICE_ID?: string;
   STRIPE_DEVELOPER_PRO_PRICE_ID?: string;
 };
@@ -34,6 +35,7 @@ const reply = (value: unknown, status = 200, headers: HeadersInit = {}) =>
 
 export function carrierDeveloperBillingReady(env: DeveloperBillingEnv) {
   return env.DEVELOPER_BILLING_ENABLED === "true" &&
+    Boolean(env.DEVELOPER_BILLING_ENFORCE_FROM && Number.isFinite(Date.parse(env.DEVELOPER_BILLING_ENFORCE_FROM))) &&
     Boolean(env.STRIPE_SECRET_KEY && env.STRIPE_WEBHOOK_SECRET &&
       env.BILLING_APP_URL && env.STRIPE_DEVELOPER_STARTER_PRICE_ID &&
       env.STRIPE_DEVELOPER_PRO_PRICE_ID);
@@ -182,12 +184,12 @@ export async function applyCarrierDeveloperStripeSubscription(
 
 // Existing customers remain on legacy terms until explicitly migrated.
 // Paid developer accounts are metered atomically, with no excess-charge path.
-export async function consumeCarrierDeveloperQuota(db: D1Database, companyId: string, enabled: boolean):
+export async function consumeCarrierDeveloperQuota(db: D1Database, companyId: string, enabled: boolean, grandfathered = true):
   Promise<{ allowed: boolean; limit?: number; used?: number }> {
-  if (!enabled) return { allowed: true };
+  if (!enabled || grandfathered) return { allowed: true };
   await ensureCarrierDeveloperBillingTables(db);
   const row = await db.prepare("SELECT * FROM carrier_developer_subscriptions WHERE company_id=?").bind(companyId).first<DevRow>();
-  if (!row || !row.stripe_subscription_id) return { allowed: true };
+  if (!row?.stripe_subscription_id) return { allowed: false }; // Paid terms apply only to newly created credentials.
   if (!entitled.has(row.status) || row.period_end <= Math.floor(Date.now() / 1000)) return { allowed: false };
   if (!row.plan || !(row.plan in plans)) return { allowed: false };
   const max = plans[row.plan as DeveloperPlan].included;
