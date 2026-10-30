@@ -1,4 +1,5 @@
 import { handleDeveloperRequest } from './developer-api';
+import { handleCarrierDeveloperBilling } from './developer-billing';
 import authWorker from "./index";
 import { handleDriverInviteAcceptance } from "./invite-accept";
 import { handleCourierRequest } from "./courier";
@@ -22,10 +23,15 @@ interface Env {
   STRIPE_BASIC_PRICE_ID?: string;
   STRIPE_BUSINESS_PRICE_ID?: string;
   STRIPE_PORTAL_CONFIGURATION_ID?: string;
+  DEVELOPER_BILLING_ENABLED?: string;
+  STRIPE_DEVELOPER_STARTER_PRICE_ID?: string;
+  STRIPE_DEVELOPER_PRO_PRICE_ID?: string;
 }
 
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
+    const developerBillingResponse = await handleCarrierDeveloperBilling(request, env);
+    if (developerBillingResponse) return developerBillingResponse;
     const developerResponse = await handleDeveloperRequest(request, env);
     if (developerResponse) return developerResponse;
     const billingResponse = await handleCarrierBilling(request, env);
