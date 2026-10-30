@@ -14,11 +14,13 @@ import {
   CreditCard,
   LayoutDashboard,
   MapPinned,
+  Menu,
   MessageSquare,
   Smartphone,
   Users,
   WalletCards,
   Wand2,
+  X,
   Zap,
 } from "lucide-react";
 
@@ -99,6 +101,7 @@ type SystemHealth = "checking" | "online" | "issue";
 
 export default function Home() {
   const [customModalOpen, setCustomModalOpen] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [systemHealth, setSystemHealth] = useState<SystemHealth>("checking");
   const [showStartupSplash, setShowStartupSplash] = useState(true);
   const reduceMotion = useReducedMotion();
@@ -142,21 +145,43 @@ export default function Home() {
         </svg>
 
         <div className="relative z-10 mx-auto max-w-7xl px-6 pt-6">
-          <nav className="flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-white/15 bg-[#061a33]/55 px-4 py-3 backdrop-blur-xl sm:px-5">
-            <a href="https://redavi19-asu.github.io/icomuteranythingV3/" className="inline-flex items-center gap-3 font-bold text-white">
-              <span className="h-9 w-9 overflow-hidden rounded-xl border border-white/35 bg-white p-0.5"><img src={URBAN_CARRIER_ICON_DATA_URI} alt="" className="h-full w-full rounded-[10px] object-cover" /></span>
-              <span><span className="block text-[10px] uppercase tracking-[0.22em] text-sky-100/65">I Computer Anything</span>Urban Carrier OS</span>
+          <nav aria-label="Primary navigation" className="relative flex items-center justify-between gap-3 rounded-2xl border border-white/15 bg-[#061a33]/55 px-4 py-3 backdrop-blur-xl sm:px-5">
+            <a href="https://redavi19-asu.github.io/icomuteranythingV3/" className="inline-flex min-w-0 items-center gap-3 font-bold text-white">
+              <span className="h-9 w-9 shrink-0 overflow-hidden rounded-xl border border-white/35 bg-white p-0.5"><img src={URBAN_CARRIER_ICON_DATA_URI} alt="" className="h-full w-full rounded-[10px] object-cover" /></span>
+              <span className="text-sm sm:text-base"><span className="hidden text-[10px] uppercase tracking-[0.22em] text-sky-100/65 sm:block">I Computer Anything</span>Urban Carrier OS</span>
             </a>
-            <div className="hidden items-center gap-5 text-sm font-semibold text-white/80 md:flex">
+            <div className="hidden items-center gap-4 text-sm font-semibold text-white/80 lg:flex">
               <a href="#features" className="hover:text-white">Features</a>
               <a href="#operations" className="hover:text-white">Dispatch</a>
               <a href="#apps" className="hover:text-white">Driver App</a>
               <Link href="/plans" className="hover:text-white">Pricing</Link>
+              <Link href="/developers" className="hover:text-white">Developers</Link>
             </div>
-            <div className="flex items-center gap-2">
+            <div className="hidden items-center gap-2 lg:flex">
               <Link href="/auth?mode=login" className="rounded-xl px-4 py-2 text-sm font-semibold text-white/85 hover:bg-white/10">Log In</Link>
               <Link href="/plans" className="rounded-xl bg-orange-500 px-4 py-2 text-sm font-black text-white shadow-lg shadow-orange-950/20 transition hover:bg-orange-400">Get Started</Link>
             </div>
+            <button
+              type="button"
+              aria-label={mobileMenuOpen ? "Close navigation menu" : "Open navigation menu"}
+              aria-controls="carrier-mobile-navigation"
+              aria-expanded={mobileMenuOpen}
+              onClick={() => setMobileMenuOpen((open) => !open)}
+              className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-white/30 text-white hover:bg-white/10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white lg:hidden"
+            >
+              {mobileMenuOpen ? <X className="h-6 w-6" aria-hidden="true" /> : <Menu className="h-6 w-6" aria-hidden="true" />}
+            </button>
+            {mobileMenuOpen && (
+              <div id="carrier-mobile-navigation" className="absolute right-0 top-full z-50 mt-3 flex w-[min(20rem,calc(100vw-3rem))] flex-col gap-1 rounded-2xl border border-white/25 bg-[#061a33] p-3 shadow-2xl lg:hidden">
+                <a href="#features" onClick={() => setMobileMenuOpen(false)} className="rounded-xl px-4 py-3 text-sm font-semibold hover:bg-white/10">Features</a>
+                <a href="#operations" onClick={() => setMobileMenuOpen(false)} className="rounded-xl px-4 py-3 text-sm font-semibold hover:bg-white/10">Dispatch</a>
+                <a href="#apps" onClick={() => setMobileMenuOpen(false)} className="rounded-xl px-4 py-3 text-sm font-semibold hover:bg-white/10">Driver App</a>
+                <Link href="/plans" onClick={() => setMobileMenuOpen(false)} className="rounded-xl px-4 py-3 text-sm font-semibold hover:bg-white/10">Pricing</Link>
+                <Link href="/developers" onClick={() => setMobileMenuOpen(false)} className="rounded-xl px-4 py-3 text-sm font-semibold hover:bg-white/10">Developers</Link>
+                <Link href="/auth?mode=login" onClick={() => setMobileMenuOpen(false)} className="rounded-xl px-4 py-3 text-sm font-semibold hover:bg-white/10">Log In</Link>
+                <Link href="/plans" onClick={() => setMobileMenuOpen(false)} className="rounded-xl bg-orange-500 px-4 py-3 text-center text-sm font-bold hover:bg-orange-400">Get Started</Link>
+              </div>
+            )}
           </nav>
         </div>
 
