@@ -144,13 +144,20 @@ export async function handleCarrierDeveloperBilling(request: Request, env: Devel
     const existing = await stripe.subscriptions.list({ customer: customerId, status: "all", limit: 100 });
     if (existing.data.some(s => ["active", "trialing", "past_due", "unpaid", "incomplete", "paused"].includes(s.status)))
       return reply({ error: "An existing developer subscription must be managed first." }, 409, headers);
+    const previousSessions = await stripe.checkout.sessions.list({ customer: customerId, limit: 100 });
+    const openCheckout = previousSessions.data.find(session => session.status === "open" && session.mode === "subscription");
+    if (openCheckout) {
+      if (openCheckout.metadata?.developer_plan !== plan || !openCheckout.url)
+        return reply({ error: "Finish or cancel the existing developer Checkout before choosing another plan." }, 409, headers);
+      return reply({ url: openCheckout.url }, 200, headers);
+    }
     const checkout = await stripe.checkout.sessions.create({
       customer: customerId, mode: "subscription", line_items: [{ price: priceId, quantity: 1 }],
       client_reference_id: companyId,
       metadata: { carrier_developer_company_id: companyId, developer_plan: plan },
       subscription_data: { metadata: { carrier_developer_company_id: companyId, developer_plan: plan } },
       success_url: returnUrl + "?developer_checkout=success", cancel_url: returnUrl + "?developer_checkout=cancelled",
-    });
+    }, { idempotencyKey: "carrier-dev-checkout-" + companyId + "-" + plan + "-" + (previousSessions.data[0]?.id || "initial") });
     return reply({ url: checkout.url }, 200, headers);
   } catch {
     return reply({ error: "Developer billing is temporarily unavailable." }, 502, headers);
@@ -170,6 +177,8 @@ export async function applyCarrierDeveloperStripeSubscription(
   const row = await env.DB.prepare("SELECT * FROM carrier_developer_subscriptions WHERE company_id=? AND stripe_customer_id=?")
     .bind(companyId, customer).first<DevRow>();
   if (!row) return true; // foreign or unexpected developer subscription: do not grant access
+  if (row.stripe_subscription_id && row.stripe_subscription_id !== subscription.id &&
+      ["active", "trialing", "past_due", "unpaid", "incomplete", "paused"].includes(row.status)) return true;
   const item = subscription.items.data[0];
   const plan: DeveloperPlan | null = subscription.items.data.length === 1 && item.quantity === 1
     ? (item.price.id === env.STRIPE_DEVELOPER_STARTER_PRICE_ID ? "starter" :
