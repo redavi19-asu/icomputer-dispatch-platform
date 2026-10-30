@@ -1,5 +1,6 @@
+import { consumeCarrierDeveloperQuota } from './developer-billing';
 // Customer credentials are separate from account sessions and Stripe credentials.
-type Env = { DB: D1Database; ALLOWED_ORIGINS: string };
+type Env = { DB: D1Database; ALLOWED_ORIGINS: string; DEVELOPER_BILLING_ENABLED?: string };
 const enc = new TextEncoder();
 const scopes = ["jobs:read", "jobs:write", "events:read"];
 const operating = ["active", "trialing", "grace_period", "comped"];
@@ -465,6 +466,12 @@ export async function handleDeveloperRequest(
         ...headers,
         "Retry-After": "60",
       });
+    const developerQuota = await consumeCarrierDeveloperQuota(
+      env.DB, credential.company_id, env.DEVELOPER_BILLING_ENABLED === "true",
+    );
+    if (!developerQuota.allowed)
+      return json({ error: "Developer API subscription inactive or monthly allowance exhausted. No overage charge was made." },
+        developerQuota.limit ? 429 : 402, { ...headers, "Retry-After": "3600" });
     await env.DB.prepare("DELETE FROM carrier_api_limits WHERE slot<?")
       .bind(slot - 60)
       .run();
