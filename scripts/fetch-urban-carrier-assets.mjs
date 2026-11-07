@@ -93,7 +93,11 @@ async function download(url) {
     throw new Error(`Asset download failed (${response.status}) for ${url}`);
   }
 
-  return Buffer.from(await response.arrayBuffer());
+  const bytes = Buffer.from(await response.arrayBuffer());
+  if (bytes.length < 4 || bytes.readUInt32LE(0) !== 0x04034b50) {
+    throw new Error(`Asset source returned a non-ZIP response for ${url}. Keep the versioned production assets in public/models/urban-carrier available to offline builds.`);
+  }
+  return bytes;
 }
 
 if (await isCurrent()) {

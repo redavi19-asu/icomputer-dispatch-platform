@@ -2,6 +2,7 @@
 
 import { motion, useReducedMotion } from "framer-motion";
 import Link from "next/link";
+import { SiteFooter } from "@/components/marketing/site-footer";
 import { Fragment, useEffect, useState } from "react";
 import DispatchPreviewMap from "@/components/marketing/dispatch-preview-map";
 import CustomVersionModal from "@/components/marketing/custom-version-modal";
@@ -156,6 +157,7 @@ export default function Home() {
               <a href="#apps" className="hover:text-white">Driver App</a>
               <Link href="/plans" className="hover:text-white">Pricing</Link>
               <Link href="/developers" className="hover:text-white">Developers</Link>
+              <Link href="/workspace/integrations" className="hover:text-white">Integrations</Link>
             </div>
             <div className="hidden items-center gap-2 lg:flex">
               <Link href="/auth?mode=login" className="rounded-xl px-4 py-2 text-sm font-semibold text-white/85 hover:bg-white/10">Log In</Link>
@@ -178,6 +180,7 @@ export default function Home() {
                 <a href="#apps" onClick={() => setMobileMenuOpen(false)} className="rounded-xl px-4 py-3 text-sm font-semibold hover:bg-white/10">Driver App</a>
                 <Link href="/plans" onClick={() => setMobileMenuOpen(false)} className="rounded-xl px-4 py-3 text-sm font-semibold hover:bg-white/10">Pricing</Link>
                 <Link href="/developers" onClick={() => setMobileMenuOpen(false)} className="rounded-xl px-4 py-3 text-sm font-semibold hover:bg-white/10">Developers</Link>
+                <Link href="/workspace/integrations" onClick={() => setMobileMenuOpen(false)} className="rounded-xl px-4 py-3 text-sm font-semibold hover:bg-white/10">Integrations & API keys</Link>
                 <Link href="/auth?mode=login" onClick={() => setMobileMenuOpen(false)} className="rounded-xl px-4 py-3 text-sm font-semibold hover:bg-white/10">Log In</Link>
                 <Link href="/plans" onClick={() => setMobileMenuOpen(false)} className="rounded-xl bg-orange-500 px-4 py-3 text-center text-sm font-bold hover:bg-orange-400">Get Started</Link>
               </div>
@@ -312,7 +315,7 @@ export default function Home() {
         </div>
       </section>
 
-      <footer className="border-t border-white/10 bg-[#041326]"><div className="mx-auto flex max-w-7xl flex-col gap-3 px-6 py-8 text-sm text-sky-100/55 md:flex-row md:items-center md:justify-between"><a href="https://redavi19-asu.github.io/icomuteranythingV3/" className="inline-flex items-center gap-2 font-bold text-white"><img src={URBAN_CARRIER_ICON_DATA_URI} alt="" className="h-8 w-8 rounded-lg object-cover" /> Built by I Computer Anything</a><div className="flex flex-col gap-1 text-xs md:items-end"><p>Urban Carrier OS — Business • Driver • Customer Logistics Software</p><a href="mailto:ryanedavis@gmail.com?subject=Urban%20Carrier%20OS%20Support" className="font-semibold text-sky-200 hover:text-white">Support · ryanedavis@gmail.com</a></div></div></footer>
+      <SiteFooter />
 
       <CustomVersionModal open={customModalOpen} onClose={() => setCustomModalOpen(false)} />
     </main>

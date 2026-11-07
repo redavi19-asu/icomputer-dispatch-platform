@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useState, useSyncExternalStore } from "react";
 import { Crown, LogOut } from "lucide-react";
 import { getStoredSession, logoutSession } from "@/lib/dispatchos-auth";
 import { UrbanCarrierMark } from "@/components/branding/urban-carrier-mark";
@@ -13,6 +13,7 @@ const navItems = [
   { label: "Drivers", href: "/workspace/drivers" },
   { label: "Driver Pay", href: "/workspace/driver-pay" },
   { label: "Invite Driver", href: "/workspace/driver-invite" },
+  { label: "Developer integrations", href: "/workspace/integrations" },
   { label: "Billing", href: "/billing" },
   { label: "Downloads", href: "/download" },
 ] as const;
@@ -25,14 +26,19 @@ const isActivePath = (pathname: string, href: string) => {
 const appBase = () =>
   process.env.NODE_ENV === "production" ? "/icomputer-dispatch-platform" : "";
 
+function subscribeToSession(callback: () => void) {
+  window.addEventListener("storage", callback);
+  return () => window.removeEventListener("storage", callback);
+}
+function platformAdminSnapshot() {
+  try { return getStoredSession()?.user.role === "admin"; }
+  catch { return false; }
+}
+
 export function AppShellNav() {
   const pathname = usePathname();
-  const [isPlatformAdmin, setIsPlatformAdmin] = useState(false);
+  const isPlatformAdmin = useSyncExternalStore(subscribeToSession, platformAdminSnapshot, () => false);
   const [signingOut, setSigningOut] = useState(false);
-
-  useEffect(() => {
-    setIsPlatformAdmin(getStoredSession()?.user.role === "admin");
-  }, []);
 
   const handleLogout = async () => {
     if (signingOut) return;
