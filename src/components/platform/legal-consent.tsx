@@ -1,39 +1,58 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useSyncExternalStore } from "react";
 import { usePathname } from "next/navigation";
 import { UrbanCarrierMark } from "@/components/branding/urban-carrier-mark";
 
 const STORAGE_KEY = "dispatchos-cookie-consent";
 
+export function openCarrierLegalPanel(view: "privacy" | "terms" | "cookies") {
+  window.dispatchEvent(new CustomEvent("carrier:legal", { detail: view }));
+}
+
+function subscribeToConsent(callback: () => void) {
+  window.addEventListener("storage", callback);
+  window.addEventListener("carrier:consent-updated", callback);
+  return () => {
+    window.removeEventListener("storage", callback);
+    window.removeEventListener("carrier:consent-updated", callback);
+  };
+}
+function consentIsMissing() {
+  try { return !window.localStorage.getItem(STORAGE_KEY); }
+  catch { return true; }
+}
+
 type LegalView = "privacy" | "terms" | null;
 
 export function LegalConsent() {
   const pathname = usePathname();
-  const [showCookies, setShowCookies] = useState(false);
+  const missingConsent = useSyncExternalStore(subscribeToConsent, consentIsMissing, () => false);
+  const [cookiePanelOpen, setCookiePanelOpen] = useState(false);
+  const [dismissedThisSession, setDismissedThisSession] = useState(false);
+  const showCookies = cookiePanelOpen || (missingConsent && !dismissedThisSession);
   const [legalView, setLegalView] = useState<LegalView>(null);
-
-  useEffect(() => {
-    try {
-      setShowCookies(!window.localStorage.getItem(STORAGE_KEY));
-    } catch {
-      setShowCookies(true);
-    }
-  }, []);
 
   const choose = (value: "accepted" | "essential-only") => {
     try {
       window.localStorage.setItem(STORAGE_KEY, value);
     } catch {}
-    setShowCookies(false);
+    setDismissedThisSession(true);
+    setCookiePanelOpen(false);
+    window.dispatchEvent(new Event("carrier:consent-updated"));
   };
 
-  const reopenCookies = () => {
-    try {
-      window.localStorage.removeItem(STORAGE_KEY);
-    } catch {}
-    setShowCookies(true);
-  };
+  const reopenCookies = () => setCookiePanelOpen(true);
+
+  useEffect(() => {
+    const open = (event: Event) => {
+      const view = (event as CustomEvent).detail;
+      if (view === "privacy" || view === "terms") setLegalView(view);
+      if (view === "cookies") setCookiePanelOpen(true);
+    };
+    window.addEventListener("carrier:legal", open);
+    return () => window.removeEventListener("carrier:legal", open);
+  }, []);
 
   const isPrivacy = legalView === "privacy";
 
@@ -42,7 +61,7 @@ export function LegalConsent() {
   return (
     <>
       {showCookies && (
-        <div className="fixed inset-x-4 bottom-4 z-[9999] mx-auto flex max-w-5xl flex-wrap items-center justify-between gap-4 rounded-2xl border border-sky-100 bg-white px-5 py-4 text-slate-900 shadow-[0_18px_55px_rgba(6,26,51,.16)] backdrop-blur-xl">
+        <section aria-label="Privacy and cookie preferences" className="fixed inset-x-4 bottom-4 z-[9999] mx-auto flex max-h-[calc(100dvh-2rem)] max-w-5xl flex-wrap items-center justify-between gap-4 overflow-y-auto rounded-2xl border border-sky-100 bg-white px-5 py-4 text-slate-900 shadow-[0_18px_55px_rgba(6,26,51,.16)] backdrop-blur-xl">
           <div className="flex max-w-3xl items-start gap-3">
             <UrbanCarrierMark href="" size="sm" />
             <div><p className="text-sm font-semibold text-[#061a33]">Urban Carrier OS privacy & cookies</p>
@@ -58,18 +77,19 @@ export function LegalConsent() {
               Accept
             </button>
           </div>
-        </div>
+          <nav aria-label="Cookie notice legal links" className="flex w-full flex-wrap gap-4 border-t border-sky-100 pt-3 text-xs font-semibold">
+        <button type="button" onClick={() => setLegalView("privacy")} className="rounded-lg px-2 py-2 text-[#08274f] underline underline-offset-4 hover:bg-sky-50">Privacy</button>
+        <button type="button" onClick={() => setLegalView("terms")} className="rounded-lg px-2 py-2 text-[#08274f] underline underline-offset-4 hover:bg-sky-50">Terms</button>
+        <button type="button" onClick={reopenCookies} className="rounded-lg px-2 py-2 text-[#08274f] underline underline-offset-4 hover:bg-sky-50">Cookies</button>
+          </nav>
+        </section>
       )}
 
-      <div className={`fixed right-4 z-[9998] flex flex-wrap justify-end gap-2 text-[11px] ${showCookies ? "bottom-32 sm:bottom-24" : "bottom-4"}`}>
-        <button type="button" onClick={() => setLegalView("privacy")} className="rounded-lg border border-sky-200 bg-white/95 px-3 py-2 text-[#08274f] shadow-lg backdrop-blur transition hover:border-orange-300 hover:bg-orange-50 hover:text-orange-700">Privacy</button>
-        <button type="button" onClick={() => setLegalView("terms")} className="rounded-lg border border-sky-200 bg-white/95 px-3 py-2 text-[#08274f] shadow-lg backdrop-blur transition hover:border-orange-300 hover:bg-orange-50 hover:text-orange-700">Terms</button>
-        <button type="button" onClick={reopenCookies} className="rounded-lg border border-sky-200 bg-white/95 px-3 py-2 text-[#08274f] shadow-lg backdrop-blur transition hover:border-orange-300 hover:bg-orange-50 hover:text-orange-700">Cookies</button>
-      </div>
+      {!showCookies && <button type="button" onClick={() => setCookiePanelOpen(true)} className="fixed bottom-4 left-4 z-[9998] rounded-xl border border-sky-200 bg-white px-4 py-3 text-xs font-semibold text-[#08274f] shadow-lg">Privacy & cookie settings</button>}
 
       {legalView && (
         <div className="fixed inset-0 z-[10000] grid place-items-center bg-black/75 p-5 backdrop-blur-sm" onClick={() => setLegalView(null)}>
-          <div className="max-h-[80vh] w-full max-w-2xl overflow-y-auto rounded-2xl border border-sky-200 bg-white p-6 text-slate-900 shadow-2xl" onClick={(event) => event.stopPropagation()}>
+          <div role="dialog" aria-modal="true" aria-label={isPrivacy ? "Privacy notice" : "Terms and disclaimer"} className="max-h-[80vh] w-full max-w-2xl overflow-y-auto rounded-2xl border border-sky-200 bg-white p-6 text-slate-900 shadow-2xl" onClick={(event) => event.stopPropagation()}>
             <h2 className="text-xl font-bold">{isPrivacy ? "Urban Carrier OS Privacy Notice" : "Urban Carrier OS Terms & Disclaimer"}</h2>
             {isPrivacy ? (
               <div className="mt-4 space-y-4 text-sm leading-6 text-slate-600">

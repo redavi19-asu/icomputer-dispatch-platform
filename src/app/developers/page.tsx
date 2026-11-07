@@ -1,9 +1,19 @@
 import Link from "next/link";
+import { SiteFooter } from "@/components/marketing/site-footer";
 export const metadata = { title: "Developers | Urban Carrier" };
 export default function Developers() {
   return (
     <main className="min-h-screen bg-[#061a33] text-white">
-      <article className="mx-auto max-w-4xl space-y-6 p-8">
+      <header className="border-b border-white/15 bg-[#041326]">
+        <nav aria-label="Developer navigation" className="mx-auto flex max-w-6xl flex-wrap items-center gap-6 px-6 py-5 text-sm">
+          <Link href="/" className="mr-auto font-bold text-white">Urban Carrier OS</Link>
+          <Link href="/plans" className="text-sky-100">Plans</Link>
+          <Link href="/download" className="text-sky-100">Apps</Link>
+          <Link href="/developers" aria-current="page" className="text-orange-200">Developers</Link>
+          <Link href="/auth?mode=login" className="text-sky-100">Log in</Link>
+        </nav>
+      </header>
+      <article id="integrations" className="mx-auto max-w-4xl space-y-6 px-6 py-12 sm:px-8">
         <Link href="/">Urban Carrier</Link>
         <h1 className="text-4xl font-bold">Connect your dispatch workflow</h1>
         <p>
@@ -11,10 +21,10 @@ export default function Developers() {
           workspace. Use private server-side keys to create delivery requests,
           read job status, and receive signed notifications.
         </p>
-        <Link className="text-sky-300 underline" href="/workspace/integrations">
+        <Link className="inline-flex rounded-xl bg-orange-500 px-5 py-3 font-bold text-white hover:bg-orange-400" href="/workspace/integrations">
           Manage keys and webhooks →
         </Link>
-        <h2 className="text-2xl">Private keys</h2>
+        <h2 id="api-guide" className="text-2xl font-bold">Private keys</h2>
         <p>
           Owners and admins can create company-scoped keys with jobs:read,
           jobs:write, or events:read permission. Keys expire after 1–365 days
@@ -97,6 +107,7 @@ export default function Developers() {
           billing is not enabled.
         </p>
       </article>
+      <SiteFooter />
     </main>
   );
 }

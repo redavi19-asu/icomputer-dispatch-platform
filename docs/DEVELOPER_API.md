@@ -21,3 +21,11 @@ The backend idempotently creates carrier_api_keys, carrier_api_limits, carrier_a
 Deploy both the Worker and static website for management links to function. The Worker build includes this module in the router before legacy operational routing. Normal job creation/update also records scoped notifications. Local D1/SQLite tests cover tenant isolation, scopes, subscription gating, expiry/revocation, one-time secret visibility, concurrent idempotency, verification token creation, event polling, rate limiting, webhook signature checks, and private DNS rejection. Actual receiver delivery and production customer journeys remain separate from mocked-network verification.
 
 Live secret-name inspection confirmed neither STRIPE_SECRET_KEY nor STRIPE_WEBHOOK_SECRET nor the Stripe price/portal bindings are configured in the Carrier Worker. This change does not enable live checkout. Customer API access is included with existing operating subscription access; no new API price was invented.
+
+## Website navigation and reproducible assets (November 7, 2026)
+
+The public home menu, mobile menu, developer guide and footer now expose the existing developer/integration routes. The company navigation includes Developer integrations; managing keys still requires the existing authenticated company subscription/role checks.
+
+Privacy, Terms and Cookies are contained inside the consent card, with a persistent settings control and footer actions to reopen the existing notices. Existing consent values are preserved until a new choice is made.
+
+Prior website builds failed because the third-party asset server returned a non-ZIP response. The exact 17 previously deployed Kenney CC0 models, textures and original license files are now versioned in public/models/urban-carrier, with provenance in README.txt. Header/length checks verified recovered GLBs, PNG signatures and license text. The preparation script uses those files without a network download and reports non-ZIP replacement responses explicitly.

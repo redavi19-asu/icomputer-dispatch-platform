@@ -1,5 +1,6 @@
 "use client";
 import Link from "next/link";
+import { AppShellNav } from "@/components/platform/app-shell-nav";
 import { useEffect, useState } from "react";
 import {
   authRequest,
@@ -51,8 +52,9 @@ export default function Integrations() {
     }
   }
   return (
-    <main className="min-h-screen bg-[#061a33] p-8 text-white">
-      <section className="mx-auto max-w-4xl space-y-6">
+    <main className="min-h-screen bg-[#061a33] text-white">
+      <AppShellNav />
+      <section className="mx-auto max-w-4xl space-y-6 p-6 sm:p-8">
         <Link href="/workspace">← Workspace</Link>
         <h1 className="text-3xl font-bold">Developer integrations</h1>
         <Link href="/developers" className="text-sky-300 underline">
