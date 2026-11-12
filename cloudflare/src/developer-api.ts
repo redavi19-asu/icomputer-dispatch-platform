@@ -1,5 +1,8 @@
 // Customer credentials are separate from account sessions and Stripe credentials.
-type Env = { DB: D1Database; ALLOWED_ORIGINS: string };
+import {apiRevenueDatabase} from './api-revenue-database';
+import {apiRevenueRequired,apiRevenueStatus,withApiUsage} from './api-revenue';
+import {apiPlanConfiguration,createApiCheckout,cancelApiRenewal,type ApiRevenueEnv} from './api-revenue-stripe';
+type Env = ApiRevenueEnv;
 const enc = new TextEncoder();
 const scopes = ["jobs:read", "jobs:write", "events:read"];
 const operating = ["active", "trialing", "grace_period", "comped"];
@@ -149,7 +152,9 @@ export async function deliverCarrierEvent(
   db: D1Database,
   companyId: string,
   item: unknown,
+  requireApiPlan=false,
 ) {
+  if(requireApiPlan&&!(await apiRevenueStatus(apiRevenueDatabase(db),companyId,true)).entitled)return [];
   const hooks = await db
     .prepare(
       "SELECT id,url,secret FROM carrier_webhooks WHERE company_id=? AND active=1 LIMIT 10",
@@ -281,7 +286,19 @@ export async function handleDeveloperRequest(
           headers,
         );
       const company = account.company_id;
+      if(path==='/api/integrations/api-plan'){
+        if(request.method==='GET'){const companyInfo=await env.DB.prepare('SELECT name FROM companies WHERE id=?').bind(company).first<{name:string}>();return json({companyName:companyInfo?.name||'Carrier company',...await apiRevenueStatus(apiRevenueDatabase(env.DB),company,apiRevenueRequired(env.API_PAID_ACCESS_REQUIRED)),pricing:apiPlanConfiguration(env)},200,headers);}
+        if(request.method!=='POST')return json({error:'Method not allowed.'},405,headers);
+        if(!env.ALLOWED_ORIGINS.split(',').map(v=>v.trim()).includes(origin))return json({error:'Open API billing from Carrier.'},403,headers);
+        const body=await readBody(request);
+        if(body.action==='CANCEL_API_RENEWAL'){if(body.confirmation!=='CANCEL API')return json({error:'Confirm cancellation of API renewal.'},400,headers);return json(await cancelApiRenewal(company,env),200,headers);}
+        if(body.action!=='CHECKOUT')return json({error:'Choose an API billing action.'},400,headers);
+        if(!apiPlanConfiguration(env).ready||!env.BILLING_APP_URL)return json({error:'Separate API pricing and allowance are not configured yet.'},503,headers);
+        const name=await env.DB.prepare('SELECT name FROM companies WHERE id=?').bind(company).first<{name:string}>();
+        return json({checkoutUrl:await createApiCheckout({organizationId:company,organizationName:name?.name||'Carrier company',email:'',origin:env.BILLING_APP_URL.replace(/\/$/,'')},env)},200,headers);
+      }
       if (path === "/api/integrations/keys") {
+        if(request.method==='POST'&&apiRevenueRequired(env.API_PAID_ACCESS_REQUIRED)&&!(await apiRevenueStatus(apiRevenueDatabase(env.DB),company,true)).entitled)return json({error:'A separate active API subscription is required before creating keys.',code:'API_SUBSCRIPTION_REQUIRED'},402,headers);
         if (request.method === "GET") {
           const keys = await env.DB.prepare(
             "SELECT id,name,prefix,scopes,expires_at,active,created_at,last_used_at FROM carrier_api_keys WHERE company_id=? ORDER BY created_at DESC",
@@ -359,6 +376,7 @@ export async function handleDeveloperRequest(
         }
       }
       if (path === "/api/integrations/webhooks") {
+        if(request.method==='POST'&&apiRevenueRequired(env.API_PAID_ACCESS_REQUIRED)&&!(await apiRevenueStatus(apiRevenueDatabase(env.DB),company,true)).entitled)return json({error:'An active separate API plan is required for webhooks.',code:'API_SUBSCRIPTION_REQUIRED'},402,headers);
         if (request.method === "GET") {
           const r = await env.DB.prepare(
             "SELECT id,url,active,last_status,last_delivery_at FROM carrier_webhooks WHERE company_id=?",
@@ -385,7 +403,7 @@ export async function handleDeveloperRequest(
               { test: true },
             );
             return json(
-              { deliveries: await deliverCarrierEvent(env.DB, company, item) },
+              { deliveries: await deliverCarrierEvent(env.DB, company, item,apiRevenueRequired(env.API_PAID_ACCESS_REQUIRED)) },
               200,
               headers,
             );
@@ -473,6 +491,7 @@ export async function handleDeveloperRequest(
     )
       .bind(credential.id)
       .run();
+    return await withApiUsage(apiRevenueDatabase(env.DB),credential.company_id,apiRevenueRequired(env.API_PAID_ACCESS_REQUIRED),async()=>{
     if (path === "/api/v1/jobs" && request.method === "GET") {
       const cursor = url.searchParams.get("after") || "";
       const result = await env.DB.prepare(
@@ -653,7 +672,7 @@ export async function handleDeveloperRequest(
             event: event.event,
             data: JSON.parse(event.data),
             createdAt: event.created_at,
-          });
+          },apiRevenueRequired(env.API_PAID_ACCESS_REQUIRED));
       }
       const job = await env.DB.prepare(
         "SELECT id,status FROM jobs WHERE id=? AND company_id=?",
@@ -676,6 +695,7 @@ export async function handleDeveloperRequest(
       );
     }
     return json({ error: "Endpoint or method not supported." }, 404, headers);
+    });
   } catch (error) {
     const invalid =
       error instanceof SyntaxError ||

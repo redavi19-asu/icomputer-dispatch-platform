@@ -1,6 +1,7 @@
-import Stripe from "stripe";
+import Stripe from 'stripe';
+import {handleApiRevenueEvent} from './api-revenue-stripe';
 
-type BillingEnv = Pick<CarrierWorkerEnv, "DB" | "ALLOWED_ORIGINS"> & Partial<Pick<CarrierWorkerEnv,
+type BillingEnv = Partial<Pick<CarrierWorkerEnv,"API_PAID_ACCESS_REQUIRED"|"STRIPE_API_PRICE_ID"|"API_MONTHLY_AMOUNT_CENTS"|"API_MONTHLY_REQUEST_ALLOWANCE">> & Pick<CarrierWorkerEnv, "DB" | "ALLOWED_ORIGINS"> & Partial<Pick<CarrierWorkerEnv,
   "BILLING_APP_URL" | "STRIPE_SECRET_KEY" | "STRIPE_WEBHOOK_SECRET" | "STRIPE_BASIC_PRICE_ID" |
   "STRIPE_BUSINESS_PRICE_ID" | "STRIPE_PORTAL_CONFIGURATION_ID">>;
 type BillingRow = { company_id: string; plan: string; status: string; stripe_customer_id: string | null; stripe_subscription_id: string | null };
@@ -44,6 +45,7 @@ async function webhook(request: Request, env: BillingEnv, stripe: Stripe, cors: 
   if (event.livemode !== env.STRIPE_SECRET_KEY!.includes("_live_")) return json({ error: "Wrong payment environment." }, 400, cors);
   await env.DB.prepare("CREATE TABLE IF NOT EXISTS carrier_stripe_events (id TEXT PRIMARY KEY, processed_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP)").run();
   if (await env.DB.prepare("SELECT id FROM carrier_stripe_events WHERE id=?").bind(event.id).first()) return json({ received: true }, 200, cors);
+  if(await handleApiRevenueEvent(event,env)){await env.DB.prepare('INSERT OR IGNORE INTO carrier_stripe_events(id) VALUES (?)').bind(event.id).run();return json({received:true},200,cors);}
   let subscriptionId: string | undefined;
   if (event.type === "checkout.session.completed" || event.type === "checkout.session.async_payment_succeeded") {
     const session = event.data.object;
@@ -121,9 +123,9 @@ export async function handleCarrierBilling(request: Request, env: BillingEnv, ov
       customerId = (await env.DB.prepare("SELECT stripe_customer_id FROM subscriptions WHERE company_id=?").bind(body.companyId).first<{ stripe_customer_id: string }>())!.stripe_customer_id;
     }
     const existing = await stripe.subscriptions.list({ customer: customerId, status: "all", limit: 100 });
-    if (existing.data.some(subscription => blockedDuplicates.has(subscription.status))) return json({ error: "A subscription already exists. Use Manage Billing to change it." }, 409, cors);
+    if (existing.data.some(subscription => subscription.items.data.some(item=>[env.STRIPE_BASIC_PRICE_ID,env.STRIPE_BUSINESS_PRICE_ID].includes(item.price.id)) && blockedDuplicates.has(subscription.status))) return json({ error: "A subscription already exists. Use Manage Billing to change it." }, 409, cors);
     const checkouts = await stripe.checkout.sessions.list({ customer: customerId, limit: 100 });
-    const companyCheckouts = checkouts.data.filter(session => session.mode === "subscription" && session.client_reference_id === body.companyId);
+    const companyCheckouts = checkouts.data.filter(session => session.mode === "subscription" && session.client_reference_id === body.companyId && session.metadata?.product!=='urban-carrier-api');
     const open = companyCheckouts.find(session => session.status === "open");
     if (open) {
       if (open.metadata?.carrier_plan !== body.plan || !open.url) return json({ error: "An unfinished checkout already exists. Finish it or wait for it to expire before choosing another plan." }, 409, cors);
